@@ -1,20 +1,24 @@
 import discord
 import logging
-import sqlite3
 import os
+import psycopg2
 from discord.ext import commands
 
 """
-Remember to finish your Heroku setup. You're on the git init part for the console.
-https://www.youtube.com/watch?v=BPvg9bndP1U 8:35
+Looks like we're using Heroku's provided addon PostgresSQL: https://devcenter.heroku.com/articles/heroku-postgresql
 
-#1 priority: figure out what sql database you're using - Heroku provides a postgre
-database but also has extensions for things like MySql so look into that.
+Heroku also has addons for things like MySQL so check those out - but main concern is that Heroku might not be
+as generous with speed or size as with its PostgresSQL database
+
+Heroku also has support with its Postgres "heroku pg" commands
+
+Too stingy with Postgres. Maybe look for different datastores. If there's no RAM... would it be slow?
+Make a difference? Would I have to manually cache some data in dictionaries?
 """
 
 DEFAULT_PREFIX = "."
 TOKEN = os.environ['TOKEN']
-DATABASE_PATH = 'D:/OneDrive/Documents/Discord Bots/Data Storage/Headmaster.db'
+DATABASE_URL = os.environ("DATABASE_URL")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
@@ -23,27 +27,28 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-"""
-new_database = not os.path.exists(DATABASE_PATH)
-connection = None
-try:
-    connection = sqlite3.connect()
-except Exception as e:
-    print(e)
-connection.row_factory = sqlite3.Row
+
+connection = psycopg2.connect(DATABASE_URL, sslmode='require')
 cursor = connection.cursor()
 
-if new_database:
-    pass
+
+def generate_tables():
+    print("Creating new tables")
+    statements = {
+        """
+        CREATE TABLE IF NOT EXISTS guilds(
+            
+        )
+        """
+    }
 # TODO - Generate schema
-"""
 
 
 def get_prefix(client, message):
     return DEFAULT_PREFIX
 
 
-client = commands.Bot(command_prefix=get_prefix, case_insensitive=True, help_command=None)
+client = commands.Bot(command_prefix=commands.when_mentioned_or(DEFAULT_PREFIX), case_insensitive=True, help_command=None)
 
 
 @client.event
