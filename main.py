@@ -87,7 +87,7 @@ async def on_ready():
             await dm.send("metable")
             await asyncio.sleep(2)
 
-    await run_at(datetime.datetime(2020, 4, 9, 17, 0, 0, 0, pytz.UTC), spam())
+    # await run_at(datetime.datetime(2020, 4, 9, 17, 0, 0, 0, pytz.UTC), spam())
 
 
 @client.event
