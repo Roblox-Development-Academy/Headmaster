@@ -134,7 +134,7 @@ async def _help(ctx):
                                       "for teaching and learning.*")
 
     embed.set_footer(text="Made by JL for Roblox Development Academy",
-                     icon_url="https://cdn.discordapp.com/avatars/260608867292020737/2d7b57f730ada4443b3921fbb75f324e"
+                     icon_url="https://cdn.discordapp.com/avatars/260608867292020737/6e171a1f5883419ac89a52695c659ba5"
                               ".png?size=2048")
 
     general_commands = "**help** - Shows this message\n" \
