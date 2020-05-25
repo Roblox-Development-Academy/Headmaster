@@ -91,10 +91,14 @@ async def on_ready():
 
     # await run_at(datetime.datetime(2020, 4, 9, 17, 0, 0, 0, pytz.UTC), spam())
 
+tracked_channels = []
+
 
 @client.event
 async def on_message(msg):
     await client.process_commands(msg)
+    if msg.channel in tracked_channels:
+        await msg.add_reaction('\U0001f983')
     pass
 
 
@@ -186,6 +190,17 @@ entries = [
 
 loop = asyncio.get_event_loop()
 
+@client.command()
+async def track(ctx, channels: commands.Greedy[discord.TextChannel] = tuple()):
+    global tracked_channels
+    tracked_channels = channels
+
+@client.event
+async def on_reaction_add(reaction, user):
+    if reaction.message.channel in tracked_channels and reaction.emoji == '\U0001f983' and user != client.user:
+        await reaction.remove(user)
+        await user.create_dm()
+        await user.dm_channel.send(embed=discord.Embed(title="HAPPY ONE DAY BIRTHDAY, JACOB!! :partying_face:", colour=0xE94545, description=f"Happy birthday to you.\nHappy birthday to you.\nHappy birthday dear Jacob.\nHappy birthday to you.\n:turkey:"))
 
 async def login():
     await entries[0].client.login(TOKEN)
