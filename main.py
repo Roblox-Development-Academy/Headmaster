@@ -229,7 +229,7 @@ async def party(ctx):
     await dm.send(embed=discord.Embed(colour=0xb1a3ff, description="Who is this party for?"))
 
     def message_check(message):
-        return (message.content != "") and message.author == ctx.author
+        return (message.content != "") and message.author == ctx.author and message.channel == dm
     person = await client.wait_for('message', check=message_check)
     if type == 'funeral' and any(alive in person.content.lower() for alive in not_dead):
         await dm.send(embed=discord.Embed(colour=0x9c0000, description="That person is still alive. :angry:"))
