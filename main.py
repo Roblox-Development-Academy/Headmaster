@@ -202,6 +202,47 @@ async def on_reaction_add(reaction, user):
         await user.create_dm()
         await user.dm_channel.send(embed=discord.Embed(title="HAPPY ONE DAY BIRTHDAY, JACOB!! :partying_face:", colour=0xE94545, description=f"Happy birthday to you.\nHappy birthday to you.\nHappy birthday dear Jacob.\nHappy birthday to you.\n:turkey:"))
 
+
+not_dead = ['jl', 'jiawei', 'weiwei']
+
+@client.command()
+async def party(ctx):
+    await ctx.author.create_dm()
+    embed = discord.Embed(title="Host a Party :partying_face:", colour=0xb1a3ff, description="Do you want to hold a funeral or a birthday party?")
+    embed.add_field(name='Funeral', value="Please react with :skull: if you would like to host a funeral.")
+    embed.add_field(name='Birthday Party', value="Please react with :birthday: if you would like to host a birthday party.")
+
+    dm = ctx.author.dm_channel
+    party_type = await dm.send(embed=embed)
+    await party_type.add_reaction('\U0001f480')
+    await party_type.add_reaction('\U0001f382')
+
+    type = None
+    def check(reaction, user):
+        return (reaction.emoji == '\U0001f480' or '\U0001f382') and user == ctx.author and reaction.message == party_type
+
+    reaction, user = await client.wait_for('reaction_add', check=check)
+    if reaction.emoji == '\U0001f480':
+        type = 'funeral'
+    elif reaction.emoji == '\U0001f382':
+        type = 'birthday party'
+    await dm.send(embed=discord.Embed(colour=0xb1a3ff, description="Who is this party for?"))
+
+    def message_check(message):
+        return (message.content != "") and message.author == ctx.author
+    person = await client.wait_for('message', check=message_check)
+    if type == 'funeral' and any(alive in person.content.lower() for alive in not_dead):
+        await dm.send(embed=discord.Embed(colour=0x9c0000, description="That person is still alive. :angry:"))
+        return
+    for guild in client.guilds:
+        for channel in guild.text_channels:
+            try:
+                await channel.send(embed=discord.Embed(title=f"We are holding a {type} for {person.content}! :partying_face:", colour=0xb1a3ff))
+            except:
+                continue
+    await dm.send(embed=discord.Embed(title=f"We are holding a {type} for {person.content}! :partying_face:", colour=0xb1a3ff))
+
+
 async def login():
     await entries[0].client.login(TOKEN)
     await entries[1].client.login(JANITOR_TOKEN)
