@@ -5,6 +5,12 @@ global_placeholders:
     error: "0xf62323"
     success: "0x5efb32"
     wizard: "0x00f6ff"
+  emoji:
+    confirm: ":white_check_mark:"
+    gotcha: ":thumbs_up:"
+    error: ":crying_cat_face:"
+    date: ":calendar:"
+    timer: ":timer:"
   cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
   respond_prompt: "Please respond within 5 minutes"
 
