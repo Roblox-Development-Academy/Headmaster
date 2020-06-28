@@ -115,7 +115,7 @@ async def globally_ignore_banned(ctx):
 
 
 # help is a default command - could be overridden if it looks ugly
-@client.command(aliases=["help", "botcommands", "commands"])
+@client.command(aliases=["help", "cmds", "commands"])
 async def _help(ctx):
     await lang.get('help').send(ctx)
 
