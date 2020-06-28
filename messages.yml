@@ -22,10 +22,10 @@ messages:
         color: "%color.info%"
         description: |
           *Custom bot of [**Roblox Development Academy**](https://discord.gg/NxuhkqH)*
-          *Dedicated tools for teaching and learning.*
+          *Dedicated to providing a perfect environment for teaching and learning.*
         footer:
           text: "Made by JL for Roblox Development Academy"
-          icon_url: "https://cdn.discordapp.com/avatars/260608867292020737/2d7b57f730ada4443b3921fbb75f324e.png?size=2048"
+          icon_url: "https://cdn.discordapp.com/avatars/260608867292020737/6e171a1f5883419ac89a52695c659ba5.webp?size=256"
         fields:
           - name: "General Commands"
             inline: false
@@ -33,6 +33,7 @@ messages:
               **help** - Shows this message
               **profile** - View someone's profile
               **getprefix** - Show the server command prefix
+              **hw** - Create, submit, and manage assignments
           - name: "Teacher Commands"
             inline: false
             value: |
