@@ -53,8 +53,6 @@ messages:
               **report** - Report a message with inappropriate contents
               **bookmark** - Bookmark a message for later reference
               **submit_hw** - Submit an assignment to the message author
-
-# Error messages:
-errors:
-  prompt_timeout: "The prompt has timed out"
-  prompt_cancel: "The prompt was cancelled"
+  error:
+    prompt_timeout: "The prompt has timed out"
+    prompt_cancel: "The prompt was cancelled"

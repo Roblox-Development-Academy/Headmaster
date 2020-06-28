@@ -189,7 +189,6 @@ class LangManager:
             config_dict = yaml.load(f, Loader=yaml.FullLoader)
             LangManager.__index_strings(config_dict['global_placeholders'], self.placeholders)
             index_messages(config_dict['messages'])
-            index_messages(config_dict['errors'])
 
     def get(self, index: str):
         node = self.nodes.get(index)

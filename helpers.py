@@ -122,6 +122,6 @@ def retrieve_assignments(user_id) -> tuple:
     """
     Retrieves all assignments assigned by the specified user
 
-    :param userId: The id of the specified user
+    :param user_id: The id of the specified user
     :return: A tuple of tuples with assignment names
     """
