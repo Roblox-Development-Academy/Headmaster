@@ -155,6 +155,16 @@ class LangManager:
     def __init__(self, yaml_file):
         self.nodes = {}
         self.placeholders = {}
+        self.file = yaml_file
+
+        self.load()
+
+    def load(self, yaml_file=None):
+        if not yaml_file:
+            yaml_file = self.file
+        self.nodes.clear()
+        self.placeholders.clear()
+        self.file = yaml_file
 
         def globally_replace(config):
             for key, value in (config.items() if isinstance(config, dict) else enumerate(config)):
