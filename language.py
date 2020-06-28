@@ -74,10 +74,10 @@ class MessageNode:
         return cls(**serialized)
 
     @staticmethod
-    def __replace(text, **kwargs):
+    def __replace(text, placeholders):
         if not isinstance(text, str):
             return text
-        for key, value in kwargs.items():
+        for key, value in placeholders.items():
             text = text.replace(f"%{key}%", value)
         return text
 
@@ -87,7 +87,7 @@ class MessageNode:
         clone = copy.deepcopy(self)
         content = clone.args.get('content')
         if content:
-            clone.args['content'] = MessageNode.__replace(content, **kwargs)
+            clone.args['content'] = MessageNode.__replace(content, kwargs)
         embed: discord.Embed = clone.args.get('embed')
         if embed:
             embed.title = MessageNode.__replace(embed.title, kwargs)
@@ -113,6 +113,7 @@ class MessageNode:
         try:
             return await to.send(**self.replace(**placeholders).args)
         except AttributeError:
+            print("MessageNode attribute error")
             for to_message in to:
                 return await to_message.send(**self.replace(**placeholders).args)
 
@@ -128,7 +129,13 @@ class MessageListNode:
 
     @classmethod
     def from_str(cls, serialized: str):
-        return cls(MessageNode.from_str(str))
+        return cls(MessageNode.from_str(serialized))
+
+    async def send(self, *args, **kwargs):
+        results = []
+        for node in self.nodes:
+            results.append(await node.send(*args, **kwargs))
+        return results
 
 
 class LangManager:

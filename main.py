@@ -117,45 +117,7 @@ async def globally_ignore_banned(ctx):
 # help is a default command - could be overridden if it looks ugly
 @client.command(aliases=["help", "botcommands", "commands"])
 async def _help(ctx):
-    embed = discord.Embed(title="Headmaster - Commands", colour=EMBED_COLORS["info"],
-                          description="*Custom bot of [**Roblox Development Academy**]("
-                                      "https://discord.gg/NxuhkqH)*\n*Dedicated to providing a perfect environment "
-                                      "for teaching and learning.*")
-
-    embed.set_footer(text="Made by JL for Roblox Development Academy",
-                     icon_url="https://cdn.discordapp.com/avatars/260608867292020737/2d7b57f730ada4443b3921fbb75f324e"
-                              ".png?size=2048")
-
-    general_commands = "**help** - Shows this message\n" \
-                       "**profile** - View someone's profile\n" \
-                       "**report** - Report a message with inappropriate contents\n" \
-                       "**bookmark** - Bookmark a message for later reference"
-
-    teacher_commands = "**apply** - Apply for teacher role\n" \
-                       "**class** - Create a new class"
-
-    homework_commands = "*Give students assignments to complete and a solution to check afterwards.*\n\n" \
-                        "**hw** - View your own or others' created assignments\n" \
-                        "**hw submit** - For students; submit an assignment\n" \
-                        "**hw assign** - For teachers and tutors; create an assignment and a solution"
-
-    admin_commands = "**getprefix** - Show the server command prefix\n" \
-                     "**setprefix** - Set the server command prefix\n" \
-                     "**ignore** - Choose channels for the bot to ignore"
-
-    reaction_commands = "*React to a message with one of these emojis*\n\n" \
-                        "**profile** - View the message author's profile\n" \
-                        "**report** - Report a message with inappropriate contents\n" \
-                        "**bookmark** - Bookmark a message for later reference\n" \
-                        "**submit_hw** - Submit an assignment to the message author"
-
-    embed.add_field(name="General Commands", value=general_commands)
-    embed.add_field(name="Teacher Commands", value=teacher_commands, inline=False)
-    embed.add_field(name="Homework Commands", value=homework_commands, inline=False)
-    embed.add_field(name='Administrator Commands', value=admin_commands, inline=False)
-    embed.add_field(name='Reaction Commands', value=reaction_commands, inline=False)
-
-    await ctx.send(embed=embed)
+    await lang.get('help').send(ctx)
 
 
 @client.command(name="reverse")

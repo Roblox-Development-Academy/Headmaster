@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 import database
-import language
+from language import LangManager
 
 DEFAULT_PREFIX = "."
 TOKEN = os.environ['TOKEN']
@@ -24,7 +24,7 @@ EMOJIS = {
     'time': ":timer:"
 }
 
-lang = language.LangManager('messages.yml')
+lang = LangManager('messages.yml')
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')

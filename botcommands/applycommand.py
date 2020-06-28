@@ -14,7 +14,7 @@ async def apply(ctx):
                                                "    - Have advanced knowledge about the subject you're teaching")
     message = await ctx.send(embed=embed)
     confirm_emoji = EMOJIS['confirm']
-    message.add_reaction(f"\{confirm_emoji}")
+    message.add_reaction(f"{confirm_emoji}")
 
     _, reaction = client.wait_for("reaction_add")
     pass

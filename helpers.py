@@ -60,6 +60,7 @@ for tz_descr in (tz_spec.split() for tz_spec in _tz_string.split('\n')):
 
 tz_data = dict([(pytz.timezone(x).localize(datetime.now()).tzname(), pytz.timezone(x)) for x in pytz.all_timezones])
 
+
 def convert_datetime(date: str) -> datetime:
     # TODO - Something wrong here! EDT and EST are different and they leave so much room for error because EDT is
     #  with daylight savings
@@ -117,7 +118,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User, *args, prompt
     return msg
 
 
-def retrieve_assignments(userId) -> tuple:
+def retrieve_assignments(user_id) -> tuple:
     """
     Retrieves all assignments assigned by the specified user
 

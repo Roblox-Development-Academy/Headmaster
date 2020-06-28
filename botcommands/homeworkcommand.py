@@ -43,14 +43,14 @@ async def __assign(ctx, name=None):
                                       "student looking for assignment information. You can attach files and edit your "
                                       "description message freely." + helpers.message['cancel_prompt'])
     embed.set_footer(text=helpers.message['respond_prompt'])
-    descriptionId = (await helpers.prompt(dm, ctx.author, embed=embed)).id
+    description_id = (await helpers.prompt(dm, ctx.author, embed=embed)).id
 
     embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
                           description="**Write the solution to your assignment.**\n\nThis will be shown to any student "
                                       "looking for assignment information. You can attach files and edit your "
                                       "description message freely." + helpers.message['cancel_prompt'])
     embed.set_footer(text=helpers.message['respond_prompt'])
-    solutionId = (await helpers.prompt(dm, ctx.author, embed=embed)).id
+    solution_id = (await helpers.prompt(dm, ctx.author, embed=embed)).id
 
     embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
                           description="**When do you want the answer to be shown to submitters?**\n\nThe solution "

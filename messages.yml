@@ -22,19 +22,23 @@ messages:
           icon_url: "https://cdn.discordapp.com/avatars/260608867292020737/2d7b57f730ada4443b3921fbb75f324e.png?size=2048"
         fields:
           - name: "General Commands"
+            inline: false
             value: |
               **help** - Shows this message
               **profile** - View someone's profile
               **getprefix** - Show the server command prefix
           - name: "Teacher Commands"
+            inline: false
             value: |
               **apply** - Apply for teacher role
               **class** - Create a new class
           - name: "Admin Commands"
+            inline: false
             value: |
               **setprefix** - Set the server command prefix
               **ignore** - Choose channels for the bot to ignore
           - name: "Reaction Commands"
+            inline: false
             value: |
               *React to a message with one of these emojis*
 
