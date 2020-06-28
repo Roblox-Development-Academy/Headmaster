@@ -1,0 +1,6 @@
+PyYAML
+python-dateutil
+python-dotenv
+discord
+psycopg2
+pytz

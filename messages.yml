@@ -1,0 +1,49 @@
+# Placeholders that can be used in any message; you can define your own but these don't change
+global_placeholders:
+  color:
+    info: "0x9e33f3"
+    error: "0xf62323"
+    success: "0x5efb32"
+    wizard: "0x00f6ff"
+  cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
+  respond_prompt: "Please respond within 5 minutes"
+
+# Messages the bot will be sending
+messages:
+  help:
+    - embed:
+        title: "Headmaster - Commands"
+        color: "%color.info%"
+        description: |
+          *Custom bot of [**Roblox Development Academy**](https://discord.gg/NxuhkqH)*
+          *Dedicated tools for teaching and learning.*
+        footer:
+          text: "Made by JL for Roblox Development Academy"
+          icon_url: "https://cdn.discordapp.com/avatars/260608867292020737/2d7b57f730ada4443b3921fbb75f324e.png?size=2048"
+        fields:
+          - name: "General Commands"
+            value: |
+              **help** - Shows this message
+              **profile** - View someone's profile
+              **getprefix** - Show the server command prefix
+          - name: "Teacher Commands"
+            value: |
+              **apply** - Apply for teacher role
+              **class** - Create a new class
+          - name: "Admin Commands"
+            value: |
+              **setprefix** - Set the server command prefix
+              **ignore** - Choose channels for the bot to ignore
+          - name: "Reaction Commands"
+            value: |
+              *React to a message with one of these emojis*
+
+              **profile** - View the message author's profile
+              **report** - Report a message with inappropriate contents
+              **bookmark** - Bookmark a message for later reference
+              **submit_hw** - Submit an assignment to the message author
+
+# Error messages:
+errors:
+  prompt_timeout: "The prompt has timed out"
+  prompt_cancel: "The prompt was cancelled"
