@@ -152,19 +152,20 @@ class LangManager:
                 final_dict[f"%{index + '.' + key if index != '' else key}%"] = str(value)
         return final_dict
 
-    def __init__(self, yaml_file):
+    def __init__(self, *yaml_files):
         self.nodes = {}
         self.placeholders = {}
-        self.file = yaml_file
+        self.files = set(yaml_files)
 
         self.load()
 
-    def load(self, yaml_file=None):
-        if not yaml_file:
-            yaml_file = self.file
-        self.nodes.clear()
-        self.placeholders.clear()
-        self.file = yaml_file
+    def load(self, *yaml_files, clear=False):
+        if not yaml_files:
+            yaml_files = self.files
+        if clear:
+            self.nodes.clear()
+            self.placeholders.clear()
+        self.files.update(yaml_files)
 
         def globally_replace(config):
             for key, value in (config.items() if isinstance(config, dict) else enumerate(config)):
@@ -185,10 +186,11 @@ class LangManager:
                 elif isinstance(value, str):
                     self.nodes[index + "." + key if index != '' else key] = MessageListNode.from_str(value)
 
-        with open(yaml_file) as f:
-            config_dict = yaml.load(f, Loader=yaml.FullLoader)
-            LangManager.__index_strings(config_dict['global_placeholders'], self.placeholders)
-            index_messages(config_dict['messages'])
+        for yaml_file in yaml_files:
+            with open(yaml_file) as f:
+                config_dict = yaml.load(f, Loader=yaml.FullLoader)
+                LangManager.__index_strings(config_dict['global_placeholders'], self.placeholders)
+                index_messages(config_dict['messages'])
 
     def get(self, index: str):
         node = self.nodes.get(index)
