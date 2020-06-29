@@ -67,27 +67,6 @@ def convert_datetime(date: str) -> datetime:
     return parse(date.upper(), dayfirst=False, tzinfos=tz_data, fuzzy=False)
 
 
-def usage_embed(usage, description, example=None):
-    """Returns an embed detailing the usage of a command
-
-    :param usage: Command usage in the format "command <arg> <arg> [<optional arg>]"
-    :param description: The description of the command and parameters
-    :param example: Example usage of the command
-    """
-
-    cmd = usage[:usage.index(" ")]
-
-    embed = discord.Embed(title='Command Usage - ' + cmd, colour=EMBED_COLORS['info'],
-                          description="**" + cmd + "**" + usage[usage.index(" "):])
-
-    embed.add_field(name='Description', value=description)
-
-    if example:
-        embed.add_field(name='Example', value=f"`{example}`")
-
-    return embed
-
-
 def retrieve_assignments(user_id) -> tuple:
     """
     Retrieves all assignments assigned by the specified user

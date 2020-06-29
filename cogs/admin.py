@@ -32,10 +32,7 @@ class Admin(commands.Cog):
     @commands.guild_only()
     async def setprefix(self, ctx, prefix=None):
         if prefix is None:
-            await ctx.send(embed=helpers.usage_embed("setprefix <new prefix>",
-                                                     f"The current server command prefix is `{get_prefix(ctx.guild.id)}`"
-                                                     f"\nUse this command to change it. The prefix is case-sensitive "
-                                                     f"and can be at most 15 characters."))
+            await lang.get('prefix.info').send(ctx, prefix=get_prefix(ctx.guild.id))
             return
 
         prefix_length = len(prefix)

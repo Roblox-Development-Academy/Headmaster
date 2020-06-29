@@ -96,6 +96,15 @@ messages:
               value: "%assignments%"
 
   prefix:
+    info:
+      - embed:
+          title: "Command Usage - setprefix"
+          description: "**setprefix** <new prefix>"
+          fields:
+            - name: "Description"
+              value: |
+                The current server command prefix is `%prefix%`
+                Use this command to change it. The prefix is case-sensitive and can be at most 15 characters.
     get:
       - embed:
           title: "Server Command Prefix:"
