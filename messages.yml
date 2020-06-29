@@ -75,6 +75,22 @@ messages:
                 %s%%s%- Active.
                 %s%%s%- Knowledgeable about the subject you're teaching.
 
+  assignment:
+    create:
+      - embed:
+          title: "Assignments"
+          color: "%color.info%"
+    main:
+      - embed:
+          title: "%title%"
+          description: |
+            %header%Give students assignments to complete and a solution to check afterwards.
+            Use `%prefix%hw assign` to create an assignment.
+            Use `%prefix%hw remove <assignment name>` to remove one of your assignments.
+          fields:
+            - name: "Your Assignments"
+              value: "%assignments%"
+
   prefix:
     get:
       - embed:

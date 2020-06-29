@@ -1,3 +1,4 @@
+import common
 from bot import *
 import helpers
 
@@ -31,7 +32,7 @@ async def __assign(ctx, name=None):
             embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
                                   description=header + desc)
             embed.set_footer(text=helpers.message['respond_prompt'])
-            name = (await helpers.prompt(dm, ctx.author, embed=embed)).content
+            name = (await common.prompt(dm, ctx.author, embed=embed)).content
             length = len(name)
             if 0 < length < 32:
                 break
@@ -43,14 +44,14 @@ async def __assign(ctx, name=None):
                                       "student looking for assignment information. You can attach files and edit your "
                                       "description message freely." + helpers.message['cancel_prompt'])
     embed.set_footer(text=helpers.message['respond_prompt'])
-    description_id = (await helpers.prompt(dm, ctx.author, embed=embed)).id
+    description_id = (await common.prompt(dm, ctx.author, embed=embed)).id
 
     embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
                           description="**Write the solution to your assignment.**\n\nThis will be shown to any student "
                                       "looking for assignment information. You can attach files and edit your "
                                       "description message freely." + helpers.message['cancel_prompt'])
     embed.set_footer(text=helpers.message['respond_prompt'])
-    solution_id = (await helpers.prompt(dm, ctx.author, embed=embed)).id
+    solution_id = (await common.prompt(dm, ctx.author, embed=embed)).id
 
     embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
                           description="**When do you want the answer to be shown to submitters?**\n\nThe solution "
@@ -63,15 +64,12 @@ async def __submit(ctx, assigner, name=None):
     pass
 
 
-@client.command(alias='hw')
+@commands.command(aliases=['hw', 'assignment', 'assignments'])
 async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
-    embed_title = "Assignments"
-    embed_color = EMBED_COLORS['info']
-    embed_desc = f"Give students assignments to complete and a solution to check afterwards.\n" \
-                 f"Use `{ctx.prefix}hw assign` to create an assignment.\n" \
-                 f"Use `{ctx.prefix}hw remove <assignment name>` to remove one of your assignments."
+    header = ''
+    title = 'Assignments'
     if sub is not None:
-        if sub.lower() == "assign":
+        if sub.lower() in ("assign", "create", "start", "initiate", "make"):
             await __assign(ctx, name)
             return
         elif sub.lower() in ("remove", "delete", "unassign") and name is not None:
@@ -84,18 +82,23 @@ async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
                 (ctx.author.id, name)
             )
             if database.cursor.rowcount != 0:
-                embed_desc = f"**{name} was successfully deleted!\n\n" + embed_desc
-                embed_color = EMBED_COLORS['success']
+                header = f"**{name} was successfully deleted!\n\n"
+                color = "%color.success%"
             else:
-                embed_desc = f"**{name} does not exist!!\n\n" + embed_desc
-                embed_color = EMBED_COLORS['error']
+                header = f"**{name} does not exist!!\n\n"
+                color = "%color.info%"
             # TODO - Also has to delete it from current scheduling process
         elif sub.lower() == "submit" and assigner is not None:
             pass
             return
         else:
-            embed_title = "Assignments - Unrecognized Command"
-            embed_color = EMBED_COLORS['error']
-    embed = discord.Embed(title=embed_title, colour=embed_color, description=embed_desc)
+            title = "Assignments - Unrecognized Command"
+            color = EMBED_COLORS['error']
     your_assignments = "\n".join(helpers.retrieve_assignments(ctx.author.id))
-    embed.add_field(name="Your Assignments", value=your_assignments)
+    node = lang.get('assignment.main').replace(title=title, header=header, assignments=your_assignments)
+    node.args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
+    await node.send(ctx)
+
+
+def setup(bot: discord.Client):
+    bot.add_command(homework)
