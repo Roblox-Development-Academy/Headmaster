@@ -78,7 +78,7 @@ class MessageNode:
         if not isinstance(text, str):
             return text
         for key, value in placeholders.items():
-            global_value = LangManager.global_placeholders[value]
+            global_value = LangManager.global_placeholders.get(key)
             if global_value is not None:
                 value = global_value
             text = text.replace(f"%{key}%", str(value))
