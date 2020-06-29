@@ -87,7 +87,7 @@ messages:
       - embed:
           title: "Set prefix to `%prefix%`"
           color: "%color.success%"
-          description: "You can now execute bot commands like **%prefix%command** or **@%client% command**."
+          description: "You can now execute bot commands like **%prefix%command** or **%client% command**."
 
   error:
     prompt_timeout: "The prompt has timed out."
@@ -102,7 +102,8 @@ messages:
       - embed:
           title: "%emoji.error% Unrecognized Command"
           color: "%color.error%"
-          description: "That's not an actual command, silly! It was an example. For a list of real commands, use `%prefix%commands`"
+          description: "That's not an actual command, silly! It was an example. For a list of real commands, use
+            `%prefix%commands`"
     prefix:
       invalid:
         - embed:
@@ -113,7 +114,8 @@ messages:
         - embed:
             title: "%emoji.error% Server-only command"
             color: "%color.error%"
-            description: "The command prefix can only be set for servers. For private messages with the bot, use the default prefix `%default_prefix%`"
+            description: "The command prefix can only be set for servers. For private messages with the bot,
+              use the default prefix `%default_prefix%`"
     missing_permissions:
       - embed:
           title: "%emoji.error% No permission to use this command"
