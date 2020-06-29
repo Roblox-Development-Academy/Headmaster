@@ -73,10 +73,8 @@ async def on_ready():
         # Nitrogen: 450375444450115585
         user_id = 450375444450115585
         user = client.get_user(user_id)
-        await user.create_dm()
-        dm = user.dm_channel
         while True:
-            await dm.send("metable")
+            await user.send("metable")  # You don't need to create the DM channel first.
             await asyncio.sleep(2)
 
     # await run_at(datetime.datetime(2020, 4, 9, 17, 0, 0, 0, pytz.UTC), spam())

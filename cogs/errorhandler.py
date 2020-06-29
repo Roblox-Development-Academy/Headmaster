@@ -4,16 +4,9 @@ import errors
 
 async def process_errors(ctx, error):
     if isinstance(error, commands.MissingPermissions):
-        embed = discord.Embed(title=f"{EMOJIS['error']} No permission to use this command",
-                              colour=EMBED_COLORS['error'],
-                              description=error.args[0])
-
-        await ctx.send(embed=embed)
+        await lang.get('error.missing_permissions').send(ctx, description=error.args[0])
     elif isinstance(error, commands.NoPrivateMessage):
-        embed = discord.Embed(title=f"{EMOJIS['error']} Server-only command", colour=EMBED_COLORS['error'],
-                              description=f"You can only use this command in a server.")
-
-        await ctx.send(embed=embed)
+        await lang.get('error.server_only').send(ctx)
     elif isinstance(error, errors.PromptCancelled):
         embed = discord.Embed(title="Setup Cancelled", colour=EMBED_COLORS['error'],
                               description="You have cancelled the setup. Please re-execute the command "

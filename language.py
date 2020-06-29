@@ -78,7 +78,7 @@ class MessageNode:
         if not isinstance(text, str):
             return text
         for key, value in placeholders.items():
-            text = text.replace(f"%{key}%", value)
+            text = text.replace(f"%{key}%", str(value))
         return text
 
     def replace(self, **kwargs):

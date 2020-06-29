@@ -110,6 +110,11 @@ messages:
             description: "The command prefix can only be set for servers. For private messages with the bot, use the default prefix `%default_prefix%`"
     missing_permissions:
       - embed:
+          title: "%emoji.error% No permission to use this command"
+          color: "%color.error%"
+          description: "%description%"
     server_only:
       - embed:
-
+          title: "%emoji.error% Server-only command"
+          color: "%color.error%"
+          description: "You can only use this command in a server."
