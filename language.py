@@ -165,6 +165,12 @@ class LangManager:
                 final_dict[f"%{index + '.' + key if index != '' else key}%"] = str(value)
         return final_dict
 
+    @staticmethod
+    def replace(to_replace):
+        for replace, replace_with in LangManager.global_placeholders:
+            to_replace = to_replace.replace(replace, replace_with)
+        return to_replace
+
     def __init__(self, *yaml_files):
         self.nodes = {}
         self.files = set(yaml_files)
