@@ -52,7 +52,7 @@ class Admin(commands.Cog):
             (ctx.guild.id, prefix)
         )
 
-        await lang.get('prefix.success').send(ctx, prefix=prefix, client=client.user)
+        await lang.get('prefix.success').send(ctx, prefix=prefix, client=client.user.mention)
 
     @getprefix.error
     @setprefix.error
