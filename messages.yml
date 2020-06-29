@@ -13,7 +13,7 @@ global_placeholders:
     timer: ":timer:"
   cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
   respond_prompt: "Please respond within 5 minutes."
-  s: "\u2800"
+  s: "\u2800" # Blank space; invisible unicode character
 
 # Messages the bot will be sending
 messages:
