@@ -67,3 +67,5 @@ def get_mention_or_prefix(bot, message):
 client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=True, help_command=None)
 
 janitor = discord.Client()
+
+rda = client.get_guild(673600024919408680)
