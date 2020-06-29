@@ -4,6 +4,7 @@ from collections import namedtuple
 
 import pytz
 
+from cmds.apply import *
 from bot import *
 from cogs.admin import Admin
 from cogs.errorhandler import ErrorHandler
@@ -72,10 +73,8 @@ async def on_ready():
         # Nitrogen: 450375444450115585
         user_id = 450375444450115585
         user = client.get_user(user_id)
-        await user.create_dm()
-        dm = user.dm_channel
         while True:
-            await dm.send("metable")
+            await user.send("metable")  # You don't need to create the DM channel first.
             await asyncio.sleep(2)
 
     # await run_at(datetime.datetime(2020, 4, 9, 17, 0, 0, 0, pytz.UTC), spam())
@@ -100,11 +99,7 @@ async def globally_ignore_channels(ctx):
         return True
     else:
         await ctx.message.delete()
-        embed = discord.Embed(title=f"{EMOJIS['error']} You cannot use commands in this channel",
-                              colour=EMBED_COLORS['error'],
-                              description="This channel is ignored by the bot. Please use another channel to execute "
-                                          "commands.")
-        await ctx.send(embed=embed, delete_after=3)
+        await lang.get('error.ignored_channel').send(ctx)
         return False
 
 
@@ -128,11 +123,7 @@ async def reverse_poem(ctx, msg: discord.Message):
 
 @client.command(name='command')
 async def command(ctx):
-    embed = discord.Embed(title=f"{EMOJIS['error']} Unrecognized Command", colour=EMBED_COLORS["error"],
-                          description=f"That's not an actual command, silly! It was an example. For a list of real "
-                                      f"commands, use `{ctx.prefix}commands`")
-
-    await ctx.send(embed=embed)
+    await lang.get('error.command').send(ctx, prefix=get_prefix(ctx.guild.id))
 
 
 Entry = namedtuple('Entry', 'client event')

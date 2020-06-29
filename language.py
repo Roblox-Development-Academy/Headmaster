@@ -78,7 +78,7 @@ class MessageNode:
         if not isinstance(text, str):
             return text
         for key, value in placeholders.items():
-            text = text.replace(f"%{key}%", value)
+            text = text.replace(f"%{key}%", str(value))
         return text
 
     def replace(self, **kwargs):
@@ -117,6 +117,9 @@ class MessageNode:
             for to_message in to:
                 return await to_message.send(**self.replace(**placeholders).args)
 
+    async def edit(self, message, **placeholders):
+        return await message.edit(**self.replace(**placeholders).args)
+
 
 class MessageListNode:
     def __init__(self, *nodes: MessageNode):
@@ -135,6 +138,12 @@ class MessageListNode:
         results = []
         for node in self.nodes:
             results.append(await node.send(*args, **kwargs))
+        return results
+
+    async def edit(self, *messages, **placeholders):
+        results = []
+        for to_edit, node in zip(messages, self.nodes):
+            results.append(await node.edit(to_edit, **placeholders))
         return results
 
 

@@ -12,7 +12,8 @@ global_placeholders:
     date: ":calendar:"
     timer: ":timer:"
   cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
-  respond_prompt: "Please respond within 5 minutes"
+  respond_prompt: "Please respond within 5 minutes."
+  s: "\u2800"
 
 # Messages the bot will be sending
 messages:
@@ -21,38 +22,105 @@ messages:
         title: "Headmaster - Commands"
         color: "%color.info%"
         description: |
-          *Custom bot of [**Roblox Development Academy**](https://discord.gg/NxuhkqH)*
+          *Custom bot of [**Roblox Development Academy**](https://discord.gg/NxuhkqH).*
           *Dedicated to providing a perfect environment for teaching and learning.*
         footer:
-          text: "Made by JL for Roblox Development Academy"
+          text: "Made by JL for Roblox Development Academy."
           icon_url: "https://cdn.discordapp.com/avatars/260608867292020737/6e171a1f5883419ac89a52695c659ba5.webp?size=256"
         fields:
           - name: "General Commands"
             inline: false
             value: |
-              **help** - Shows this message
-              **profile** - View someone's profile
-              **getprefix** - Show the server command prefix
-              **hw** - Create, submit, and manage assignments
+              **help** - Shows this message.
+              **profile** - View someone's profile.
+              **getprefix** - Show the server command prefix.
+              **hw** - Create, submit, and manage assignments.
           - name: "Teacher Commands"
             inline: false
             value: |
-              **apply** - Apply for teacher role
-              **class** - Create a new class
+              **apply** - Apply for teacher role.
+              **class** - Create a new class.
           - name: "Admin Commands"
             inline: false
             value: |
-              **setprefix** - Set the server command prefix
-              **ignore** - Choose channels for the bot to ignore
+              **setprefix** - Set the server command prefix.
+              **ignore** - Choose channels for the bot to ignore.
           - name: "Reaction Commands"
             inline: false
             value: |
-              *React to a message with one of these emojis*
+              *React to a message with one of these emojis.*
 
-              **profile** - View the message author's profile
-              **report** - Report a message with inappropriate contents
-              **bookmark** - Bookmark a message for later reference
-              **submit_hw** - Submit an assignment to the message author
+              **profile** - View the message author's profile.
+              **report** - Report a message with inappropriate contents.
+              **bookmark** - Bookmark a message for later reference.
+              **submit_hw** - Submit an assignment to the message author.
+
+  teacher_application:
+    1:
+      - embed:
+          title: "Apply for Teacher"
+          color: "%color.wizard%"
+          description: >
+            You need the Teacher role to create your own classes and teach students.
+            You need only to satisfy the requirements and periodically teach lessons.
+
+
+            Click the check mark below if you believe you satisfy these requirements
+            and wish to apply to be a teacher at Roblox Development Academy.
+          fields:
+            - name: "Requirements"
+              value: |
+                %s%%s%- Mature.
+                %s%%s%- Responsible.
+                %s%%s%- Active.
+                %s%%s%- Knowledgeable about the subject you're teaching.
+
+  prefix:
+    get:
+      - embed:
+          title: "Server Command Prefix:"
+          color: "%color.info%"
+          description: |
+            The current server command prefix is `%prefix%`
+            Use the `setprefix` command to change the server prefix.
+    success:
+      - embed:
+          title: "Set prefix to `%prefix%`"
+          color: "%color.success%"
+          description: "You can now execute bot commands like **%prefix%command** or **@%client% command**."
+
   error:
-    prompt_timeout: "The prompt has timed out"
-    prompt_cancel: "The prompt was cancelled"
+    prompt_timeout: "The prompt has timed out."
+    prompt_cancel: "The prompt was cancelled."
+    ignored_channel:
+      - delete_after: 3
+        embed:
+          title: "%emoji.error% You cannot use commands in this channel"
+          color: "%color.error%"
+          description: "This channel is ignored by the bot. Please use another channel to execute commands."
+    command:
+      - embed:
+          title: "%emoji.error% Unrecognized Command"
+          color: "%color.error%"
+          description: "That's not an actual command, silly! It was an example. For a list of real commands, use `%prefix%commands`"
+    prefix:
+      invalid:
+        - embed:
+            title: "%emoji.error% Prefix Too Long"
+            color: "%color.error%"
+            description: "The prefix can be at most 15 characters. `%prefix%` is %prefix_length%."
+      server_only:
+        - embed:
+            title: "%emoji.error% Server-only command"
+            color: "%color.error%"
+            description: "The command prefix can only be set for servers. For private messages with the bot, use the default prefix `%default_prefix%`"
+    missing_permissions:
+      - embed:
+          title: "%emoji.error% No permission to use this command"
+          color: "%color.error%"
+          description: "%description%"
+    server_only:
+      - embed:
+          title: "%emoji.error% Server-only command"
+          color: "%color.error%"
+          description: "You can only use this command in a server."
