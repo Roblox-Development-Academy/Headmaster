@@ -35,7 +35,7 @@ class MessageNode:
             author = embed.get('author')
             fields = embed.get('fields')
             colour = embed.get('colour') or embed.get('color') or e
-            colour = discord.Colour(colour if not isinstance(colour, str) else int(colour, 16))
+            colour = discord.Colour(colour if not isinstance(colour, str) else int(colour, 16)) if colour != e else e
             serialized['embed'] = discord.Embed(title=embed.get('title', e), type=embed.get('type'), colour=colour,
                                                 description=embed.get('description', e), url=embed.get('url', e))
             embed = serialized['embed']
