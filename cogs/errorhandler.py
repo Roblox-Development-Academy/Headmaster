@@ -8,15 +8,9 @@ async def process_errors(ctx, error):
     elif isinstance(error, commands.NoPrivateMessage):
         await lang.get('error.server_only').send(ctx)
     elif isinstance(error, errors.PromptCancelled):
-        embed = discord.Embed(title="Setup Cancelled", colour=EMBED_COLORS['error'],
-                              description="You have cancelled the setup. Please re-execute the command "
-                                          "again to restart the setup.")
-        await error.args[0].edit(embed=embed)
+        await lang.get('error.prompt_cancel').edit(error.args[0])
     elif isinstance(error, errors.PromptTimeout):
-        embed = discord.Embed(title=f"{EMOJIS['error']} Timed Out", colour=EMBED_COLORS['error'],
-                              description="You have waited too long. The prompt timed out. Please re-execute "
-                                          "the command to restart.")
-        await error.args[0].edit(embed=embed)
+        await lang.get('error.prompt_timeout').edit(error.args[0])
     elif isinstance(error, commands.CheckFailure):
         pass
     else:

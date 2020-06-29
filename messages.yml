@@ -78,8 +78,12 @@ messages:
   assignment:
     create:
       - embed:
-          title: "Assignments"
-          color: "%color.info%"
+          title: "Create Assignment"
+          color: "%color.success%"
+          description: |
+            **I have sent you a private message!**
+
+            Please proceed to create the assignment in your DMs.
     main:
       - embed:
           title: "%title%"
@@ -105,9 +109,29 @@ messages:
           color: "%color.success%"
           description: "You can now execute bot commands like **%prefix%command** or **%client% command**."
 
+  prompt:
+    content: "%args% %kwargs%"
+
+  usage_embed:
+    - embed:
+        title: "Command Usage - %cmd%"
+        color: "%color.info%"
+        description: "**%cmd%** %usage%"
+        fields:
+          - name: "Description"
+            value: "%description%"
+
   error:
-    prompt_timeout: "The prompt has timed out."
-    prompt_cancel: "The prompt was cancelled."
+    prompt_timeout:
+      - embed:
+          title: "%emoji.error% Timed Out"
+          color: "%color.error%"
+          description: "You have waited too long. The prompt timed out. Please re-execute the command to restart."
+    prompt_cancel:
+      - embed:
+          title: "Setup Cancelled"
+          color: "%color.error%"
+          description: "You have cancelled the setup. Please re-execute the command again to restart the setup."
     ignored_channel:
       - delete_after: 3
         embed:

@@ -15,11 +15,7 @@ On submission, the student only need to use the assigner and the name and it wil
 async def __assign(ctx, name=None):
     dm = ctx.author.dm_channel
 
-    embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['success'],
-                          description="**I have sent you a private message!**\n\n"
-                                      "Please proceed to create the assignment in your DMs.")
-
-    ctx.send(embed=embed)
+    lang.get('assignment.create').send(ctx)
 
     if name is None:
         header = ""
