@@ -78,6 +78,9 @@ class MessageNode:
         if not isinstance(text, str):
             return text
         for key, value in placeholders.items():
+            global_value = LangManager.global_placeholders[value]
+            if global_value is not None:
+                value = global_value
             text = text.replace(f"%{key}%", str(value))
         return text
 
@@ -149,6 +152,7 @@ class MessageListNode:
 
 class LangManager:
     empty = MessageListNode()
+    global_placeholders = {}
 
     @staticmethod
     def __index_strings(config: dict, final_dict: dict = None, index: str = ''):
@@ -163,7 +167,6 @@ class LangManager:
 
     def __init__(self, *yaml_files):
         self.nodes = {}
-        self.placeholders = {}
         self.files = set(yaml_files)
 
         self.load()
@@ -173,13 +176,13 @@ class LangManager:
             yaml_files = self.files
         if clear:
             self.nodes.clear()
-            self.placeholders.clear()
+            LangManager.global_placeholders.clear()
         self.files.update(yaml_files)
 
         def globally_replace(config):
             for key, value in (config.items() if isinstance(config, dict) else enumerate(config)):
                 if isinstance(value, str):
-                    for replace, replace_with in self.placeholders.items():
+                    for replace, replace_with in LangManager.global_placeholders.items():
                         value = value.replace(replace, replace_with)
                         config[key] = value
                 elif isinstance(value, list) or isinstance(value, dict):
@@ -199,7 +202,7 @@ class LangManager:
         for yaml_file in yaml_files:
             with open(yaml_file) as f:
                 config_dict = yaml.load(f, Loader=yaml.FullLoader)
-                LangManager.__index_strings(config_dict['global_placeholders'], self.placeholders)
+                LangManager.__index_strings(config_dict['global_placeholders'], LangManager.global_placeholders)
                 index_messages(config_dict['messages'])
 
     def get(self, index: str):
