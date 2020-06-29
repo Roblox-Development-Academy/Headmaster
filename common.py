@@ -3,7 +3,7 @@ import asyncio
 import discord
 
 import errors
-from bot import client
+from bot import client, lang
 
 
 def parameters(*args, **kwargs):
@@ -27,7 +27,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User, *args, prompt
     """
     # TODO - Add the user to a dictionary whose commands are not seen in the channel due to being in the prompt
     if not prompt_msg:
-        prompt_msg = await lang.get('prompt').send(channel, args=*args, kwargs=**kwargs)[0]
+        prompt_msg = (await lang.get('prompt').send(channel, args=*args, kwargs=**kwargs))[0]
 
     def check(m):
         return m.author == user and m.channel == channel
