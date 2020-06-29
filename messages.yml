@@ -61,13 +61,19 @@ messages:
           title: "Apply for Teacher"
           color: "%color.wizard%"
           description: >
-            You need the Teacher role to create your own classes and teach students. You need only to satisfy the requirements and periodically teach lessons.
+            You need the Teacher role to create your own classes and teach students.
+            You need only to satisfy the requirements and periodically teach lessons.
 
 
-            Click the check mark below if you believe you satisfy these requirements and wish to apply to be a teacher at Roblox Development Academy.
+            Click the check mark below if you believe you satisfy these requirements
+            and wish to apply to be a teacher at Roblox Development Academy.
           fields:
             - name: "Requirements"
-              value: "%s%%s%- Mature.\n%s%%s%- Responsible.\n%s%%s%- Active.\n%s%%s%- Knowledgeable about the subject you're teaching."
+              value: |
+              %s%%s%- Mature.
+              %s%%s%- Responsible.
+              %s%%s%- Active.
+              %s%%s%- Knowledgeable about the subject you're teaching.
 
   prefix:
     get:
@@ -79,9 +85,9 @@ messages:
             Use the `setprefix` command to change the server prefix.
     success:
       - embed:
-#          title: "Set prefix to `%prefix%`"
+          title: "Set prefix to `%prefix%`"
           color: "%color.success%"
-#          description: "You can now execute bot commands like **%prefix%command** or **@%client% command**.")
+          description: "You can now execute bot commands like **%prefix%command** or **@%client% command**."
 
   error:
     prompt_timeout: "The prompt has timed out."
