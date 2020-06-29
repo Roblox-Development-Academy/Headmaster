@@ -56,7 +56,7 @@ messages:
               **submit_hw** - Submit an assignment to the message author.
 
   teacher_application:
-    "1":
+    1:
       - embed:
           title: "Apply for Teacher"
           color: "%color.wizard%"
@@ -70,10 +70,10 @@ messages:
           fields:
             - name: "Requirements"
               value: |
-              %s%%s%- Mature.
-              %s%%s%- Responsible.
-              %s%%s%- Active.
-              %s%%s%- Knowledgeable about the subject you're teaching.
+                %s%%s%- Mature.
+                %s%%s%- Responsible.
+                %s%%s%- Active.
+                %s%%s%- Knowledgeable about the subject you're teaching.
 
   prefix:
     get:
