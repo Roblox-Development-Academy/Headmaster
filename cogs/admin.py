@@ -25,10 +25,7 @@ class Admin(commands.Cog):
     @commands.command(aliases=["findprefix", "showprefix"])
     @commands.guild_only()
     async def getprefix(self, ctx):
-        embed = discord.Embed(title='Server Command Prefix:', colour=EMBED_COLORS['info'],
-                              description=f"The current server command prefix is `{get_prefix(ctx.guild.id)}`\n"
-                                          f"Use the `setprefix` command to change the server prefix.")
-        await ctx.send(embed=embed)
+        await lang.get('prefix.get').send(ctx, prefix=get_prefix(ctx.guild.id))
 
     @commands.command(restisraw=True)
     @commands.has_permissions(manage_guild=True)
@@ -44,10 +41,7 @@ class Admin(commands.Cog):
         prefix_length = len(prefix)
 
         if prefix_length > 15:
-            embed = discord.Embed(title=EMOJIS['error'] + " Prefix too long", colour=EMBED_COLORS['error'],
-                                  description=f"The prefix can be at most 15 characters. `{prefix}` is {prefix_length}")
-
-            await ctx.send(embed=embed)
+            await lang.get('error.prefix.invalid').send(ctx, prefix=prefix, prefix_length=prefix_length)
             return
 
         database.update(
@@ -58,19 +52,13 @@ class Admin(commands.Cog):
             (ctx.guild.id, prefix)
         )
 
-        embed = discord.Embed(title=f'Set to prefix to `{prefix}`', colour=EMBED_COLORS['success'],
-                              description=f"You can now execute botcommands like **{prefix}command** or **@{client.user} command**.")
-
-        await ctx.send(embed=embed)
+        await lang.get('prefix.success').send(ctx, prefix=prefix, client=client.user)
 
     @getprefix.error
     @setprefix.error
     async def prefix_cmd_error(self, ctx, error):
         if isinstance(error, commands.NoPrivateMessage):
-            embed = discord.Embed(title=f"{EMOJIS['error']} Server-only command", colour=EMBED_COLORS['error'],
-                                  description=f"The command prefix can only be set for servers. For private messages "
-                                              f"with the bot, use the default prefix `{DEFAULT_PREFIX}`")
-            await ctx.send(embed=embed)
+            await lang.get('error.prefix.server_only').send(ctx, default_prefix=DEFAULT_PREFIX)
         else:
             await errorhandler.process_errors(ctx, error)
 
