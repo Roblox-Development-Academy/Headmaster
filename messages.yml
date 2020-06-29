@@ -99,6 +99,7 @@ messages:
     info:
       - embed:
           title: "Command Usage - setprefix"
+          color: "%color.info%"
           description: "**setprefix** <new prefix>"
           fields:
             - name: "Description"
