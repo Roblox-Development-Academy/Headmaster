@@ -187,6 +187,7 @@ class LangManager:
 
         def index_messages(config: dict, index: str = ''):
             for key, value in config.items():
+                key = str(key)
                 if isinstance(value, list):
                     globally_replace(value)
                     self.nodes[index + "." + key if index != '' else key] = MessageListNode.from_list(value)
