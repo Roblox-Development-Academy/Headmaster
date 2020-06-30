@@ -3,7 +3,7 @@ import asyncio
 import discord
 
 import errors
-from bot import client
+from bot import client, lang
 
 
 def parameters(*args, **kwargs):
