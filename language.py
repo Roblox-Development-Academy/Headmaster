@@ -106,7 +106,6 @@ class MessageNode:
         try:
             return await to.send(**self.replace(**placeholders).args)
         except AttributeError:
-            print("MessageNode attribute error")
             for to_message in to:
                 return await to_message.send(**self.replace(**placeholders).args)
         # TODO - Except the exception that comes with sending an empty message node
@@ -159,7 +158,7 @@ class LangManager:
 
     @staticmethod
     def replace(to_replace, **placeholders):
-        if placeholders is None:
+        if not placeholders:
             placeholders = LangManager.global_placeholders
         match = LangManager.matcher.search(to_replace)
         while match is not None:
@@ -205,7 +204,9 @@ class LangManager:
         for yaml_file in yaml_files:
             with open(yaml_file) as f:
                 config_dict = yaml.load(f, Loader=yaml.FullLoader)
-                LangManager.__index_strings(config_dict['global_placeholders'], LangManager.global_placeholders)
+                global_placeholders = config_dict.get('global_placeholders')
+                if global_placeholders:
+                    LangManager.__index_strings(global_placeholders, LangManager.global_placeholders)
                 index_messages(config_dict['messages'])
 
     def get(self, index: str):

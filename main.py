@@ -1,8 +1,6 @@
 import asyncio
-import datetime
+from datetime import datetime
 from collections import namedtuple
-
-import pytz
 
 from cmds.apply import *
 from bot import *
@@ -55,7 +53,7 @@ async def on_ready():
     async def wait_for(dt):
         # sleep until the specified datetime
         while True:
-            now = datetime.datetime.now(pytz.utc)
+            now = datetime.utcnow()
             remaining = (dt - now).total_seconds()
             if remaining < 86400:
                 break
@@ -77,7 +75,7 @@ async def on_ready():
             await user.send("metable")  # You don't need to create the DM channel first.
             await asyncio.sleep(2)
 
-    # await run_at(datetime.datetime(2020, 4, 9, 17, 0, 0, 0, pytz.UTC), spam())
+    # await run_at(datetime(2020, 4, 9, 17, 0, 0, 0), spam())
 
 
 @client.event
