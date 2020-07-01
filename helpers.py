@@ -2,8 +2,6 @@ from datetime import datetime
 from dateutil.parser import parse
 import pytz
 
-from bot import *
-
 # TODO - Delete this module and replace it with common.py
 
 message = {
@@ -67,10 +65,3 @@ def convert_datetime(date: str) -> datetime:
     return parse(date.upper(), dayfirst=False, tzinfos=tz_data, fuzzy=False)
 
 
-def retrieve_assignments(user_id) -> tuple:
-    """
-    Retrieves all assignments assigned by the specified user
-
-    :param user_id: The id of the specified user
-    :return: A tuple of tuples with assignment names
-    """
