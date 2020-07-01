@@ -1,7 +1,7 @@
 from bot import *
 
 
-@client.command()
+@commands.command()
 async def apply(ctx):
     message = await lang.get('teacher_application.1').send(ctx)
     confirm_emoji = EMOJIS['confirm']
@@ -9,3 +9,7 @@ async def apply(ctx):
 
     _, reaction = client.wait_for("reaction_add")
     pass
+
+
+def setup(bot):
+    bot.add_command(apply)

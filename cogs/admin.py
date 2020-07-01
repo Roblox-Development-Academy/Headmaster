@@ -1,7 +1,6 @@
 import psycopg2
 
 from bot import *
-import helpers
 from cogs import errorhandler
 
 

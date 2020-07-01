@@ -42,8 +42,8 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
                 if can_skip:
                     raise errors.PromptSkipped("The skipping wasn't handled", msg)
                 else:
-                    await errorhandler.process_errors(errors.PromptSkipped("This prompt cannot be skipped",
-                                                                           msg))
+                    await errorhandler.process_errors(channel,
+                                                      errors.PromptSkipped("This prompt cannot be skipped", msg))
             else:
                 break
     except asyncio.TimeoutError:

@@ -125,11 +125,12 @@ class MessageNode:
         # TODO - Except the exception that comes with sending an empty message node
 
     async def edit(self, message, **placeholders):
-        return await message.edit(**self.replace(**placeholders).args)
+        msg = await message.edit(**self.replace(**placeholders).args)
 
         reactions = self.args.get('reactions')
         for reaction in reactions:
             await msg.add_reaction(reaction)
+        return msg
 
 
 class MessageListNode:
@@ -202,7 +203,7 @@ class LangManager:
         self.files.update(yaml_files)
 
         def globally_replace(config):
-            for key, value in (config.items() if isinstance(config, dict) else enumerate(config)):
+            for key, value in (enumerate(config) if isinstance(config, list) else config.items()):
                 if isinstance(value, str):
                     config[key] = LangManager.replace(value)
                 elif isinstance(value, list) or isinstance(value, dict):

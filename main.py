@@ -2,7 +2,6 @@ import asyncio
 from datetime import datetime
 from collections import namedtuple
 
-from cmds.apply import *
 from bot import *
 from cogs.admin import Admin
 from cogs.errorhandler import ErrorHandler
@@ -43,6 +42,7 @@ def generate_tables():
 
 client.add_cog(ErrorHandler(client))
 client.add_cog(Admin())
+client.load_extension('cmds.apply')
 
 
 @client.event

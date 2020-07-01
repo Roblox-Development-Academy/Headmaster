@@ -1,6 +1,7 @@
 import common
 from bot import *
-import helpers
+import errors
+from language import LangManager
 
 """
 Assignment has an assigner (tutor), name (identifier), description (message ID), a solution (message ID).
@@ -15,45 +16,34 @@ On submission, the student only need to use the assigner and the name and it wil
 async def __assign(ctx, name=None):
     dm = ctx.author.dm_channel
 
-    lang.get('assignment.create').send(ctx)
+    await lang.get('assignment.create.start').send(ctx)
 
     if name is None:
         header = ""
-        desc = "**What is the name of the assignment?**\n\nThis is a unique identifier that " \
-               "students use to submit the assignment. It cannot be longer than 31 " \
-               "characters and cannot be shorter than 1. Using an existing name will " \
-               "replace the assignment." + helpers.message['cancel_prompt']
         name = ""
         while True:
-            embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
-                                  description=header + desc)
-            embed.set_footer(text=helpers.message['respond_prompt'])
-            name = (await common.prompt(dm, ctx.author, embed=embed)).content
-            length = len(name)
-            if 0 < length < 32:
+            name = (await common.prompt(dm, ctx.author, lang.get('assignment.create.1'), header=header)).content
+            if 0 < len(name) < 32:
                 break
             header = "**The name is too long! It cannot be longer than 31 characters!\n\n"
 
-    embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
-                          description=f"**The name of the assignment is `{name}`\n\n"
-                                      "**Write the description to your assignment.**\n\nThis will be shown to any "
-                                      "student looking for assignment information. You can attach files and edit your "
-                                      "description message freely." + helpers.message['cancel_prompt'])
-    embed.set_footer(text=helpers.message['respond_prompt'])
-    description_id = (await common.prompt(dm, ctx.author, embed=embed)).id
+    description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, name=name,
+                                      time_display="15 minutes")
+    description_id = description.id
+    skipped = False
+    solution = None
+    try:
+        solution = await common.prompt(dm, ctx.author, lang.get('assignment.create.3', timeout=900,
+                                                                can_skip=True,
+                                                                time_display="15 minutes",
+                                                                url=description.jump_url))
+        solution_id = solution.id
+    except errors.PromptSkipped:
+        skipped = True
 
-    embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
-                          description="**Write the solution to your assignment.**\n\nThis will be shown to any student "
-                                      "looking for assignment information. You can attach files and edit your "
-                                      "description message freely." + helpers.message['cancel_prompt'])
-    embed.set_footer(text=helpers.message['respond_prompt'])
-    solution_id = (await common.prompt(dm, ctx.author, embed=embed)).id
-
-    embed = discord.Embed(title="Create Assignment", colour=EMBED_COLORS['wizard'],
-                          description="**When do you want the answer to be shown to submitters?**\n\nThe solution "
-                                      "would only be shown to those who have submitted the assignment. You will be "
-                                      "able to see all submissions." + helpers.message['cancel_prompt'])
-    embed.set_footer(text=helpers.message['respond_prompt'])
+    if not skipped:
+        await lang.get('assignment.create.4', timeout=300, url=solution.jump_url).send(dm)
+        # TODO - Complete homework creation prompt
 
 
 async def __submit(ctx, assigner, name=None):
@@ -64,6 +54,7 @@ async def __submit(ctx, assigner, name=None):
 async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
     header = ''
     title = 'Assignments'
+    color = ''
     if sub is not None:
         if sub.lower() in ("assign", "create", "start", "initiate", "make"):
             await __assign(ctx, name)
@@ -89,12 +80,12 @@ async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
             return
         else:
             title = "Assignments - Unrecognized Command"
-            color = EMBED_COLORS['error']
-    your_assignments = "\n".join(helpers.retrieve_assignments(ctx.author.id))
+            color = "%color.error%"
+    your_assignments = "\n".join(common.retrieve_assignments(ctx.author.id))
     node = lang.get('assignment.main').replace(title=title, header=header, assignments=your_assignments)
     node.args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
     await node.send(ctx)
 
 
-def setup(bot: discord.Client):
+def setup(bot: commands.Bot):
     bot.add_command(homework)

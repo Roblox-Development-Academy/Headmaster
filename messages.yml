@@ -12,7 +12,9 @@ global_placeholders:
     date: ":calendar:"
     timer: ":timer:"
   cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
-  respond_prompt: "Please respond within 5 minutes."
+  cancel_or_skip: "\n\nRespond with `cancel` to cancel the setup or `skip` to skip this step."
+  respond_5m: "Please respond within 5 minutes."
+  respond_prompt: "Please respond within %time_display%."
   s: "\u2800" # Blank space; invisible unicode character
 
 # Messages the bot will be sending
@@ -74,16 +76,73 @@ messages:
                 %s%%s%- Responsible.
                 %s%%s%- Active.
                 %s%%s%- Knowledgeable about the subject you're teaching.
+          footer: "%respond_5m%"
 
   assignment:
     create:
-      - embed:
-          title: "Create Assignment"
-          color: "%color.success%"
-          description: |
-            **I have sent you a private message!**
+      start:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.success%"
+            description: |
+              **I have sent you a private message!**
 
-            Please proceed to create the assignment in your DMs.
+              Please proceed to create the assignment in your DMs.
+      1:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: >
+              %header%**What is the name of your assignment?**
+
+
+              This is a unique identifier that students can use to submit the assignment. It cannot be longer
+              than 31 character and it cannot be shorter than 1. Using an existing name will replace the
+              previous assignment.%cancel_prompt%
+            footer: "%respond_5m%"
+      2:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: >
+              __**The name of the assignment is %name%**__
+
+
+              **Write the description to the assignment**
+
+
+              This will be shown to any student looking for assignment information. You can attach files and
+              edit your description freely; the newest version will always be used.%cancel_prompt%
+            footer: "%respond_prompt%"
+      3:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: >
+              __**The assignment description has been linked to [this message](%url%).**__
+
+
+              **Write the solution to the assignment**
+
+
+              This will be shown at a designated time to all students who have submitted the assignment. You
+              can attach files and edit your solution freely; the newest version will always be used.
+              %cancel_or_skip%
+            footer: "%respond_prompt%"
+      4:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: >
+              __**The assignment solution has been linked to [this message](%url%).**__
+
+
+              **When do you want the answer to be shown to submitters?**
+
+
+              The solution will only be shown to those who have submitted the assignment. You will be able to
+              see all submissions.%cancel_prompt%
+            footer: "%respond_5m%"
     main:
       - embed:
           title: "%title%"
@@ -134,6 +193,12 @@ messages:
           title: "%emoji.error% Timed Out"
           color: "%color.error%"
           description: "You have waited too long. The prompt timed out. Please re-execute the command to restart."
+    prompt_skip:
+      - delete_after: 3
+        embed:
+          title: "%emoji.error% This prompt cannot be skipped"
+          color: "%color.error%"
+          description: "Please continue the prompt and send a response or respond with `cancel` to cancel."
     prompt_cancel:
       - embed:
           title: "Setup Cancelled"
