@@ -83,9 +83,12 @@ class MessageNode:
             clone.args['content'] = LangManager.replace(content, **kwargs)
         embed: discord.Embed = clone.args.get('embed')
         if embed:
-            embed.title = LangManager.replace(embed.title, **kwargs)
-            embed.description = LangManager.replace(embed.description, **kwargs)
-            embed.url = LangManager.replace(embed.url, **kwargs)
+            if embed.title:
+                embed.title = LangManager.replace(embed.title, **kwargs)
+            if embed.description:
+                embed.description = LangManager.replace(embed.description, **kwargs)
+            if embed.url:
+                embed.url = LangManager.replace(embed.url, **kwargs)
             if embed.footer:
                 embed.set_footer(text=LangManager.replace(embed.footer.text, **kwargs),
                                  icon_url=LangManager.replace(embed.footer.icon_url, **kwargs))
@@ -157,7 +160,7 @@ class LangManager:
         return final_dict
 
     @staticmethod
-    def replace(to_replace, **placeholders):
+    def replace(to_replace: str, **placeholders):
         if not placeholders:
             placeholders = LangManager.global_placeholders
         match = LangManager.matcher.search(to_replace)
