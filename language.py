@@ -182,10 +182,10 @@ class LangManager:
         match = LangManager.matcher.search(to_replace)
         while match is not None:
             value = placeholders.get(match.group(1))
-            pos = match.span()[1]
+            span = match.span()
             if value is not None:
-                to_replace = to_replace[:match.span()[0]] + value + to_replace[pos:]
-            match = LangManager.matcher.search(to_replace, pos)
+                to_replace = to_replace[:span[0]] + value + to_replace[span[1]:]
+            match = LangManager.matcher.search(to_replace, span[0] + (len(value) if value else 3))
         return to_replace
 
     def __init__(self, *yaml_files):
