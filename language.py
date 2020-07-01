@@ -107,14 +107,29 @@ class MessageNode:
 
     async def send(self, to, **placeholders):
         try:
-            return await to.send(**self.replace(**placeholders).args)
+            msg = await to.send(**self.replace(**placeholders).args)
+
+            reactions = self.args.get('reactions')
+            for reaction in reactions:
+                await msg.add_reaction(reaction)
+            return msg
         except AttributeError:
+            messages = []
             for to_message in to:
-                return await to_message.send(**self.replace(**placeholders).args)
+                msg = await to_message.send(**self.replace(**placeholders).args)
+                messages.append(msg)
+                reactions = self.args.get('reactions')
+                for reaction in reactions:
+                    await msg.add_reaction(reaction)
+            return messages
         # TODO - Except the exception that comes with sending an empty message node
 
     async def edit(self, message, **placeholders):
         return await message.edit(**self.replace(**placeholders).args)
+
+        reactions = self.args.get('reactions')
+        for reaction in reactions:
+            await msg.add_reaction(reaction)
 
 
 class MessageListNode:
