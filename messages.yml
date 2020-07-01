@@ -76,7 +76,8 @@ messages:
                 %s%%s%- Responsible.
                 %s%%s%- Active.
                 %s%%s%- Knowledgeable about the subject you're teaching.
-          footer: "%respond_5m%"
+          footer:
+            text: "%respond_5m%"
 
   assignment:
     create:
@@ -99,7 +100,8 @@ messages:
               This is a unique identifier that students can use to submit the assignment. It cannot be longer
               than 31 character and it cannot be shorter than 1. Using an existing name will replace the
               previous assignment.%cancel_prompt%
-            footer: "%respond_5m%"
+            footer:
+              text: "%respond_5m%"
       2:
         - embed:
             title: "Create Assignment"
@@ -113,7 +115,8 @@ messages:
 
               This will be shown to any student looking for assignment information. You can attach files and
               edit your description freely; the newest version will always be used.%cancel_prompt%
-            footer: "%respond_prompt%"
+            footer:
+              text: "%respond_prompt%"
       3:
         - embed:
             title: "Create Assignment"
@@ -128,7 +131,8 @@ messages:
               This will be shown at a designated time to all students who have submitted the assignment. You
               can attach files and edit your solution freely; the newest version will always be used.
               %cancel_or_skip%
-            footer: "%respond_prompt%"
+            footer:
+              text: "%respond_prompt%"
       4:
         - embed:
             title: "Create Assignment"
@@ -142,7 +146,8 @@ messages:
 
               The solution will only be shown to those who have submitted the assignment. You will be able to
               see all submissions.%cancel_prompt%
-            footer: "%respond_5m%"
+            footer:
+              text: "%respond_5m%"
     main:
       - embed:
           title: "%title%"
