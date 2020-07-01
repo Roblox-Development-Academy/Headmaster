@@ -119,9 +119,6 @@ messages:
           color: "%color.success%"
           description: "You can now execute bot commands like **%prefix%command** or **%client% command**."
 
-  prompt:
-    content: "%args% %kwargs%"
-
   usage_embed:
     - embed:
         title: "Command Usage - %cmd%"
@@ -142,6 +139,12 @@ messages:
           title: "Setup Cancelled"
           color: "%color.error%"
           description: "You have cancelled the setup. Please re-execute the command again to restart the setup."
+    in_prompt:
+      - delete_after: 3
+        embed:
+          title: "%emoji.error% You have opened a prompt"
+          color: "%color.error%"
+          description: "Before executing another command, please complete your [prompt](%prompt%)!"
     ignored_channel:
       - delete_after: 3
         embed:

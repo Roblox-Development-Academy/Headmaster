@@ -109,6 +109,19 @@ async def globally_ignore_banned(ctx):
     return True
 
 
+in_prompt = {}
+
+
+@client.check
+async def ignore_in_prompt(ctx):
+    prompt = in_prompt.get(ctx.message.author.id)
+    if prompt:
+        await ctx.message.delete()
+        await lang.get('error.in_prompt').send(ctx, prompt=prompt)
+        return False
+    return True
+
+
 # help is a default command - could be overridden if it looks ugly
 @client.command(aliases=["help", "cmds", "commands"])
 async def _help(ctx):
