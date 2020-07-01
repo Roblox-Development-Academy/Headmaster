@@ -105,23 +105,25 @@ class MessageNode:
                                    value=LangManager.replace(field.value, **kwargs))
         return clone
 
-    async def send(self, to, **placeholders):
-        try:
+    async def send(self, to, message_list=None, **placeholders):
+        if len(self.args) == 0:
+            return message_list
+        if isinstance(to, discord.abc.Messageable):
             msg = await to.send(**self.replace(**placeholders).args)
 
             reactions = self.args.get('reactions')
-            for reaction in reactions:
-                await msg.add_reaction(reaction)
-            return msg
-        except AttributeError:
-            messages = []
-            for to_message in to:
-                msg = await to_message.send(**self.replace(**placeholders).args)
-                messages.append(msg)
-                reactions = self.args.get('reactions')
+            if reactions:
                 for reaction in reactions:
                     await msg.add_reaction(reaction)
-            return messages
+            if message_list is not None:
+                message_list.append(msg)
+                return message_list
+            else:
+                return msg
+        else:
+            for element in to:
+                self.send(element, message_list=message_list, **placeholders)
+            return message_list
         # TODO - Except the exception that comes with sending an empty message node
 
     async def edit(self, message, **placeholders):
@@ -149,7 +151,7 @@ class MessageListNode:
     async def send(self, *args, **kwargs):
         results = []
         for node in self.nodes:
-            results.append(await node.send(*args, **kwargs))
+            await node.send(*args, message_list=results, **kwargs)
         return results
 
     async def edit(self, *messages, **placeholders):
