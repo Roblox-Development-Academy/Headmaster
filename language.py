@@ -160,7 +160,7 @@ class MessageListNode:
 
 class LangManager:
     empty = MessageListNode()
-    matcher = re.compile(r'%([\w.]+)%')
+    matcher = re.compile(r'%([\w._]+)%')
     global_placeholders = {}
 
     @staticmethod
