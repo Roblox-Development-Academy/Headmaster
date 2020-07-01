@@ -7,3 +7,7 @@ class PromptCancelled(commands.CommandError):
 
 class PromptTimeout(commands.CommandError):
     pass
+
+
+class PromptSkipped(commands.CommandError):
+    pass

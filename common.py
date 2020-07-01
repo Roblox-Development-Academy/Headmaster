@@ -5,6 +5,7 @@ import discord
 import errors
 from bot import client
 from main import in_prompt
+from cogs import errorhandler
 
 
 def parameters(*args, **kwargs):
@@ -16,7 +17,7 @@ def unpack(packed_parameters, coroutine):
 
 
 async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=None, timeout=300,
-                 **kwargs) -> discord.Message:
+                 can_skip=False, **kwargs) -> discord.Message:
     """
     Prompts the specified user for a text response
 
@@ -24,6 +25,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
     :param channel: The channel to send the prompt in
     :param prompt_msg: The message to edit if error or the message node to send
     :param timeout: How many seconds before timeout
+    :param can_skip: Whether this prompt is skippable (must be handled)
     :return: The user's response
     """
     if not isinstance(prompt_msg, discord.Message):
@@ -34,7 +36,16 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
 
     in_prompt[user.id] = prompt_msg.jump_url
     try:
-        msg = await client.wait_for("message", check=check, timeout=timeout)
+        while True:
+            msg = await client.wait_for("message", check=check, timeout=timeout)
+            if msg.content.lower() == "skip":
+                if can_skip:
+                    raise errors.PromptSkipped("The skipping wasn't handled", msg)
+                else:
+                    await errorhandler.process_errors(errors.PromptSkipped("This prompt cannot be skipped",
+                                                                           msg))
+            else:
+                break
     except asyncio.TimeoutError:
         in_prompt.pop(user.id)
         raise errors.PromptTimeout("The prompt has timed out", prompt_msg)
@@ -45,3 +56,12 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
 
     in_prompt.pop(user.id)
     return msg
+
+
+def retrieve_assignments(user_id) -> tuple:
+    """
+    Retrieves all assignments assigned by the specified user
+
+    :param user_id: The id of the specified user
+    :return: A tuple of tuples with assignment names
+    """
