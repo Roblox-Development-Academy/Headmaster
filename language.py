@@ -155,7 +155,11 @@ class MessageListNode:
     async def edit(self, *messages, **placeholders):
         results = []
         for to_edit, node in zip(messages, self.nodes):
-            results.append(await node.edit(to_edit, **placeholders))
+            if isinstance(to_edit, list):
+                for msg in to_edit:
+                    results.append(await node.edit(msg, **placeholders))
+            else:
+                results.append(await node.edit(to_edit, **placeholders))
         return results
 
 
