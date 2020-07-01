@@ -1,5 +1,6 @@
 import yaml
 import copy
+import re
 from typing import Union
 
 import discord
@@ -73,43 +74,32 @@ class MessageNode:
             serialized['allowed_mentions'] = discord.AllowedMentions(**allowed_mentions)
         return cls(**serialized)
 
-    @staticmethod
-    def __replace(text, placeholders):
-        if not isinstance(text, str):
-            return text
-        for key, value in placeholders.items():
-            global_value = LangManager.global_placeholders.get(key)
-            if global_value is not None:
-                value = global_value
-            text = text.replace(f"%{key}%", str(value))
-        return text
-
     def replace(self, **kwargs):
         if len(kwargs) == 0:
             return self
         clone = copy.deepcopy(self)
         content = clone.args.get('content')
         if content:
-            clone.args['content'] = MessageNode.__replace(content, kwargs)
+            clone.args['content'] = LangManager.replace(content, **kwargs)
         embed: discord.Embed = clone.args.get('embed')
         if embed:
-            embed.title = MessageNode.__replace(embed.title, kwargs)
-            embed.description = MessageNode.__replace(embed.description, kwargs)
-            embed.url = MessageNode.__replace(embed.url, kwargs)
+            embed.title = LangManager.replace(embed.title, **kwargs)
+            embed.description = LangManager.replace(embed.description, **kwargs)
+            embed.url = LangManager.replace(embed.url, **kwargs)
             if embed.footer:
-                embed.set_footer(text=MessageNode.__replace(embed.footer.text, kwargs),
-                                 icon_url=MessageNode.__replace(embed.footer.icon_url, kwargs))
+                embed.set_footer(text=LangManager.replace(embed.footer.text, **kwargs),
+                                 icon_url=LangManager.replace(embed.footer.icon_url, **kwargs))
             if embed.author:
-                embed.set_author(name=MessageNode.__replace(embed.author.name, kwargs),
-                                 url=MessageNode.__replace(embed.author.url, kwargs),
-                                 icon_url=MessageNode.__replace(embed.author.icon_url, kwargs))
+                embed.set_author(name=LangManager.replace(embed.author.name, **kwargs),
+                                 url=LangManager.replace(embed.author.url, **kwargs),
+                                 icon_url=LangManager.replace(embed.author.icon_url, **kwargs))
             if embed.image:
-                embed.set_image(url=MessageNode.__replace(embed.image.url, kwargs))
+                embed.set_image(url=LangManager.replace(embed.image.url, **kwargs))
             if embed.thumbnail:
-                embed.set_thumbnail(url=MessageNode.__replace(embed.thumbnail.url, kwargs))
+                embed.set_thumbnail(url=LangManager.replace(embed.thumbnail.url, **kwargs))
             for i, field in enumerate(embed.fields):
-                embed.set_field_at(i, name=MessageNode.__replace(field.name, kwargs),
-                                   value=MessageNode.__replace(field.value, kwargs))
+                embed.set_field_at(i, name=LangManager.replace(field.name, **kwargs),
+                                   value=LangManager.replace(field.value, **kwargs))
         return clone
 
     async def send(self, to, **placeholders):
@@ -119,6 +109,7 @@ class MessageNode:
             print("MessageNode attribute error")
             for to_message in to:
                 return await to_message.send(**self.replace(**placeholders).args)
+        # TODO - Except the exception that comes with sending an empty message node
 
     async def edit(self, message, **placeholders):
         return await message.edit(**self.replace(**placeholders).args)
@@ -152,6 +143,7 @@ class MessageListNode:
 
 class LangManager:
     empty = MessageListNode()
+    matcher = re.compile(r'%([\w.]+)%')
     global_placeholders = {}
 
     @staticmethod
@@ -162,13 +154,20 @@ class LangManager:
             if isinstance(value, dict):
                 LangManager.__index_strings(value, final_dict, index + "." + key if index != '' else key)
             else:
-                final_dict[f"%{index + '.' + key if index != '' else key}%"] = str(value)
+                final_dict[index + '.' + key if index != '' else key] = str(value)
         return final_dict
 
     @staticmethod
-    def replace(to_replace):
-        for replace, replace_with in LangManager.global_placeholders:
-            to_replace = to_replace.replace(replace, replace_with)
+    def replace(to_replace, **placeholders):
+        if placeholders is None:
+            placeholders = LangManager.global_placeholders
+        match = LangManager.matcher.search(to_replace)
+        while match is not None:
+            value = placeholders.get(match.group(1))
+            pos = match.span()[1]
+            if value is not None:
+                to_replace = to_replace[:match.span()[0]] + value + to_replace[pos:]
+            match = LangManager.matcher.search(to_replace, pos)
         return to_replace
 
     def __init__(self, *yaml_files):
@@ -188,9 +187,7 @@ class LangManager:
         def globally_replace(config):
             for key, value in (config.items() if isinstance(config, dict) else enumerate(config)):
                 if isinstance(value, str):
-                    for replace, replace_with in LangManager.global_placeholders.items():
-                        value = value.replace(replace, replace_with)
-                        config[key] = value
+                    config[key] = LangManager.replace(value)
                 elif isinstance(value, list) or isinstance(value, dict):
                     globally_replace(value)
 
@@ -213,4 +210,4 @@ class LangManager:
 
     def get(self, index: str):
         node = self.nodes.get(index)
-        return node if node else LangManager.empty
+        return node or LangManager.empty
