@@ -185,7 +185,9 @@ class LangManager:
             span = match.span()
             if value is not None:
                 to_replace = to_replace[:span[0]] + value + to_replace[span[1]:]
-            match = LangManager.matcher.search(to_replace, span[0] + (len(value) if value else 3))
+                match = LangManager.matcher.search(to_replace, span[0])
+            else:
+                match = LangManager.matcher.search(to_replace, span[1])
         return to_replace
 
     def __init__(self, *yaml_files):
