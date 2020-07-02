@@ -16,7 +16,7 @@ def unpack(packed_parameters, coroutine):
     return coroutine(*packed_parameters[0], **packed_parameters[1])
 
 
-async def prompt_reaction(msg: discord.Message, user: discord.User = None, timeout=300, allowed_emojis: list = None,
+async def prompt_reaction(msg: discord.Message, user: discord.User = None, timeout=300, allowed_emojis=None,
                           remove_other_reactions=True, **kwargs):
     if not isinstance(msg, discord.Message):
         msg = await msg.send(**kwargs)

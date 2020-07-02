@@ -122,7 +122,7 @@ class MessageNode:
                 return msg
         else:
             for element in to:
-                self.send(element, message_list=message_list, **placeholders)
+                await self.send(element, message_list=message_list, **placeholders)
             return message_list
         # TODO - Except the exception that comes with sending an empty message node
 

@@ -68,8 +68,8 @@ async def __assign(ctx, name=None):
         skipped = True
 
     if not skipped:
-        option, _ = common.prompt_reaction(lang.get('assignment.create.4'), ctx.author,
-                                           allowed_emojis=(':one:', ':two:', ':three:'), url=solution.jump_url)
+        option, _ = await common.prompt_reaction(lang.get('assignment.create.4'), ctx.author,
+                                                 allowed_emojis=(':one:', ':two:', ':three:'), url=solution.jump_url)
 
         # TODO - Complete homework creation prompt
 
