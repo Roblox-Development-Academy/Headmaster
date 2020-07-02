@@ -11,6 +11,7 @@ global_placeholders:
     error: ":crying_cat_face:"
     date: ":calendar:"
     timer: ":timer:"
+    keycap: "\u20e3"
   default_prefix: '.'
   cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
   cancel_or_skip: "\n\nRespond with `cancel` to cancel the setup or `skip` to skip this step."
@@ -123,7 +124,7 @@ messages:
             title: "Create Assignment"
             color: "%color.wizard%"
             description: >
-              __**The assignment description has been linked to [this message](%url%).**__
+              __**The assignment description has been linked to [this message](%url%)**__
 
 
               **Write the solution to the assignment**
@@ -139,7 +140,7 @@ messages:
             title: "Create Assignment"
             color: "%color.wizard%"
             description: >
-              __**The assignment solution has been linked to [this message](%url%).**__
+              __**The assignment solution has been linked to [this message](%url%)**__
 
 
               **When do you want the answer to be shown to submitters?**
@@ -156,20 +157,21 @@ messages:
               see all submissions.%cancel_prompt%
             footer:
               text: "%respond_5m%"
-            reactions:
-              - ":one:"
-              - ":two:"
-              - ":three:"
+          reactions:
+            - "1%emoji.keycap%"
+            - "2%emoji.keycap%"
+            - "3%emoji.keycap%"
     main:
       - embed:
           title: "%title%"
           description: |
             %header%Give students assignments to complete and a solution to check afterwards.
-            Use `%prefix%hw assign` to create an assignment.
+            Use `%prefix%hw create` to create an assignment.
             Use `%prefix%hw remove <assignment name>` to remove one of your assignments.
           fields:
             - name: "Your Assignments"
               value: "%assignments%"
+        no_assignments: "*There are no assignments. Use `%prefix%hw create` to create one.*"
 
   prefix:
     info:
@@ -224,7 +226,7 @@ messages:
     in_prompt:
       - delete_after: 3
         embed:
-          title: "%emoji.error% You have opened a prompt"
+          title: "%emoji.error% You are currently in a prompt"
           color: "%color.error%"
           description: "Before executing another command, please complete your [prompt](%prompt%)!"
     ignored_channel:

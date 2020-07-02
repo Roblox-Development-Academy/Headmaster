@@ -1,7 +1,6 @@
 import common
 from bot import *
 import errors
-from main import in_prompt
 from language import LangManager
 import database
 
@@ -33,41 +32,38 @@ def get_assignment_names(user_id) -> tuple:
 
 
 async def __assign(ctx, name=None):
-    dm = ctx.author.dm_channel
+    dm = ctx.author.dm_channel or await ctx.author.create_dm()
 
     await lang.get('assignment.create.start').send(ctx)
-
+    header = ''
     if name is None:
-        header = ""
-        name = ""
         while True:
             name = (await common.prompt(dm, ctx.author, lang.get('assignment.create.1'), header=header)).content
             if 0 < len(name) < 32:
                 break
             header = "**The name is too long! It cannot be longer than 31 characters!\n\n"
 
-    header = "__**The name of this assignment is %name%**__"
+    header = "__**The name of this assignment is `%name%`**__"
     if name in (x[0] for x in get_assignment_names(ctx.author.id)):
-        header = "__**The name, %name%, is already taken. Completing this prompt will replace the assignment." \
-                 "Type `cancel` to cancel the prompt.**__"
+        header = "__**The name, `%name%`, is already taken. Completing this prompt will replace the " \
+                 "assignment. Type `cancel` to cancel the prompt.**__"
 
     description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, name=name,
                                       header=header, time_display="15 minutes")
     description_id = description.id
     skipped = False
-    solution = None
+    solution_id = None
     try:
-        solution = await common.prompt(dm, ctx.author, lang.get('assignment.create.3', timeout=900,
-                                                                can_skip=True,
-                                                                time_display="15 minutes",
-                                                                url=description.jump_url))
+        solution = await common.prompt(dm, ctx.author, lang.get('assignment.create.3'), timeout=900,
+                                       can_skip=True, time_display="15 minutes", url=description.jump_url)
         solution_id = solution.id
     except errors.PromptSkipped:
         skipped = True
 
     if not skipped:
-        option, _ = await common.prompt_reaction(lang.get('assignment.create.4'), ctx.author,
-                                                 allowed_emojis=(':one:', ':two:', ':three:'), url=solution.jump_url)
+        option, _ = await common.prompt_reaction(lang.get('assignment.create.4'), ctx.author, dm,
+                                                 allowed_emojis=('1\u20e3', '2\u20e3', '3\u20e3'),
+                                                 url=solution.jump_url)
 
         # TODO - Complete homework creation prompt
 
@@ -82,7 +78,7 @@ async def __submit(ctx, assigner, name=None):
 async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
     header = ''
     title = 'Assignments'
-    color = ''
+    color = '%color.info%'
     if sub is not None:
         if sub.lower() in ("assign", "create", "start", "initiate", "make"):
             await __assign(ctx, name)
@@ -101,7 +97,7 @@ async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
                 color = "%color.success%"
             else:
                 header = f"**{name} does not exist!!\n\n"
-                color = "%color.info%"
+                color = "%color.error%"
             # TODO - Also has to delete it from current scheduling process
         elif sub.lower() == "submit" and assigner is not None:
             pass
@@ -109,10 +105,14 @@ async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
         else:
             title = "Assignments - Unrecognized Command"
             color = "%color.error%"
-    your_assignments = "\n".join(get_assignment_names(ctx.author.id))
-    node = lang.get('assignment.main').replace(title=title, header=header, assignments=your_assignments)
-    node.args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
-    await node.send(ctx)
+    list_node = lang.get('assignment.main')
+    your_assignments = "\n".join(name[0] for name in get_assignment_names(ctx.author.id)) or \
+                       list_node.nodes[0].options.get('no_assignments')
+    list_node = list_node.replace(title=title, header=header, assignments=your_assignments,
+                                  prefix=get_prefix(ctx.guild.id) if ctx.guild else
+                                  lang.global_placeholders.get('default_prefix'))
+    list_node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
+    await list_node.send(ctx)
 
 
 def setup(bot: commands.Bot):

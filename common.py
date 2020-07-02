@@ -19,7 +19,7 @@ async def prompt_reaction(msg: discord.Message, user: discord.User = None, *args
                           remove_other_reactions=True, **kwargs):
     if not isinstance(msg, discord.Message):
         msg = await msg.send(*args, **kwargs)
-        if isinstance(msg, list)
+        if isinstance(msg, list):
             msg = msg[-1]
 
     def check(reaction, reactor):
