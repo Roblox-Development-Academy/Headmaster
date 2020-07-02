@@ -7,7 +7,6 @@ from discord.ext import commands
 import database
 from language import LangManager as __LangManager
 
-DEFAULT_PREFIX = "."
 TOKEN = __os.environ['TOKEN']
 JANITOR_TOKEN = __os.environ['JANITOR_TOKEN']
 EMBED_COLORS = {
@@ -54,12 +53,12 @@ def get_prefix(guild_id):
         """,
         (guild_id,)
     ).fetchone()
-    return DEFAULT_PREFIX if row is None else row[0]
+    return lang.global_placeholders.get('default_prefix') if row is None else row[0]
 
 
 def get_mention_or_prefix(_, message):
     if not message.guild:  # Sent in DMs
-        return DEFAULT_PREFIX
+        return commands.when_mentioned_or(lang.global_placeholders.get('default_prefix'))(client, message)
 
     return commands.when_mentioned_or(get_prefix(message.guild.id))(client, message)
 
@@ -69,3 +68,5 @@ client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=Tru
 janitor = discord.Client()
 
 rda = client.get_guild(673600024919408680)
+
+in_prompt = {}
