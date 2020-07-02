@@ -79,15 +79,4 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
     if msg.content.lower() == "cancel":
         in_prompt.pop(user.id)
         raise errors.PromptCancelled("The prompt was cancelled", prompt_msg)
-
-    in_prompt.pop(user.id)
     return msg
-
-
-def retrieve_assignments(user_id) -> tuple:
-    """
-    Retrieves all assignments assigned by the specified user
-
-    :param user_id: The id of the specified user
-    :return: A tuple of tuples with assignment names
-    """
