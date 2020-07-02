@@ -148,6 +148,9 @@ class MessageListNode:
     def from_str(cls, serialized: str):
         return cls(MessageNode.from_str(serialized))
 
+    def replace(self, **kwargs):
+        return MessageListNode(*(node.replace(**kwargs) for node in self.nodes))
+
     async def send(self, *args, **kwargs):
         results = []
         for node in self.nodes:
