@@ -116,7 +116,6 @@ class MessageNode:
                 for reaction in reactions:
                     if isinstance(reaction, int):
                         reaction = LangManager.bot.get_emoji(reaction)
-                    print(reaction)
                     await msg.add_reaction(reaction)
             if message_list is not None:
                 message_list.append(msg)
