@@ -97,8 +97,8 @@ messages:
               %header%**What is the name of your assignment?**
 
 
-              This is a unique identifier that students can use to submit the assignment. It cannot be longer
-              than 31 character and it cannot be shorter than 1. Using an existing name will replace the
+              This is a unique, case-sensitive identifier that students can use to submit the assignment. It cannot be
+              longer than 31 character and it cannot be shorter than 1. Using an existing name will replace the
               previous assignment.%cancel_prompt%
             footer:
               text: "%respond_5m%"
@@ -107,7 +107,7 @@ messages:
             title: "Create Assignment"
             color: "%color.wizard%"
             description: >
-              __**The name of the assignment is %name%**__
+              %header%
 
 
               **Write the description to the assignment**

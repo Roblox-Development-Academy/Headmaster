@@ -1,7 +1,9 @@
 import common
 from bot import *
 import errors
+from main import in_prompt
 from language import LangManager
+import database
 
 """
 Assignment has an assigner (tutor), name (identifier), description (message ID), a solution (message ID).
@@ -11,6 +13,23 @@ Assignments will be created in DM and the assigner need only to edit the message
 Assignments will be submitted based on tutor and name.
 On submission, the student only need to use the assigner and the name and it will let the player know the description.
 """
+
+
+def get_assignment_names(user_id) -> tuple:
+    """
+    Retrieves all assignments assigned by the specified user
+
+    :param user_id: The id of the specified user
+    :return: A tuple of tuples with assignment names
+    """
+    return database.query(
+        """
+        SELECT name
+        FROM assignments
+        WHERE assigner = %s
+        """,
+        (user_id,)
+    ).fetchall()
 
 
 async def __assign(ctx, name=None):
@@ -27,8 +46,15 @@ async def __assign(ctx, name=None):
                 break
             header = "**The name is too long! It cannot be longer than 31 characters!\n\n"
 
+    header = "__**The name of this assignment is %name%**__"
+    for existing_name in get_assignment_names(ctx.author.id):
+        if existing_name == name:
+            header = "__**The name, %name%, is already taken. Completing this prompt will replace the assignment." \
+                     "Type `cancel` to cancel the prompt.**__"
+            break
+
     description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, name=name,
-                                      time_display="15 minutes")
+                                      header=header, time_display="15 minutes")
     description_id = description.id
     skipped = False
     solution = None
@@ -42,15 +68,19 @@ async def __assign(ctx, name=None):
         skipped = True
 
     if not skipped:
-        await lang.get('assignment.create.4', timeout=300, url=solution.jump_url).send(dm)
+        option, _ = common.prompt_reaction(lang.get('assignment.create.4'), ctx.author,
+                                           allowed_emojis=(':one:', ':two:', ':three:'), url=solution.jump_url)
+
         # TODO - Complete homework creation prompt
+
+    in_prompt.pop(ctx.author.id)
 
 
 async def __submit(ctx, assigner, name=None):
     pass
 
 
-@commands.command(aliases=['hw', 'assignment', 'assignments'])
+@commands.command(aliases=['name', 'hw', 'assignment', 'assignments'])
 async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
     header = ''
     title = 'Assignments'
@@ -81,7 +111,7 @@ async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
         else:
             title = "Assignments - Unrecognized Command"
             color = "%color.error%"
-    your_assignments = "\n".join(common.retrieve_assignments(ctx.author.id))
+    your_assignments = "\n".join(get_assignment_names(ctx.author.id))
     node = lang.get('assignment.main').replace(title=title, header=header, assignments=your_assignments)
     node.args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
     await node.send(ctx)
