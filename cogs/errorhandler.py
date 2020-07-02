@@ -21,11 +21,7 @@ async def process_errors(ctx, error):
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
     @commands.Cog.listener()
-    @client.event
     async def on_command_error(self, ctx, error):
         if hasattr(ctx.command, "on_error"):
             return
