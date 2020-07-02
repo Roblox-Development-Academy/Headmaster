@@ -54,7 +54,7 @@ class Admin(commands.Cog):
     @setprefix.error
     async def prefix_cmd_error(self, ctx, error):
         if isinstance(error, commands.NoPrivateMessage):
-            await lang.get('error.prefix.server_only').send(ctx, default_prefix=DEFAULT_PREFIX)
+            await lang.get('error.prefix.server_only').send(ctx)
         else:
             await errorhandler.process_errors(ctx, error)
 

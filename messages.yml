@@ -11,6 +11,7 @@ global_placeholders:
     error: ":crying_cat_face:"
     date: ":calendar:"
     timer: ":timer:"
+  default_prefix: '.'
   cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
   cancel_or_skip: "\n\nRespond with `cancel` to cancel the setup or `skip` to skip this step."
   respond_5m: "Please respond within 5 minutes."
