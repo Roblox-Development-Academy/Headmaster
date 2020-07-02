@@ -3,6 +3,7 @@ from datetime import datetime
 from collections import namedtuple
 
 from bot import *
+from bot import in_prompt
 from cogs.admin import Admin
 from cogs.errorhandler import ErrorHandler
 
@@ -12,7 +13,7 @@ def generate_tables():
         f"""
         CREATE TABLE IF NOT EXISTS guilds(
             id BIGINT PRIMARY KEY UNIQUE NOT NULL,
-            prefix TEXT DEFAULT '{DEFAULT_PREFIX}'
+            prefix TEXT DEFAULT '{lang.global_placeholders.get('default_prefix')}'
         )
         """,
         """
@@ -40,9 +41,10 @@ def generate_tables():
         database.update(statement)
 
 
-client.add_cog(ErrorHandler(client))
+client.add_cog(ErrorHandler())
 client.add_cog(Admin())
 client.load_extension('cmds.apply')
+client.load_extension('cmds.homework')
 
 
 @client.event
@@ -105,9 +107,6 @@ async def globally_ignore_channels(ctx):
 async def globally_ignore_banned(ctx):
     # TODO
     return True
-
-
-in_prompt = {}
 
 
 @client.check

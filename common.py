@@ -3,8 +3,7 @@ import asyncio
 import discord
 
 import errors
-from bot import client
-from main import in_prompt
+from bot import client, in_prompt
 from cogs import errorhandler
 
 
