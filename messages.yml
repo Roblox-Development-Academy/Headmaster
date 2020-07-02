@@ -144,10 +144,21 @@ messages:
               **When do you want the answer to be shown to submitters?**
 
 
+              %s%%s%:one: Immediately after submission
+
+              %s%%s%:two: After a specified time interval has passed after submission
+
+              %s%%s%:three: At a specified date and time
+
+
               The solution will only be shown to those who have submitted the assignment. You will be able to
               see all submissions.%cancel_prompt%
             footer:
               text: "%respond_5m%"
+            reactions:
+              - ":one:"
+              - ":two:"
+              - ":three:"
     main:
       - embed:
           title: "%title%"
