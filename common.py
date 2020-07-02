@@ -16,6 +16,29 @@ def unpack(packed_parameters, coroutine):
     return coroutine(*packed_parameters[0], **packed_parameters[1])
 
 
+async def prompt_reaction(msg: discord.Message, user: discord.User = None, timeout=300, allowed_emojis: list = None,
+                          remove_other_reactions=True, **kwargs):
+    if not isinstance(msg, discord.Message):
+        msg = await msg.send(**kwargs)
+
+    def check(reaction, reactor):
+        return (reaction.message == msg) and (not user or user == reactor)
+
+    if user:
+        try:
+            in_prompt[user.id] = msg.jump_url
+        except AttributeError:
+            in_prompt[user.id] = msg[0].jump_url
+    while True:
+        response, responder = await client.wait_for('reaction_add', check=check, timeout=timeout)
+
+        if not allowed_emojis or (response.emoji in allowed_emojis):
+            break
+        if remove_other_reactions:
+            await response.remove(responder)
+    return response, responder
+
+
 async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=None, timeout=300,
                  can_skip=False, **kwargs) -> discord.Message:
     """
@@ -34,7 +57,10 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
     def check(m):
         return m.author == user and m.channel == channel
 
-    in_prompt[user.id] = prompt_msg.jump_url
+    try:
+        in_prompt[user.id] = prompt_msg.jump_url
+    except AttributeError:
+        in_prompt[user.id] = prompt_msg[0].jump_url
     try:
         while True:
             msg = await client.wait_for("message", check=check, timeout=timeout)
