@@ -19,22 +19,31 @@ async def prompt_reaction(msg: discord.Message, user: discord.User = None, *args
                           remove_other_reactions=True, **kwargs):
     if not isinstance(msg, discord.Message):
         msg = await msg.send(*args, **kwargs)
+        if isinstance(msg, list)
+            msg = msg[-1]
 
     def check(reaction, reactor):
-        return (reaction.message == msg) and (not user or user == reactor)
+        return (reaction.message.id == msg.id) and (not user or user.id == reactor.id)
 
     if user:
         try:
             in_prompt[user.id] = msg.jump_url
         except AttributeError:
             in_prompt[user.id] = msg[0].jump_url
-    while True:
-        response, responder = await client.wait_for('reaction_add', check=check, timeout=timeout)
+    try:
+        while True:
+            response, responder = await client.wait_for('reaction_add', check=check, timeout=timeout)
 
-        if not allowed_emojis or (response.emoji in allowed_emojis):
-            break
-        if remove_other_reactions:
-            await response.remove(responder)
+            if not allowed_emojis or (response.emoji in allowed_emojis):
+                break
+            if remove_other_reactions:
+                try:
+                    await response.remove(responder)
+                except discord.errors.Forbidden:
+                    pass
+    except asyncio.TimeoutError:
+        in_prompt.pop(user.id)
+        raise errors.PromptTimeout("The prompt has timed out", msg)
     return response, responder
 
 
