@@ -113,7 +113,10 @@ async def globally_ignore_banned(ctx):
 async def ignore_in_prompt(ctx):
     prompt = in_prompt.get(ctx.message.author.id)
     if prompt:
-        await ctx.message.delete()
+        try:
+            await ctx.message.delete()
+        except discord.errors.Forbidden:
+            pass
         await lang.get('error.in_prompt').send(ctx, prompt=prompt)
         return False
     return True
