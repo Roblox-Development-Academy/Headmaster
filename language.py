@@ -111,9 +111,12 @@ class MessageNode:
         if isinstance(to, discord.abc.Messageable):
             msg = await to.send(**self.replace(**placeholders).args)
 
-            reactions = self.args.get('reactions')
+            reactions = self.options.get('reactions')
             if reactions:
                 for reaction in reactions:
+                    if isinstance(reaction, int):
+                        reaction = LangManager.bot.get_emoji(reaction)
+                    print(reaction)
                     await msg.add_reaction(reaction)
             if message_list is not None:
                 message_list.append(msg)
@@ -172,6 +175,7 @@ class LangManager:
     empty = MessageListNode()
     matcher = re.compile(r'%([\w._]+)%')
     global_placeholders = {}
+    bot = None
 
     @staticmethod
     def __index_strings(config: dict, final_dict: dict = None, index: str = ''):
@@ -188,7 +192,10 @@ class LangManager:
     def replace(to_replace: str, **placeholders):
         if not placeholders:
             placeholders = LangManager.global_placeholders
-        match = LangManager.matcher.search(to_replace)
+        try:
+            match = LangManager.matcher.search(to_replace)
+        except TypeError:
+            return to_replace
         while match is not None:
             value = placeholders.get(match.group(1))
             span = match.span()
@@ -199,9 +206,11 @@ class LangManager:
                 match = LangManager.matcher.search(to_replace, span[1])
         return to_replace
 
-    def __init__(self, *yaml_files):
+    def __init__(self, *yaml_files, bot=None):
         self.nodes = {}
         self.files = set(yaml_files)
+        if not LangManager.bot:
+            LangManager.bot = bot
 
         self.load()
 

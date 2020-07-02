@@ -23,8 +23,6 @@ EMOJIS = {
     'time': ":timer:"
 }
 
-lang = __LangManager('messages.yml')
-
 __logging.basicConfig(level=__logging.INFO)
 logger = __logging.getLogger('discord')
 logger.setLevel(__logging.DEBUG)
@@ -70,3 +68,5 @@ janitor = discord.Client()
 rda = client.get_guild(673600024919408680)
 
 in_prompt = {}
+
+lang = __LangManager('messages.yml', bot=client)
