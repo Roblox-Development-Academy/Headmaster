@@ -15,10 +15,10 @@ def unpack(packed_parameters, coroutine):
     return coroutine(*packed_parameters[0], **packed_parameters[1])
 
 
-async def prompt_reaction(msg: discord.Message, user: discord.User = None, timeout=300, allowed_emojis=None,
+async def prompt_reaction(msg: discord.Message, user: discord.User = None, *args, timeout=300, allowed_emojis=None,
                           remove_other_reactions=True, **kwargs):
     if not isinstance(msg, discord.Message):
-        msg = await msg.send(**kwargs)
+        msg = await msg.send(*args, **kwargs)
 
     def check(reaction, reactor):
         return (reaction.message == msg) and (not user or user == reactor)
@@ -51,7 +51,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
     :return: The user's response
     """
     if not isinstance(prompt_msg, discord.Message):
-        prompt_msg = await prompt_msg.send(**kwargs)
+        prompt_msg = await prompt_msg.send(channel, **kwargs)
 
     def check(m):
         return m.author == user and m.channel == channel
