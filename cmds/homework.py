@@ -47,11 +47,9 @@ async def __assign(ctx, name=None):
             header = "**The name is too long! It cannot be longer than 31 characters!\n\n"
 
     header = "__**The name of this assignment is %name%**__"
-    for existing_name in get_assignment_names(ctx.author.id):
-        if existing_name == name:
-            header = "__**The name, %name%, is already taken. Completing this prompt will replace the assignment." \
-                     "Type `cancel` to cancel the prompt.**__"
-            break
+    if name in (x[0] for x in get_assignment_names(ctx.author.id)):
+        header = "__**The name, %name%, is already taken. Completing this prompt will replace the assignment." \
+                 "Type `cancel` to cancel the prompt.**__"
 
     description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, name=name,
                                       header=header, time_display="15 minutes")
