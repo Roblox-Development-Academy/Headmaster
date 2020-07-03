@@ -126,14 +126,15 @@ class MessageNode:
             for element in to:
                 await self.send(element, message_list=message_list, **placeholders)
             return message_list
-        # TODO - Except the exception that comes with sending an empty message node
+        # TODO - Except the exception that comes with sending an empty message node; HTTPRequest
 
     async def edit(self, message, **placeholders):
         msg = await message.edit(**self.replace(**placeholders).args)
 
         reactions = self.args.get('reactions')
-        for reaction in reactions:
-            await msg.add_reaction(reaction)
+        if reactions:
+            for reaction in reactions:
+                await msg.add_reaction(reaction)
         return msg
 
 
