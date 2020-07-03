@@ -6,11 +6,11 @@ global_placeholders:
     success: "0x5efb32"
     wizard: "0x00f6ff"
   emoji:
-    confirm: ":white_check_mark:"
-    gotcha: ":thumbs_up:"
-    error: ":crying_cat_face:"
-    date: ":calendar:"
-    timer: ":timer:"
+    confirm: "\U00002705",  # :white_check_mark:
+    gotcha: "\U0001f44d",  # :thumbs_up:
+    error: "\U0001f63f",  # :crying_cat_face:
+    date: "\U0001f4c6",  # :calendar:
+    time: "\U000023f2"  # :timer:
     keycap: "\u20e3"
   default_prefix: '.'
   cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
@@ -83,6 +83,18 @@ messages:
                 %s%%s%- Knowledgeable about the subject you're teaching.
           footer:
             text: "%respond_5m%"
+    start:
+      - embed:
+          title:
+          color:
+          description:
+    complete:
+      - embed:
+          title: "Application Submitted"
+          color: "%color.success%"
+          description: >
+          Your application has been submitted! Thank you for applying.
+          You will be contacted once results are out."
 
   assignment:
     create:
