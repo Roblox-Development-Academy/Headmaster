@@ -42,7 +42,7 @@ async def prompt_reaction(msg: discord.Message, user: discord.User = None, *args
     return response, responder
 
 
-async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=None, timeout=300,
+async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg, timeout=300,
                  back=None, can_skip=False, **kwargs) -> discord.Message:
     """
     Prompts the specified user for a text response
@@ -85,7 +85,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
         in_prompt.pop(user.id)
         raise errors.PromptTimeout("The prompt has timed out", prompt_msg)
 
-    if msg.content.lower() == "cancel":
+    if msg.content.lower() in ['cancel', 'cancel.']:
         in_prompt.pop(user.id)
         raise errors.PromptCancelled("The prompt was cancelled", prompt_msg)
     return msg

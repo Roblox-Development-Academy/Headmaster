@@ -93,6 +93,38 @@ messages:
             **I have sent you a private message!**
 
             Please proceed with the application in your DMs.
+    dm_message:
+      - embed:
+          title: "Teacher Application"
+          color: "%color.wizard%"
+          description: |
+            Please send any proof you have of your expertise, such as portfolios, links, pictures, or files.
+
+            I will react with %emoji.gotcha% to show that I have received that message.
+            If you don't respond within 5 minutes, the application will be canceled.
+          fields:
+            - name: "Done"
+              value: |
+                Please respond with "done" when you are finished with your application.
+              inline: false
+            - name: "Cancel"
+              value: |
+                Please respond with "cancel" to cancel the application.
+              inline: false
+    ta_content:
+      log:
+        - embed:
+            title: "Teacher Application for %user%"
+            color: "%color.info%"
+            description: |
+              **%user_mention% %amount% Attachment(s).**
+
+              %content%
+      submit:
+        - embed:
+            title: "Teacher Application for %user% has Been Successfully Completed"
+            color: "%color.success%"
+            description: "User: %user_mention%"
     complete:
       - embed:
           title: "Application Submitted"
