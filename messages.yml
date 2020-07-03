@@ -14,7 +14,10 @@ global_placeholders:
     keycap: "\u20e3"
   default_prefix: '.'
   cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
-  cancel_or_skip: "\n\nRespond with `cancel` to cancel the setup or `skip` to skip this step."
+  cancel_or_skip: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
+  cancel_or_back: "\n\nRespond with `back` to return to the previous step or `cancel` to cancel the setup."
+  prompt_options: "\n\nRespond with `skip` to skip this step, `back` to return to the previous step, or `cancel` to
+                  cancel the setup."
   respond_5m: "Please respond within 5 minutes."
   respond_prompt: "Please respond within %time_display%."
   s: "\u2800" # Blank space; invisible unicode character
@@ -116,7 +119,7 @@ messages:
 
 
               This will be shown to any student looking for assignment information. You can attach files and
-              edit your description freely; the newest version will always be used.%cancel_prompt%
+              edit your description freely; the newest version will always be used.%cancel_or_back%
             footer:
               text: "%respond_prompt%"
       3:
@@ -132,7 +135,7 @@ messages:
 
               This will be shown at a designated time to all students who have submitted the assignment. You
               can attach files and edit your solution freely; the newest version will always be used.
-              %cancel_or_skip%
+              %prompt_options%
             footer:
               text: "%respond_prompt%"
       4:
@@ -154,7 +157,7 @@ messages:
 
 
               The solution will only be shown to those who have submitted the assignment. You will be able to
-              see all submissions.%cancel_prompt%
+              see all submissions.
             footer:
               text: "%respond_5m%"
           reactions:
