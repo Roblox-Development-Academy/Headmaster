@@ -16,11 +16,11 @@ EMBED_COLORS = {
     'wizard': discord.Colour(0x00f6ff)
 }
 EMOJIS = {
-    'confirm': ":white_check_mark:",
-    'gotcha': ":thumbs_up:",
-    'error': ":crying_cat_face:",
-    'date': ":calendar:",
-    'time': ":timer:"
+    'confirm': "\U00002705",  # :white_check_mark:
+    'gotcha': "\U0001f44d",  # :thumbs_up:
+    'error': "\U0001f63f",  # :crying_cat_face:
+    'date': "\U0001f4c6",  # :calendar:
+    'time': "\U000023f2"  # :timer:
 }
 
 __logging.basicConfig(level=__logging.INFO)
