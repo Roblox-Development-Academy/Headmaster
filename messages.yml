@@ -83,8 +83,8 @@ messages:
                 %s%%s%- Knowledgeable about the subject you're teaching.
           footer:
             text: "%respond_5m%"
-      reactions:
-        - "%emoji.confirm%"
+        reactions:
+          - "%emoji.confirm%"
     start:
       - embed:
           title: "Apply for Teacher"
