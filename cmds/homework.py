@@ -53,7 +53,9 @@ async def __create(ctx, name='', num_stage=0, results=None):
             results['name'] = name
             await __create(ctx, num_stage=1 if len(name) > 32 else 2, results=results)
 
-        in_prompt.pop(ctx.author.id)
+        in_prompt.pop(ctx.author.id)  # TODO - An error (such as 'back') will break the thread and this won't run;
+        # maybe put this in a "last stage", instead
+        # ~ a wizard prompt class would be great
     elif num_stage == 1:
         if len(results.get('name', '')) > 31:
             header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"
