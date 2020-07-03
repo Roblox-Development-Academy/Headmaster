@@ -11,3 +11,7 @@ class PromptTimeout(commands.CommandError):
 
 class PromptSkipped(commands.CommandError):
     pass
+
+
+class PreviousPrompt(commands.CommandError):
+    pass

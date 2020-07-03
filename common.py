@@ -1,9 +1,7 @@
 import asyncio
 
-import discord
-
 import errors
-from bot import client, in_prompt
+from bot import *
 from cogs import errorhandler
 
 
@@ -26,10 +24,7 @@ async def prompt_reaction(msg: discord.Message, user: discord.User = None, *args
         return (reaction.message.id == msg.id) and (not user or user.id == reactor.id)
 
     if user:
-        try:
-            in_prompt[user.id] = msg.jump_url
-        except AttributeError:
-            in_prompt[user.id] = msg[0].jump_url
+        in_prompt[user.id] = msg.jump_url
     try:
         while True:
             response, responder = await client.wait_for('reaction_add', check=check, timeout=timeout)
@@ -40,7 +35,7 @@ async def prompt_reaction(msg: discord.Message, user: discord.User = None, *args
                 try:
                     await response.remove(responder)
                 except discord.errors.Forbidden:
-                    pass
+                    await lang.get('error.invalid_reaction').send(msg.channel)
     except asyncio.TimeoutError:
         in_prompt.pop(user.id)
         raise errors.PromptTimeout("The prompt has timed out", msg)
@@ -48,7 +43,7 @@ async def prompt_reaction(msg: discord.Message, user: discord.User = None, *args
 
 
 async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=None, timeout=300,
-                 can_skip=False, **kwargs) -> discord.Message:
+                 back=None, can_skip=False, **kwargs) -> discord.Message:
     """
     Prompts the specified user for a text response
 
@@ -56,6 +51,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
     :param channel: The channel to send the prompt in
     :param prompt_msg: The message to edit if error or the message node to send
     :param timeout: How many seconds before timeout
+    :param back: A coroutine to be called if 'back' is an allowed response
     :param can_skip: Whether this prompt is skippable (must be handled)
     :return: The user's response
     """
@@ -78,6 +74,11 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg=No
                 else:
                     await errorhandler.process_errors(channel,
                                                       errors.PromptSkipped("This prompt cannot be skipped", msg))
+            elif msg.content.lower() == "back":
+                if back:
+                    raise errors.PreviousPrompt("Went back to previous prompt", msg, back)
+                await errorhandler.process_errors(channel, errors.PreviousPrompt("Cannot go back to previous prompt",
+                                                                                 channel))
             else:
                 break
     except asyncio.TimeoutError:

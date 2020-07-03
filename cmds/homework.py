@@ -1,6 +1,7 @@
 import common
 from bot import *
 import errors
+from cogs import errorhandler
 from language import LangManager
 import database
 
@@ -31,43 +32,68 @@ def get_assignment_names(user_id) -> tuple:
     ).fetchall()
 
 
-async def __assign(ctx, name=None):
+async def __create(ctx, name='', num_stage=0, results=None):
     dm = ctx.author.dm_channel or await ctx.author.create_dm()
 
-    await lang.get('assignment.create.start').send(ctx)
-    header = ''
-    if name is None:
+    if results is None:
+        results = {}
+
+    async def back():
+        try:
+            await __create(ctx, num_stage=num_stage - 1, results=results)
+        except Exception as e:
+            await errorhandler.process_errors(ctx, e)
+
+    if num_stage == 0:
+        if ctx.channel != dm:
+            await lang.get('assignment.create.start').send(ctx)
+        if not name:
+            await __create(ctx, num_stage=1, results=results)
+        else:
+            results['name'] = name
+            await __create(ctx, num_stage=1 if len(name) > 32 else 2, results=results)
+
+        in_prompt.pop(ctx.author.id)
+    elif num_stage == 1:
+        if len(results.get('name', '')) > 31:
+            header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"
+        else:
+            header = ''
         while True:
-            name = (await common.prompt(dm, ctx.author, lang.get('assignment.create.1'), header=header)).content
-            if 0 < len(name) < 32:
+            results['name'] = (await common.prompt(dm, ctx.author, lang.get('assignment.create.1'),
+                                                   header=header)).content
+            if not results['name']:
+                header = "**The name must be longer than 0 characters!**\n\n"
+            elif len(results['name']) > 31:
+                header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"
+            else:
                 break
-            header = "**The name is too long! It cannot be longer than 31 characters!\n\n"
-
-    header = "__**The name of this assignment is `%name%`**__"
-    if name in (x[0] for x in get_assignment_names(ctx.author.id)):
-        header = "__**The name, `%name%`, is already taken. Completing this prompt will replace the " \
-                 "assignment. Type `cancel` to cancel the prompt.**__"
-
-    description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, name=name,
-                                      header=header, time_display="15 minutes")
-    description_id = description.id
-    skipped = False
-    solution_id = None
-    try:
-        solution = await common.prompt(dm, ctx.author, lang.get('assignment.create.3'), timeout=900,
-                                       can_skip=True, time_display="15 minutes", url=description.jump_url)
-        solution_id = solution.id
-    except errors.PromptSkipped:
-        skipped = True
-
-    if not skipped:
+        await __create(ctx, num_stage=2, results=results)
+    elif num_stage == 2:
+        header = "__**The name of this assignment is `%name%`**__"
+        if results['name'] in (x[0] for x in get_assignment_names(ctx.author.id)):
+            header = "__**The name, `%name%`, is already taken. Completing the creation will replace the " \
+                     "assignment. Respond with `back` to go to the previous stage.**__"
+        description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, back=back(),
+                                          name=results['name'], header=header, time_display="15 minutes")
+        results['description_id'] = description.id
+        results['description_url'] = description.jump_url
+        await __create(ctx, num_stage=3, results=results)
+    elif num_stage == 3:
+        results['solution_id'] = None
+        try:
+            solution = await common.prompt(dm, ctx.author, lang.get('assignment.create.3'), timeout=900, back=back(),
+                                           can_skip=True, time_display="15 minutes", url=results["description_url"])
+            results['solution_id'] = solution.id
+            results['solution_url'] = solution.jump_url
+            await __create(ctx, num_stage=4, results=results)
+        except errors.PromptSkipped:
+            return
+    elif num_stage == 4:
         option, _ = await common.prompt_reaction(lang.get('assignment.create.4'), ctx.author, dm,
                                                  allowed_emojis=('1\u20e3', '2\u20e3', '3\u20e3'),
-                                                 url=solution.jump_url)
-
-        # TODO - Complete homework creation prompt
-
-    in_prompt.pop(ctx.author.id)
+                                                 url=results['solution_url'])
+        pass
 
 
 async def __submit(ctx, assigner, name=None):
@@ -81,7 +107,7 @@ async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
     color = '%color.info%'
     if sub is not None:
         if sub.lower() in ("assign", "create", "start", "initiate", "make"):
-            await __assign(ctx, name)
+            await __create(ctx, name)
             return
         elif sub.lower() in ("remove", "delete", "unassign") and name is not None:
             database.update(
@@ -99,8 +125,8 @@ async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
                 header = f"**{name} does not exist!!\n\n"
                 color = "%color.error%"
             # TODO - Also has to delete it from current scheduling process
-        elif sub.lower() == "submit" and assigner is not None:
-            pass
+        elif sub.lower() == "submit":
+            await __submit(ctx, name, assigner)
             return
         else:
             title = "Assignments - Unrecognized Command"

@@ -96,7 +96,7 @@ messages:
             title: "Create Assignment"
             color: "%color.wizard%"
             description: >
-              %header%**What is the name of your assignment?**
+              %header%**What is the name of the assignment?**
 
 
               This is a unique, case-sensitive identifier that students can use to submit the assignment. It cannot be
@@ -217,12 +217,24 @@ messages:
         embed:
           title: "%emoji.error% This prompt cannot be skipped"
           color: "%color.error%"
-          description: "Please continue the prompt and send a response or respond with `cancel` to cancel."
+          description: "Please continue the prompt and send a response or respond with `cancel` to cancel the prompt."
     prompt_cancel:
       - embed:
           title: "Setup Cancelled"
           color: "%color.error%"
           description: "You have cancelled the setup. Please re-execute the command again to restart the setup."
+    previous_prompt:
+      - delete_after: 5
+        embed:
+          title: "%emoji.error% You cannot go to the previous stage"
+          color: "%color.error%"
+          description: "Please continue and complete the prompt or respond with `cancel` to cancel the prompt."
+    invalid_reaction:
+      - delete_after: 3
+        embed:
+          title: "%emoji.error% Invalid Choice"
+          color: "%color.error%"
+          description: "Please react with a valid emoji."
     in_prompt:
       - delete_after: 3
         embed:
