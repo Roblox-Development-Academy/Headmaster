@@ -39,23 +39,21 @@ async def __create(ctx, name='', num_stage=0, results=None):
         results = {}
 
     async def back():
-        try:
-            await __create(ctx, num_stage=num_stage - 1, results=results)
-        except Exception as e:
-            await errorhandler.process_errors(ctx, e)
+        await __create(ctx, num_stage=num_stage - 1, results=results)
 
     if num_stage == 0:
         if ctx.channel != dm:
             await lang.get('assignment.create.start').send(ctx)
-        if not name:
-            await __create(ctx, num_stage=1, results=results)
-        else:
-            results['name'] = name
-            await __create(ctx, num_stage=1 if len(name) > 32 else 2, results=results)
+        try:
+            if not name:
+                await __create(ctx, num_stage=1, results=results)
+            else:
+                results['name'] = name
+                await __create(ctx, num_stage=1 if len(name) > 32 else 2, results=results)
+        except commands.CommandError as e:
+            await errorhandler.recursively_process(ctx, e)
 
-        in_prompt.pop(ctx.author.id)  # TODO - An error (such as 'back') will break the thread and this won't run;
-        # maybe put this in a "last stage", instead
-        # ~ a wizard prompt class would be great
+        in_prompt.pop(ctx.author.id)
     elif num_stage == 1:
         if len(results.get('name', '')) > 31:
             header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"

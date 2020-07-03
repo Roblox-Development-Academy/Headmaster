@@ -56,7 +56,7 @@ class Admin(commands.Cog):
         if isinstance(error, commands.NoPrivateMessage):
             await lang.get('error.prefix.server_only').send(ctx)
         else:
-            await errorhandler.process_errors(ctx, error)
+            await errorhandler.process(ctx, error)
 
     """
     Don't worry; the command only takes channel arguments for the channels in the current server.

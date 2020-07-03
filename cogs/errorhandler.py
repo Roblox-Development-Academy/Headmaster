@@ -2,7 +2,7 @@ from bot import *
 import errors
 
 
-async def process_errors(ctx, error):
+async def process(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await lang.get('error.missing_permissions').send(ctx, description=error.args[0])
     elif isinstance(error, commands.NoPrivateMessage):
@@ -27,9 +27,16 @@ async def process_errors(ctx, error):
         raise error
 
 
+async def recursively_process(ctx, error):
+    try:
+        await process(ctx, error)
+    except Exception as e:
+        await process(ctx, e)
+
+
 class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if hasattr(ctx.command, "on_error"):
             return
-        await process_errors(ctx, error)
+        await process(ctx, error)
