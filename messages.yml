@@ -6,10 +6,10 @@ global_placeholders:
     success: "0x5efb32"
     wizard: "0x00f6ff"
   emoji:
-    confirm: "\U00002705",  # :white_check_mark:
-    gotcha: "\U0001f44d",  # :thumbs_up:
-    error: "\U0001f63f",  # :crying_cat_face:
-    date: "\U0001f4c6",  # :calendar:
+    confirm: "\U00002705"  # :white_check_mark:
+    gotcha: "\U0001f44d"  # :thumbs_up:
+    error: "\U0001f63f"  # :crying_cat_face:
+    date: "\U0001f4c6"  # :calendar:
     time: "\U000023f2"  # :timer:
     keycap: "\u20e3"
   default_prefix: '.'
@@ -63,7 +63,7 @@ messages:
               **submit_hw** - Submit an assignment to the message author.
 
   teacher_application:
-    1:
+    initiate:
       - embed:
           title: "Apply for Teacher"
           color: "%color.wizard%"
@@ -83,11 +83,16 @@ messages:
                 %s%%s%- Knowledgeable about the subject you're teaching.
           footer:
             text: "%respond_5m%"
+      reactions:
+        - "%emoji.confirm%"
     start:
       - embed:
-          title:
-          color:
-          description:
+          title: "Apply for Teacher"
+          color: "%color.success%"
+          description: |
+            **I have sent you a private message!**
+
+            Please proceed with the application in your DMs.
     complete:
       - embed:
           title: "Application Submitted"
