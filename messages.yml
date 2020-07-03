@@ -93,8 +93,8 @@ messages:
           title: "Application Submitted"
           color: "%color.success%"
           description: >
-          Your application has been submitted! Thank you for applying.
-          You will be contacted once results are out."
+            Your application has been submitted! Thank you for applying.
+            You will be contacted once results are out.
 
   assignment:
     create:
