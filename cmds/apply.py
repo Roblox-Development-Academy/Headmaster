@@ -29,6 +29,7 @@ async def apply(ctx):
         messages.append((message.content, tuple(files)))
 
         await message.add_reaction(gotcha_emote)
+    in_prompt.pop(ctx.author.id)
     await lang.get('teacher_application.complete').send(user_dm)
     await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author), user_mention=ctx.author.mention)
     for message in messages:
