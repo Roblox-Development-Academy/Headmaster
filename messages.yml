@@ -163,7 +163,7 @@ messages:
 
 
               This will be shown to any student looking for assignment information. You can attach files and
-              edit your description freely; the newest version will always be used.%cancel_or_back%
+              edit your description freely; the newest version will always be used.%prompt_options%
             footer:
               text: "%respond_prompt%"
       3:
