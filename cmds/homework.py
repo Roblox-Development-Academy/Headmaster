@@ -4,6 +4,7 @@ import errors
 from cogs import errorhandler
 from language import LangManager
 import database
+from prompt import prompt
 
 """
 Assignment has an assigner (tutor), name (identifier), description (message ID), a solution (message ID).
@@ -32,29 +33,26 @@ def get_assignment_names(user_id) -> tuple:
     ).fetchall()
 
 
-async def __create(ctx, name='', num_stage=0, results=None):
+@prompt()
+async def __create(stage, name=''):
+    ctx = stage.ctx
+    results = stage.results
     dm = ctx.author.dm_channel or await ctx.author.create_dm()
 
-    if results is None:
-        results = {}
-
     async def back():
-        await __create(ctx, num_stage=num_stage - 1, results=results)
+        await stage.zap(stage.num - 1)
 
-    if num_stage == 0:
+    if stage.num == 0:
         if ctx.channel != dm:
             await lang.get('assignment.create.start').send(ctx)
-        try:
-            if not name:
-                await __create(ctx, num_stage=1, results=results)
-            else:
-                results['name'] = name
-                await __create(ctx, num_stage=1 if len(name) > 32 else 2, results=results)
-        except commands.CommandError as e:
-            await errorhandler.recursively_process(ctx, e)
+        if not name:
+            await stage.zap(1)
+        else:
+            results['name'] = name
+            await stage.zap(1 if len(name) > 32 else 2)
 
         in_prompt.pop(ctx.author.id)
-    elif num_stage == 1:
+    elif stage.num == 1:
         if len(results.get('name', '')) > 31:
             header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"
         else:
@@ -68,8 +66,8 @@ async def __create(ctx, name='', num_stage=0, results=None):
                 header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"
             else:
                 break
-        await __create(ctx, num_stage=2, results=results)
-    elif num_stage == 2:
+        await stage.zap(2)
+    elif stage.num == 2:
         header = "__**The name of this assignment is `%name%`**__"
         if results['name'] in (x[0] for x in get_assignment_names(ctx.author.id)):
             header = "__**The name, `%name%`, is already taken. Completing the creation will replace the " \
@@ -78,18 +76,18 @@ async def __create(ctx, name='', num_stage=0, results=None):
                                           name=results['name'], header=header, time_display="15 minutes")
         results['description_id'] = description.id
         results['description_url'] = description.jump_url
-        await __create(ctx, num_stage=3, results=results)
-    elif num_stage == 3:
+        await stage.zap(3)
+    elif stage.num == 3:
         results['solution_id'] = None
         try:
             solution = await common.prompt(dm, ctx.author, lang.get('assignment.create.3'), timeout=900, back=back(),
                                            can_skip=True, time_display="15 minutes", url=results["description_url"])
             results['solution_id'] = solution.id
             results['solution_url'] = solution.jump_url
-            await __create(ctx, num_stage=4, results=results)
+            await stage.zap(4)
         except errors.PromptSkipped:
             return
-    elif num_stage == 4:
+    elif stage.num == 4:
         option, _ = await common.prompt_reaction(lang.get('assignment.create.4'), ctx.author, dm,
                                                  allowed_emojis=('1\u20e3', '2\u20e3', '3\u20e3'),
                                                  url=results['solution_url'])
