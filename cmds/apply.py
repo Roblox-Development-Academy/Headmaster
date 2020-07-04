@@ -1,5 +1,6 @@
 from bot import *
 from common import prompt_reaction, prompt
+from language import MessageNode
 
 
 @commands.command()
@@ -12,25 +13,27 @@ async def apply(ctx):
     user_dm = ctx.author.dm_channel
     gotcha_emote = lang.global_placeholders.get('emoji.gotcha')
 
-    channel = client.get_channel(728753615031763005)
-    channel = client.get_user(450375444450115585)
+    channel = client.get_channel(728753615031763005)  # Change this to the channel we'll be using.
+
+    messages = []
     while True:
         message = await prompt(user_dm, ctx.author, prompt_message)
 
         if message.content.lower() in ('done', 'done.'):
-            await lang.get('teacher_application.ta_content.submit').send(channel, user=str(ctx.author), user_mention=ctx.author.mention)
             break
-
-        await lang.get('teacher_application.ta_content.log').send(channel, user=str(ctx.author), user_mention=ctx.author.mention, amount=str(len(message.attachments)), content=message.content)
 
         files = []
         if len(message.attachments) > 0:
             for attachment in message.attachments:
                 files.append(await attachment.to_file())
-            await channel.send(files=files)
+        messages.append((message.content, tuple(files)))
 
         await message.add_reaction(gotcha_emote)
     await lang.get('teacher_application.complete').send(user_dm)
+    await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author), user_mention=ctx.author.mention)
+    for message in messages:
+        await MessageNode(content=message[0], files=message[1] if len(message[1]) > 0 else None).send(channel)
+    await lang.get('teacher_application.end').send(channel, user=str(ctx.author))
 
 
 def setup(bot):

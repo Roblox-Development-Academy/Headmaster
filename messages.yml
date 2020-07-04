@@ -112,19 +112,10 @@ messages:
                 Please respond with "cancel" to cancel the application.
               inline: false
     ta_content:
-      log:
-        - embed:
-            title: "Teacher Application for %user%"
-            color: "%color.info%"
-            description: |
-              **%user_mention% %amount% Attachment(s).**
-
-              %content%
-      submit:
-        - embed:
-            title: "Teacher Application for %user% has Been Successfully Completed"
-            color: "%color.success%"
-            description: "User: %user_mention%"
+      - embed:
+          title: "Teacher Application for %user% has Been Successfully Completed"
+          color: "%color.success%"
+          description: "User: %user_mention%"
     complete:
       - embed:
           title: "Application Submitted"
@@ -132,6 +123,10 @@ messages:
           description: >
             Your application has been submitted! Thank you for applying.
             You will be contacted once results are out.
+    end:
+      - embed:
+          title: "End of Teacher Application for %user%"
+          color: "%color.success%"
 
   assignment:
     create:
