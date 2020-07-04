@@ -1,5 +1,6 @@
 # Placeholders that can be used in any message; you can define your own but these don't change
 global_placeholders:
+  default_prefix: '.'
   color:
     info: "0x9e33f3"
     error: "0xf62323"
@@ -12,14 +13,15 @@ global_placeholders:
     date: "\U0001f4c6"  # :calendar:
     time: "\U000023f2"  # :timer:
     keycap: "\u20e3"
-  default_prefix: '.'
-  cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
-  cancel_or_skip: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
-  cancel_or_back: "\n\nRespond with `back` to return to the previous step or `cancel` to cancel the setup."
-  prompt_options: "\n\nRespond with `skip` to skip this step, `back` to return to the previous step, or `cancel` to
-                  cancel the setup."
-  respond_5m: "Please respond within 5 minutes."
-  respond_prompt: "Please respond within %time_display%."
+  prompt:
+    cancel: "\n\nRespond with `cancel` to cancel the setup."
+    skip_or_cancel: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
+    back_or_cancel: "\n\nRespond with `back` to return to the previous step or `cancel` to cancel the setup."
+    options: "\n\nRespond with `skip` to skip this step, `back` to return to the previous step, or `cancel` to
+              cancel the setup."
+    react: "\n\nRespond by selecting one of the options below."
+    respond_5m: "Please respond within 5 minutes."
+    respond: "Please respond within %time_display%."
   s: "\u2800" # Blank space; invisible unicode character
 
 # Messages the bot will be sending
@@ -82,7 +84,7 @@ messages:
                 %s%%s%- Active.
                 %s%%s%- Knowledgeable about the subject you're teaching.
           footer:
-            text: "%respond_5m%"
+            text: "%prompt.respond_5m%"
         reactions:
           - "%emoji.confirm%"
     start:
@@ -148,9 +150,9 @@ messages:
 
               This is a unique, case-sensitive identifier that students can use to submit the assignment. It cannot be
               longer than 31 character and it cannot be shorter than 1. Using an existing name will replace the
-              previous assignment.%cancel_prompt%
+              previous assignment.%prompt.cancel%
             footer:
-              text: "%respond_5m%"
+              text: "%prompt.respond_5m%"
       2:
         - embed:
             title: "Create Assignment"
@@ -163,9 +165,9 @@ messages:
 
 
               This will be shown to any student looking for assignment information. You can attach files and
-              edit your description freely; the newest version will always be used.%prompt_options%
+              edit your description freely; the newest version will always be used.%prompt.back_or_cancel%
             footer:
-              text: "%respond_prompt%"
+              text: "%prompt.respond%"
       3:
         - embed:
             title: "Create Assignment"
@@ -179,9 +181,9 @@ messages:
 
               This will be shown at a designated time to all students who have submitted the assignment. You
               can attach files and edit your solution freely; the newest version will always be used.
-              %prompt_options%
+              %prompt.options%
             footer:
-              text: "%respond_prompt%"
+              text: "%prompt.respond%"
       4:
         - embed:
             title: "Create Assignment"
@@ -201,9 +203,9 @@ messages:
 
 
               The solution will only be shown to those who have submitted the assignment. You will be able to
-              see all submissions.
+              see all submissions.%prompt.react%
             footer:
-              text: "%respond_5m%"
+              text: "%prompt.respond_5m%"
           reactions:
             - "1%emoji.keycap%"
             - "2%emoji.keycap%"
