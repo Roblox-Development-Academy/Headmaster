@@ -1,17 +1,25 @@
 from bot import *
 
 
-class PromptCancelled(commands.CommandError):
+class PromptError(commands.CommandError):
     pass
 
 
-class PromptTimeout(commands.CommandError):
+class PromptKilled(PromptError):
     pass
 
 
-class PromptSkipped(commands.CommandError):
+class PromptCancelled(PromptKilled):
     pass
 
 
-class PreviousPrompt(commands.CommandError):
+class PromptTimeout(PromptKilled):
+    pass
+
+
+class PromptSkipped(PromptError):
+    pass
+
+
+class PreviousPrompt(PromptError):
     pass
