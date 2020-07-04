@@ -85,7 +85,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg, t
         in_prompt.pop(user.id)
         raise errors.PromptTimeout("The prompt has timed out", prompt_msg)
 
-    if msg.content.lower() in ['cancel', 'cancel.']:
+    if msg.content.lower() in ('cancel', 'cancel.'):
         in_prompt.pop(user.id)
         raise errors.PromptCancelled("The prompt was cancelled", prompt_msg)
     return msg

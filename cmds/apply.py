@@ -17,7 +17,7 @@ async def apply(ctx):
     while True:
         message = await prompt(user_dm, ctx.author, prompt_message)
 
-        if message.content.lower() in ['done', 'done.']:
+        if message.content.lower() in ('done', 'done.'):
             await lang.get('teacher_application.ta_content.submit').send(channel, user=str(ctx.author), user_mention=ctx.author.mention)
             break
 
