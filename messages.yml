@@ -218,7 +218,7 @@ messages:
           fields:
             - name: "Your Assignments"
               value: "%assignments%"
-        no_assignments: "*There are no assignments. Use `%prefix%hw create` to create one.*"
+        no_assignments: "*There are no assignments. Use* `%prefix%hw create` *to create one.*"
 
   prefix:
     info:
