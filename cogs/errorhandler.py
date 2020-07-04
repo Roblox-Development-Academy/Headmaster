@@ -27,13 +27,6 @@ async def process(ctx, error):
         raise error
 
 
-async def recursively_process(ctx, error):
-    try:
-        await process(ctx, error)
-    except Exception as e:
-        await process(ctx, e)
-
-
 class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
