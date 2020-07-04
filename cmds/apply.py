@@ -31,7 +31,8 @@ async def apply(ctx):
         await message.add_reaction(gotcha_emote)
     in_prompt.pop(ctx.author.id)
     await lang.get('teacher_application.complete').send(user_dm)
-    await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author), user_mention=ctx.author.mention)
+    await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author),
+                                                          user_mention=ctx.author.mention)
     for message in messages:
         await MessageNode(content=message[0], files=message[1] if len(message[1]) > 0 else None).send(channel)
     await lang.get('teacher_application.end').send(channel, user=str(ctx.author))
