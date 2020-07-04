@@ -39,8 +39,7 @@ async def __create(stage, name=''):
     results = stage.results
     dm = ctx.author.dm_channel or await ctx.author.create_dm()
 
-    async def back():
-        await stage.zap(stage.num - 1)
+    back = stage.back()
 
     if stage.num == 0:
         if ctx.channel != dm:
@@ -72,7 +71,7 @@ async def __create(stage, name=''):
         if results['name'] in (x[0] for x in get_assignment_names(ctx.author.id)):
             header = "__**The name, `%name%`, is already taken. Completing the creation will replace the " \
                      "assignment. Respond with `back` to go to the previous stage.**__"
-        description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, back=back(),
+        description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, back=back,
                                           name=results['name'], header=header, time_display="15 minutes")
         results['description_id'] = description.id
         results['description_url'] = description.jump_url
@@ -80,7 +79,7 @@ async def __create(stage, name=''):
     elif stage.num == 3:
         results['solution_id'] = None
         try:
-            solution = await common.prompt(dm, ctx.author, lang.get('assignment.create.3'), timeout=900, back=back(),
+            solution = await common.prompt(dm, ctx.author, lang.get('assignment.create.3'), timeout=900, back=back,
                                            can_skip=True, time_display="15 minutes", url=results["description_url"])
             results['solution_id'] = solution.id
             results['solution_url'] = solution.jump_url
