@@ -79,6 +79,8 @@ async def prompt(channel: discord.TextChannel, user: discord.User, prompt_msg, t
                     raise errors.PreviousPrompt("Went back to previous prompt", msg, back)
                 await errorhandler.process(channel, errors.PreviousPrompt("Cannot go back to previous prompt",
                                                                           channel))
+            elif (await client.get_context(msg)).valid:
+                pass
             else:
                 break
     except asyncio.TimeoutError:
