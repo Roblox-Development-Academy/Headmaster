@@ -16,11 +16,14 @@ class Stage:
             return await self.callback(self, *args, **kwargs)
         except errors.PromptKilled as e:
             raise e
-        except Exception as e:
+        except errors.PromptError as e:
             await self.handler(self.ctx, e)
 
     async def back(self, *args, **kwargs):
         await self.zap(self.num - 1, *args, **kwargs)
+
+    async def next(self, *args, **kwargs):
+        await self.zap(self.num + 1, *args, **kwargs)
 
 
 def prompt(handler=errorhandler.process):
@@ -30,7 +33,7 @@ def prompt(handler=errorhandler.process):
                 return await func(Stage(func, handler, ctx, stage_num), *args, **kwargs)
             except errors.PromptKilled as e:
                 raise e
-            except Exception as e:
+            except errors.PromptError as e:
                 await handler(ctx, e)
         return new_func
     return decorator
