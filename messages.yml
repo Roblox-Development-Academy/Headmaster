@@ -12,6 +12,7 @@ global_placeholders:
     error: "\U0001f63f"  # :crying_cat_face:
     date: "\U0001f4c6"  # :calendar:
     time: "\U000023f2"  # :timer:
+    return: "↩"
     keycap: "\u20e3"
   prompt:
     cancel: "\n\nRespond with `cancel` to cancel the setup."
@@ -23,6 +24,7 @@ global_placeholders:
     respond_5m: "Please respond within 5 minutes."
     respond: "Please respond within %time_display%."
   s: "\u2800" # Blank space; invisible unicode character
+  bullet: "•"
 
 # Messages the bot will be sending
 messages:
@@ -60,7 +62,7 @@ messages:
               *React to a message with one of these emojis.*
 
               **profile** - View the message author's profile.
-              **report** - Report a message with inappropriate contents.
+              **report** - Flag a message for inappropriate content.
               **bookmark** - Bookmark a message for later reference.
               **submit_hw** - Submit an assignment to the message author.
 
@@ -210,6 +212,22 @@ messages:
             - "1%emoji.keycap%"
             - "2%emoji.keycap%"
             - "3%emoji.keycap%"
+            - "%emoji.return%"
+      6:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: |
+              **How long after the submitter submits will he or she be shown the solution?**
+            fields:
+              - name: "Response Format Examples"
+                value: |
+                  %s%%s%%bullet% 3h
+                  %s%%s%%bullet% 7d 8h 32m 11s
+                  %s%%s%%bullet% 5m22.2s
+            footer:
+              text: "%prompt.respond_5m"
+
     main:
       - embed:
           title: "%title%"
@@ -290,6 +308,24 @@ messages:
           title: "%emoji.error% You are currently in a prompt"
           color: "%color.error%"
           description: "Before executing another command, please complete your [prompt](%prompt%)!"
+    interval:
+      parse:
+        - delete_after: 5
+          embed:
+            title: "%emoji.error% Unrecognized Time Interval"
+            color: "%color.error%"
+            description: "Please follow the designated format."
+            fields:
+              - name: "Response Format Examples"
+                value: |
+                  %s%%s%%bullet% 3h
+                  %s%%s%%bullet% 7d 8h 32m 11s
+                  %s%%s%%bullet% 5m22.2s
+      range:
+        - delete_after: 5
+          embed:
+            title: "%emoji.error% You exceeded the maximum time interval"
+            description: "Please do not use a time interval that's longer than %range_display%."
     ignored_channel:
       - delete_after: 3
         embed:
