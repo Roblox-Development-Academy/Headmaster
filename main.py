@@ -27,13 +27,14 @@ def generate_tables():
         """,
         """
         CREATE TABLE IF NOT EXISTS assignments(
-            assigner BIGINT PRIMARY KEY NOT NULL,
+            assigner BIGINT NOT NULL,
             name TEXT NOT NULL,
             description BIGINT,
             solution BIGINT,
-            use_time BOOLEAN,
+            use_date BOOLEAN,
             time TIMESTAMPTZ,
-            interval INTERVAL
+            interval INTERVAL,
+            PRIMARY KEY (assigner, name)
         )
         """,
     )
