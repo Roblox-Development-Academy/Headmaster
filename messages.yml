@@ -240,6 +240,25 @@ messages:
               value: "%assignments%"
         no_assignments: "*There are no assignments. Use* `%prefix%hw create` *to create one.*"
 
+  ignore:
+    - embed:
+        title: "Ignored Channels"
+        description: |
+          %message%Server members will not be able to use commands in ignored channels.
+          Use `%prefix%ignore add <channel>` to add channels to the list of ignored channels.
+          Use `%prefix%ignore remove <channels>` to unignore channels.
+          You can add/remove multiple channels at a time.
+        fields:
+          - name: "Examples"
+            inline: false
+            value: |
+              %prefix%ignore add %example%
+              %prefix%ignore remove %example%
+
+          - name: "Ignored Channels"
+            inline: false
+            value: "%channels%"
+
   prefix:
     info:
       - embed:

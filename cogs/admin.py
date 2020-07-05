@@ -2,6 +2,7 @@ import psycopg2
 
 from bot import *
 from cogs import errorhandler
+from language import LangManager
 
 
 def _add_ignored_channels(rows):
@@ -67,10 +68,9 @@ class Admin(commands.Cog):
     @commands.guild_only()
     async def ignore(self, ctx, sub: str = None, channels: commands.Greedy[discord.TextChannel] = None):
         give_example = True
-        colour = EMBED_COLORS['info']
-        msg = f"Server members will not be able to use commands in ignored channels.\nUse `{ctx.prefix}ignore add " \
-              f"<channel>` to add channels to the list of ignored channels.\nUse `{ctx.prefix}ignore remove " \
-              f"<channels>` to unignore channels.\nYou can add/remove multiple channels at a time."
+        color = "%color.info%"
+        msg = ""
+        examples = None
         if sub:
             if sub.lower() == "add" and channels:
                 rows = [(str(channel.id), str(ctx.guild.id)) for channel in channels]
@@ -79,9 +79,9 @@ class Admin(commands.Cog):
                 # channel in channels)
                 # logger.debug("Psycopg2's mogrified arg_str: " + str(args_str))
                 _add_ignored_channels(rows)
-                msg = "**The specified channels are now ignored!**\n\n" + msg
+                msg = "**The specified channels are now ignored!**\n\n"
                 give_example = False
-                colour = EMBED_COLORS['success']
+                color = "%color.success%"
             elif sub.lower() in ("remove", "delete") and channels:
                 database.update(
                     f"""
@@ -89,17 +89,22 @@ class Admin(commands.Cog):
                     WHERE id IN ({",".join(str(channel.id) for channel in channels)})
                     """
                 )
-                msg = "**The specified channels are not ignored anymore!**\n\n" + msg
+                msg = "**The specified channels are not ignored anymore!**\n\n"
                 give_example = False
-                colour = EMBED_COLORS['success']
-        embed = discord.Embed(title='Ignored Channels', colour=colour, description=msg)
+                color = "%color.success%"
+        ignore_node = lang.get('ignore')
         if give_example:
             guild_channels = ctx.guild.channels
             num_channels = len(guild_channels)
             example = " ".join(
                 guild_channels[i].mention if num_channels > i else "#channel" + str(i) for i in range(3))
-            embed.add_field(name="Examples", value=f"{ctx.prefix}ignore add {example}\n"
-                                                   f"{ctx.prefix}ignore remove {example}")
+            ignore_node = ignore_node.replace(example=example)
+        else:
+            print(ignore_node.nodes[0].args['embed'].fields)
+            del ignore_node.nodes[0].args['embed'].fields[0]
+            print(ignore_node.nodes[0].args['embed'].fields)
+            ignore_node.nodes[0].args['embed'].fields.pop(0)
+            print(ignore_node.nodes[0].args['embed'].fields)
         ignored_channels = get_ignored_channels(ctx.guild.id)
         ignored_channels_list = ""
         if len(ignored_channels) != 0:
@@ -116,5 +121,6 @@ class Admin(commands.Cog):
                     )
         else:
             ignored_channels_list = "*There are no ignored channels.*"
-        embed.add_field(name='Ignored Channels', value=ignored_channels_list, inline=False)
-        await ctx.send(embed=embed)
+        ignore_node = ignore_node.replace(message=msg, prefix=ctx.prefix, channels=ignored_channels_list)
+        ignore_node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
+        await ignore_node.send(ctx)
