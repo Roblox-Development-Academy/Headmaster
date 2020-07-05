@@ -1,7 +1,8 @@
+import datetime
+
 import common
 from bot import *
 import errors
-from cogs import errorhandler
 from language import LangManager
 import database
 from prompt import prompt
@@ -14,6 +15,10 @@ Assignments will be created in DM and the assigner need only to edit the message
 Assignments will be submitted based on tutor and name.
 On submission, the student only need to use the assigner and the name and it will let the player know the description.
 """
+
+
+min_interval = datetime.timedelta(seconds=0)
+max_interval = datetime.timedelta(days=60)
 
 
 def get_assignment_names(user_id) -> tuple:
@@ -65,7 +70,7 @@ async def __create(stage, name=''):
                 header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"
             else:
                 break
-        await stage.zap(2)
+        await stage.next()
     elif stage.num == 2:
         header = "__**The name of this assignment is `%name%`**__"
         if results['name'] in (x[0] for x in get_assignment_names(ctx.author.id)):
@@ -75,7 +80,7 @@ async def __create(stage, name=''):
                                           name=results['name'], header=header, time_display="15 minutes")
         results['description_id'] = description.id
         results['description_url'] = description.jump_url
-        await stage.zap(3)
+        await stage.next()
     elif stage.num == 3:
         results['solution_id'] = None
         try:
@@ -83,14 +88,46 @@ async def __create(stage, name=''):
                                            can_skip=True, time_display="15 minutes", url=results["description_url"])
             results['solution_id'] = solution.id
             results['solution_url'] = solution.jump_url
-            await stage.zap(4)
+            await stage.next()
         except errors.PromptSkipped:
             return
     elif stage.num == 4:
         option, _ = await common.prompt_reaction(lang.get('assignment.create.4'), ctx.author, dm,
-                                                 allowed_emojis=('1\u20e3', '2\u20e3', '3\u20e3'),
+                                                 allowed_emojis=('1\u20e3', '2\u20e3', '3\u20e3', "↩"),
                                                  url=results['solution_url'])
-        pass
+        emoji = option.emoji
+        if emoji == '1\u20e3':
+            results['use_date'] = False
+            await stage.zap(5)
+        elif emoji == '2\u20e3':
+            results['use_date'] = False
+            await stage.zap(6)
+        elif emoji == '3\u20e3':
+            results['use_date'] = True
+            await stage.zap(7)
+        else:
+            await back
+    elif stage.num == 5:
+        results['interval'] = datetime.timedelta(seconds=0)
+        return
+    elif stage.num == 6:
+        interval = None
+        while True:
+            response = (await common.prompt(dm, ctx.author, lang.get('assignment.create.6'), back=back)).content
+            try:
+                interval = common.parse_interval(response, min=min_interval, max=max_interval)
+            except OverflowError:
+                await lang.get('error.interval.range', range_display="2 months").send(dm)
+
+            if interval is not None:
+                break
+            else:
+                await lang.get('error.interval.parse').send(dm)
+        results['interval'] = interval
+        return
+    elif stage.num == 7:
+        response = (await common.prompt(dm, ctx.author, lang.get('assignments.create.7'), back=stage.zap(4)))
+        
 
 
 async def __submit(ctx, assigner, name=None):
@@ -98,7 +135,7 @@ async def __submit(ctx, assigner, name=None):
 
 
 @commands.command(aliases=['name', 'hw', 'assignment', 'assignments'])
-async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
+async def homework(ctx, sub=None, name: str = None, assigner: discord.Member = None):
     header = ''
     title = 'Assignments'
     color = '%color.info%'
@@ -126,7 +163,7 @@ async def homework(ctx, sub=None, name=None, assigner: discord.Member = None):
             await __submit(ctx, name, assigner)
             return
         else:
-            title = "Assignments - Unrecognized Command"
+            title = "Assignments - Invalid Command"
             color = "%color.error%"
     list_node = lang.get('assignment.main')
     your_assignments = "\n".join(name[0] for name in get_assignment_names(ctx.author.id)) or \

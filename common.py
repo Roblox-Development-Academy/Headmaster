@@ -1,4 +1,6 @@
 import asyncio
+import re
+from datetime import timedelta
 
 import errors
 from bot import *
@@ -11,6 +13,22 @@ def parameters(*args, **kwargs):
 
 def unpack(packed_parameters, coroutine):
     return coroutine(*packed_parameters[0], **packed_parameters[1])
+
+
+interval_matcher = re.compile(r'^((?P<days>[\.\d]+?)d)? *'
+                              r'((?P<hours>[\.\d]+?)h)? *'
+                              r'((?P<minutes>[\.\d]+?)m)? *'
+                              r'((?P<seconds>[\.\d]+?)s)?$')
+
+
+def parse_interval(time: str, minimum: timedelta = timedelta(seconds=0), maximum: timedelta = timedelta(days=30)):
+    parts = interval_matcher.match(time)
+    # assert parts is not None, """Could not parse any time information from '{}'.
+    # Examples of valid strings: '8h', '2d 8h 5m 2s', '2m4.3s'""".format(time)
+    if parts is None:
+        return None
+    time_params = {name: float(param) for name, param in parts.groupdict().items() if param}
+    return timedelta(**time_params, min=minimum, max=maximum)
 
 
 async def prompt_reaction(msg: discord.Message, user: discord.User = None, *args, timeout=300, allowed_emojis=None,
