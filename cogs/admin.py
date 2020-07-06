@@ -98,13 +98,15 @@ class Admin(commands.Cog):
             num_channels = len(guild_channels)
             example = " ".join(
                 guild_channels[i].mention if num_channels > i else "#channel" + str(i) for i in range(3))
-            ignore_node = ignore_node.replace(example=example)
+            examples = LangManager.replace(ignore_node.nodes[0].options.get('examples'), example=example)
+            if ignore_node.nodes[0].args['embed'].fields[0].value != examples:
+                ignore_node.nodes[0].args['embed'].insert_field_at(0, name="Examples", value=examples, inline=False)
+                if len(ignore_node.nodes[0].args['embed'].fields) == 3:
+                    ignore_node.nodes[0].args['embed'].remove_field(1)
         else:
-            print(ignore_node.nodes[0].args['embed'].fields)
-            del ignore_node.nodes[0].args['embed'].fields[0]
-            print(ignore_node.nodes[0].args['embed'].fields)
-            ignore_node.nodes[0].args['embed'].fields.pop(0)
-            print(ignore_node.nodes[0].args['embed'].fields)
+            if len(ignore_node.nodes[0].args['embed'].fields) > 1:
+                ignore_node.nodes[0].args['embed'].remove_field(0)
+
         ignored_channels = get_ignored_channels(ctx.guild.id)
         ignored_channels_list = ""
         if len(ignored_channels) != 0:
