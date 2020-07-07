@@ -1,4 +1,5 @@
 import psycopg2
+import copy
 
 from bot import *
 from cogs import errorhandler
@@ -70,7 +71,7 @@ class Admin(commands.Cog):
         give_example = True
         color = "%color.info%"
         msg = ""
-        examples = None
+        example = None
         if sub:
             if sub.lower() == "add" and channels:
                 rows = [(str(channel.id), str(ctx.guild.id)) for channel in channels]
@@ -92,20 +93,14 @@ class Admin(commands.Cog):
                 msg = "**The specified channels are not ignored anymore!**\n\n"
                 give_example = False
                 color = "%color.success%"
-        ignore_node = lang.get('ignore')
+        ignore_node = copy.deepcopy(lang.get('ignore'))
         if give_example:
             guild_channels = ctx.guild.channels
             num_channels = len(guild_channels)
             example = " ".join(
                 guild_channels[i].mention if num_channels > i else "#channel" + str(i) for i in range(3))
-            examples = LangManager.replace(ignore_node.nodes[0].options.get('examples'), example=example)
-            if ignore_node.nodes[0].args['embed'].fields[0].value != examples:
-                ignore_node.nodes[0].args['embed'].insert_field_at(0, name="Examples", value=examples, inline=False)
-                if len(ignore_node.nodes[0].args['embed'].fields) == 3:
-                    ignore_node.nodes[0].args['embed'].remove_field(1)
         else:
-            if len(ignore_node.nodes[0].args['embed'].fields) > 1:
-                ignore_node.nodes[0].args['embed'].remove_field(0)
+            ignore_node.nodes[0].args['embed'].remove_field(0)
 
         ignored_channels = get_ignored_channels(ctx.guild.id)
         ignored_channels_list = ""
@@ -123,6 +118,6 @@ class Admin(commands.Cog):
                     )
         else:
             ignored_channels_list = "*There are no ignored channels.*"
-        ignore_node = ignore_node.replace(message=msg, prefix=get_prefix(ctx.guild.id), channels=ignored_channels_list)
+        ignore_node = ignore_node.replace(message=msg, prefix=get_prefix(ctx.guild.id), channels=ignored_channels_list, example=example)
         ignore_node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
         await ignore_node.send(ctx)

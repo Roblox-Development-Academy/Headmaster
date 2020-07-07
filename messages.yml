@@ -249,12 +249,15 @@ messages:
           Use `%prefix%ignore remove <channels>` to unignore channels.
           You can add/remove multiple channels at a time.
         fields:
+          - name: "Examples"
+            inline: false
+            value: |
+              %prefix%ignore add %example%
+              %prefix%ignore remove %example%
+
           - name: "Ignored Channels"
             inline: false
             value: "%channels%"
-      examples: |
-        %prefix%ignore add %example%
-        %prefix%ignore remove %example%
 
   prefix:
     info:
