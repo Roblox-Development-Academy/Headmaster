@@ -249,5 +249,4 @@ class LangManager:
                 index_messages(config_dict['messages'])
 
     def get(self, index: str):
-        node = self.nodes.get(index)
-        return node or LangManager.empty
+        return self.nodes.get(index, LangManager.empty)
