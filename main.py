@@ -37,6 +37,23 @@ def generate_tables():
             PRIMARY KEY (assigner, name)
         )
         """,
+        """
+        CREATE TABLE IF NOT EXISTS categories (
+          id SERIAL PRIMARY KEY UNIQUE NOT NULL,
+          name VARCHAR(100),
+          exp_rate INTEGER
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS levels (
+          user_id BIGINT NOT NULL,
+          category_id INTEGER NOT NULL,
+          exp INTEGER DEFAULT '0',
+          level INTEGER DEFAULT '0',
+          PRIMARY KEY (user_id, category_id)
+          FOREIGN KEY category_id REFERENCES categories (id) ON DELETE CASCADE
+        )
+        """
     )
     for statement in statements:
         database.update(statement)
