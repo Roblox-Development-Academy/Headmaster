@@ -22,6 +22,24 @@ class MessageNode:
                 self.options[key] = value
 
     @classmethod
+    async def from_message(cls, message: discord.Message):
+        serialized = {}
+        serialized['content'] = message.content
+        serialized['tts'] = message.tts
+        serialized['nonce'] = message.nonce
+        serialized['embed'] = message.embeds[0] if message.embeds else None
+
+        if message.attachments:
+            files = [await attachment.to_file() for attachment in message.attachments]
+
+            if len(files) > 1:
+                serialized['files'] = files
+            else:
+                serialized['file'] = files[0]
+
+        return cls(**serialized)
+
+    @classmethod
     def from_str(cls, serialized: str):
         return cls(content=serialized)
 
