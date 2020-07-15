@@ -3,7 +3,6 @@ from datetime import datetime
 from collections import namedtuple
 
 from bot import *
-from bot import in_prompt
 from cogs.admin import Admin
 from cogs.errorhandler import ErrorHandler
 
