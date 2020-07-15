@@ -50,7 +50,7 @@ def generate_tables():
           category_id INTEGER NOT NULL,
           exp INTEGER DEFAULT '0',
           level INTEGER DEFAULT '0',
-          PRIMARY KEY (user_id, category_id)
+          PRIMARY KEY (user_id, category_id),
           FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
         )
         """
@@ -67,7 +67,6 @@ client.load_extension('cmds.homework')
 
 @client.event
 async def on_ready():
-    generate_tables()
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
 
     # Spam Nitrogen
