@@ -22,11 +22,7 @@ async def apply(ctx):
         if message.content.lower() in ('done', 'done.'):
             break
 
-        files = []
-        if len(message.attachments) > 0:
-            for attachment in message.attachments:
-                files.append(await attachment.to_file())
-        messages.append((message.content, tuple(files)))
+        messages.append(message)
 
         await message.add_reaction(gotcha_emote)
     in_prompt.pop(ctx.author.id)
@@ -34,7 +30,8 @@ async def apply(ctx):
     await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author),
                                                           user_mention=ctx.author.mention)
     for message in messages:
-        await MessageNode(content=message[0], files=message[1] if len(message[1]) > 0 else None).send(channel)
+        copy = await MessageNode.from_message(message)
+        await copy.send(channel)
     await lang.get('teacher_application.end').send(channel, user=str(ctx.author))
 
 
