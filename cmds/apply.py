@@ -22,14 +22,18 @@ async def apply(ctx):
         if message.content.lower() in ('done', 'done.'):
             break
 
-        messages.append(message)
+        messages.append(message.id)
 
         await message.add_reaction(gotcha_emote)
     in_prompt.pop(ctx.author.id)
     await lang.get('teacher_application.complete').send(user_dm)
     await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author),
                                                           user_mention=ctx.author.mention)
-    for message in messages:
+    for id in messages:
+        try:
+            message = await user_dm.fetch_message(id)
+        except discord.errors.NotFound:
+            continue
         copy = await MessageNode.from_message(message)
         await copy.send(channel)
     await lang.get('teacher_application.end').send(channel, user=str(ctx.author))
