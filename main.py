@@ -5,6 +5,7 @@ from collections import namedtuple
 from bot import *
 from cogs.admin import Admin
 from cogs.errorhandler import ErrorHandler
+from cogs.level import Level
 
 
 def generate_tables():
@@ -60,6 +61,7 @@ def generate_tables():
 
 client.add_cog(ErrorHandler())
 client.add_cog(Admin())
+client.add_cog(Level())
 client.load_extension('cmds.apply')
 client.load_extension('cmds.homework')
 
