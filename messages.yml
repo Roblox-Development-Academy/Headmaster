@@ -14,6 +14,9 @@ global_placeholders:
     time: "\U000023f2"  # :timer:
     return: "↩"
     keycap: "\u20e3"
+    solution: ""
+    report: ""
+    profile: ""
   prompt:
     cancel: "\n\nRespond with `cancel` to cancel the setup."
     skip_or_cancel: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
