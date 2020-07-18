@@ -6,7 +6,7 @@ from cogs import errorhandler
 from language import LangManager
 
 
-def _add_ignored_channels(rows):
+def __add_ignored_channels(rows):
     try:
         database.cursor.executemany(
             """
@@ -18,7 +18,7 @@ def _add_ignored_channels(rows):
         database.connection.commit()
     except psycopg2.DatabaseError:
         database.connect()
-        _add_ignored_channels(rows)
+        __add_ignored_channels(rows)
 
 
 class Admin(commands.Cog):
@@ -79,7 +79,7 @@ class Admin(commands.Cog):
                 # args_str = ",".join(database.cursor.mogrify("(%s,%s)", (str(channel.id), str(ctx.guild.id))) for
                 # channel in channels)
                 # logger.debug("Psycopg2's mogrified arg_str: " + str(args_str))
-                _add_ignored_channels(rows)
+                __add_ignored_channels(rows)
                 msg = "**The specified channels are now ignored!**\n\n"
                 give_example = False
                 color = "%color.success%"
