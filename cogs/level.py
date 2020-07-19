@@ -1,14 +1,21 @@
 import database
 import discord
 from discord.ext import commands
+from math import floor
 
 
-def calculate(exp):
+def calculate(exp, is_profile=False):
+    level_exp = 121
     exp_left = exp
+    remainder = exp_left
     level = -1
     while exp_left >= 0:
+        level_exp = 121 * (floor(level / 11) + 1) + (1331 if level >= 121 else 0)
+        remainder = exp_left
         level += 1
-        exp_left = exp_left  # - number.
+        exp_left = exp_left - level_exp
+    if is_profile:
+        return level, remainder, level_exp
     return level
 
 
