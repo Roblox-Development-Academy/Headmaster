@@ -53,6 +53,10 @@ def generate_tables():
           PRIMARY KEY (user_id, category_id),
           FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
         )
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_leaderboard
+        ON levels (category_id, exp DESC)
         """
     )
     for statement in statements:
@@ -108,12 +112,12 @@ async def on_message(msg):
 @client.check
 async def globally_ignore_channels(ctx):
     if database.query(
-            """
+        """
         SELECT id
         FROM ignored_channels
         WHERE id = %s
         """,
-            (ctx.channel.id,)
+        (ctx.channel.id,)
     ).fetchone() is None:
         return True
     else:
