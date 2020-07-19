@@ -1,8 +1,6 @@
 import database
 import discord
-from psycopg2 import DatabaseError
 from discord.ext import commands
-import math
 
 
 def calculate(exp):
@@ -15,20 +13,15 @@ def calculate(exp):
 
 
 def __add_exp(user_id, category_id, amount):
-    try:
-        database.cursor.executemany(
-            """
-            INSERT INTO levels (user_id, category_id, exp)
-            VALUES (%s, %s, %s + exp)
-            ON CONFLICT (user_id, category_id) DO NOTHING
-            """,
-            (user_id, category_id, amount)
-        )
-        database.connection.commit()
-    except DatabaseError:
-        database.connect()
-        __add_exp(user_id, category_id, amount)
-
+    database.update(
+        """
+        INSERT INTO levels (user_id, category_id, exp)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (user_id, category_id) DO
+        UPDATE SET exp = exp + EXCLUDED.exp
+        """,
+        (user_id, category_id, amount)
+    )
 
 class Level(commands.Cog):
     """
