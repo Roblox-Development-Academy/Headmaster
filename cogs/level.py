@@ -30,12 +30,13 @@ def __add_exp(user_id, category_id, amount):
         (user_id, category_id, amount)
     )
 
+
 class Level(commands.Cog):
     """
     Solution emote: Add exp.
     Profile emote: DM profile and remove reaction.
     Profile command: Show exp and level.
-    Average 10 exp.
+    Average 11 exp.
     """
     def __init__(self, client):
         self.client = client
