@@ -14,7 +14,7 @@ global_placeholders:
     time: "\U000023f2"  # :timer:
     return: "↩"
     keycap: "\u20e3"
-    solution: ""
+    solution: "\U00002705"  # :white_check_mark:
     report: ""
     profile: ""
   prompt:
