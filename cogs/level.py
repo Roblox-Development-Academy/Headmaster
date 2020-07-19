@@ -2,6 +2,7 @@ import database
 import discord
 from discord.ext import commands
 from math import floor
+from bot import lang
 
 
 def calculate(exp, is_profile=False):
@@ -19,18 +20,6 @@ def calculate(exp, is_profile=False):
     return level
 
 
-def __add_exp(user_id, category_id, amount):
-    database.update(
-        """
-        INSERT INTO levels (user_id, category_id, exp)
-        VALUES (%s, %s, %s)
-        ON CONFLICT (user_id, category_id) DO
-        UPDATE SET exp = exp + EXCLUDED.exp
-        """,
-        (user_id, category_id, amount)
-    )
-
-
 class Level(commands.Cog):
     """
     Solution emote: Add exp.
@@ -38,6 +27,19 @@ class Level(commands.Cog):
     Profile command: Show exp and level.
     Average 11 exp.
     """
+
+    @staticmethod
+    def __add_exp(user_id, category_id, amount):
+        database.update(
+            """
+            INSERT INTO levels (user_id, category_id, exp)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (user_id, category_id) DO
+            UPDATE SET exp = exp + EXCLUDED.exp
+            """,
+            (user_id, category_id, amount)
+        )
+
     def __init__(self, client):
         self.client = client
 
@@ -50,6 +52,5 @@ class Level(commands.Cog):
         print(payload.emoji)
 
     @commands.command()
-    @commands.guild_only()
     async def profile(self, ctx, member: discord.Member = None):
-        ...
+        pass
