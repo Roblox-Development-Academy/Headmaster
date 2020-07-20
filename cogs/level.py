@@ -53,11 +53,9 @@ class Level(commands.Cog):
                 reaction.message.author.id != user.id):
             return
 
-        print(type(self.categories))
-
         category_name = None
-        for category, channels in self.categories:
-            if reaction.message.channel.id in channels:
+        for category in self.categories:
+            if reaction.message.channel.id in self.categories[category]:
                 category_name = category
                 break
 
@@ -82,8 +80,8 @@ class Level(commands.Cog):
             return
 
         category_name = None
-        for category, channels in self.categories:
-            if reaction.message.channel.id in channels:
+        for category in self.categories:
+            if reaction.message.channel.id in self.categories[category]:
                 category_name = category
                 break
 
