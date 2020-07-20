@@ -44,12 +44,45 @@ class Level(commands.Cog):
         self.client = client
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
-        print(payload.emoji)
+    async def on_reaction_add(self, reaction, user):
+        if reaction.emoji != lang.global_placeholders.get("emoji.solution"):
+            return
+        category = None
+
+        category_id, exp = database.query(
+            """
+            SELECT id, exp_rate
+            FROM categories
+            WHERE name = %s
+            """,
+            (category,)
+        ).fetchone()
+
+        receiver_id = reaction.message.author.id
+
+        if receiver_id != user.id:
+            Level.__add_exp(receiver_id, category_id, exp)
 
     @commands.Cog.listener()
-    async def on_raw_reaction_remove(self, payload):
-        print(payload.emoji)
+    async def on_reaction_remove(self, reaction, user):
+        if reaction.emoji != lang.global_placeholders.get("emoji.solution"):
+            return
+        pass
+        category = None
+
+        category_id, exp = database.query(
+            """
+            SELECT id, exp_rate
+            FROM categories
+            WHERE name = %s
+            """,
+            (category,)
+        ).fetchone()
+
+        receiver_id = reaction.message.author.id
+
+        if receiver_id != user.id:
+            Level.__add_exp(receiver_id, category_id, -exp)
 
     @commands.command()
     async def profile(self, ctx, member: discord.Member = None):
