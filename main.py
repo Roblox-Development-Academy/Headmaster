@@ -23,7 +23,8 @@ def generate_tables():
         )
         """,
         """
-        CREATE INDEX IF NOT EXISTS idx_channel_guild ON ignored_channels(guild_id)
+        CREATE INDEX IF NOT EXISTS idx_channel_guild
+        ON ignored_channels(guild_id)
         """,
         """
         CREATE TABLE IF NOT EXISTS assignments(
@@ -57,6 +58,17 @@ def generate_tables():
         """
         CREATE INDEX IF NOT EXISTS idx_leaderboard
         ON levels (category_id, exp DESC)
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS multipliers (
+            user_id BIGINT,
+            multiplier REAL,
+            end_time TIMESTAMPTZ
+        )
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_multipliers
+        ON multipliers (user_id)
         """
     )
     for statement in statements:
