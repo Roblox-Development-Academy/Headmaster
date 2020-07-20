@@ -94,7 +94,7 @@ class Level(commands.Cog):
             FROM categories
             WHERE name = %s
             """,
-            (category,)
+            (category_name,)
         ).fetchone()
 
         Level.__add_exp(reaction.message.author.id, category_id, -exp)
