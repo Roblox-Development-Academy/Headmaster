@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from math import floor
 from bot import lang
+from yaml import load, FullLoader
 
 
 def calculate(exp, is_profile=False):
@@ -42,12 +43,26 @@ class Level(commands.Cog):
 
     def __init__(self, client):
         self.client = client
+        with open("../config.yml") as f:
+            categories = load(f, Loader=FullLoader)
+            self.categories = categories['categories']
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji != lang.global_placeholders.get("emoji.solution"):
+        if (reaction.emoji != lang.global_placeholders.get("emoji.solution")) or (
+                reaction.message.author.id != user.id):
             return
-        category = None
+
+        print(type(self.categories))
+
+        category_name = None
+        for category, channels in self.categories:
+            if reaction.message.channel.id in channels:
+                category_name = category
+                break
+
+        if category_name is None:
+            return
 
         category_id, exp = database.query(
             """
@@ -55,20 +70,25 @@ class Level(commands.Cog):
             FROM categories
             WHERE name = %s
             """,
-            (category,)
+            (category_name,)
         ).fetchone()
 
-        receiver_id = reaction.message.author.id
-
-        if receiver_id != user.id:
-            Level.__add_exp(receiver_id, category_id, exp)
+        Level.__add_exp(reaction.message.author.id, category_id, exp)
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
-        if reaction.emoji != lang.global_placeholders.get("emoji.solution"):
+        if (reaction.emoji != lang.global_placeholders.get("emoji.solution")) or (
+                reaction.message.author.id != user.id):
             return
-        pass
-        category = None
+
+        category_name = None
+        for category, channels in self.categories:
+            if reaction.message.channel.id in channels:
+                category_name = category
+                break
+
+        if category_name is None:
+            return
 
         category_id, exp = database.query(
             """
@@ -79,10 +99,7 @@ class Level(commands.Cog):
             (category,)
         ).fetchone()
 
-        receiver_id = reaction.message.author.id
-
-        if receiver_id != user.id:
-            Level.__add_exp(receiver_id, category_id, -exp)
+        Level.__add_exp(reaction.message.author.id, category_id, -exp)
 
     @commands.command()
     async def profile(self, ctx, member: discord.Member = None):
