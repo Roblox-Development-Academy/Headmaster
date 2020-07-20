@@ -6,6 +6,8 @@ global_placeholders:
     error: "0xf62323"
     success: "0x5efb32"
     wizard: "0x00f6ff"
+    level: "0x622eff"
+    inactive: ""
   emoji:
     confirm: "\U00002705"  # :white_check_mark:
     gotcha: "\U0001f44d"  # :thumbs_up:
@@ -17,6 +19,8 @@ global_placeholders:
     solution: "\U00002705"  # :white_check_mark:
     report: ""
     profile: ""
+    next: "\U000025b6"
+    previous: "\U000025c0"
   prompt:
     cancel: "\n\nRespond with `cancel` to cancel the setup."
     skip_or_cancel: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
@@ -295,6 +299,33 @@ messages:
           - name: "Description"
             value: "%description%"
 
+  leaderboard:
+    main:
+      - embed:
+          title: "Leaderboard"
+          color: "%color.level%"
+          description: |
+            You can earn exp by helping people in the help channels and participating in contests and also earn multipliers when participating in game nights.
+            You earn a specific amount of exp depending on which category you helped with.
+            If someone helps you, you may react to their message with %emoji.solution% to give them exp.
+            Vice versa, you earn exp whenever someone reacts to your message with %emoji.solution%.
+
+            Use `%prefix%leaderboard <category>` to view the leaderboard of a specific category.
+            Use `%prefix%categories` for a list of the categories.
+    category:
+      - embed:
+          title: "Leaderboard"
+          color: "%color.level%"
+          description: |
+            **%category%**
+
+            %leaderboard%
+          footer:
+            text: "%page%"
+        reactions:
+          - "%emoji.previous%"
+          - "%emoji.next%"
+
   error:
     prompt_timeout:
       - embed:
@@ -382,3 +413,10 @@ messages:
           title: "%emoji.error% Server-only command"
           color: "%color.error%"
           description: "You can only use this command in a server."
+    invalid_category:
+      - embed:
+          title: "%emoji.error% That is not a valid category"
+          color: "%color.error%"
+          description: |
+            %category% is not a valid category or there are currently no rankings for that category.
+            For a list of categories, use `%prefix%categories`
