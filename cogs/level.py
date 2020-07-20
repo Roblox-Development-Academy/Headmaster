@@ -43,7 +43,7 @@ class Level(commands.Cog):
 
     def __init__(self, client):
         self.client = client
-        with open("../config.yml") as f:
+        with open("config.yml") as f:
             categories = load(f, Loader=FullLoader)
             self.categories = categories['categories']
 
