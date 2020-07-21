@@ -49,8 +49,7 @@ def query(*args):
     try:
         cursor.execute(*args)
         return cursor
-    except Exception as e:
-        print(e)
+    except psycopg2.DatabaseError:
         connect()
         logger.debug("The query has failed! A new connection has been created.")
         return query(*args)

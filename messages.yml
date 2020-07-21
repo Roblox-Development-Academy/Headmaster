@@ -312,6 +312,9 @@ messages:
 
             Use `%prefix%leaderboard <category>` to view the leaderboard of a specific category.
             Use `%prefix%categories` for a list of the categories.
+        reactions:
+          - "%emoji.previous%"
+          - "%emoji.next%"
     category:
       - embed:
           title: "Leaderboard"
@@ -418,5 +421,5 @@ messages:
           title: "%emoji.error% That is not a valid category"
           color: "%color.error%"
           description: |
-            %category% is not a valid category or there are currently no rankings for that category.
+            %category% is not a valid category.
             For a list of categories, use `%prefix%categories`

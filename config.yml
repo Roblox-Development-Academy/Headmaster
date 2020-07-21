@@ -2,15 +2,15 @@ servers:
   rda: 673600024919408680
 
 categories:
-  scripting:
+  Scripting:
     - 673604566629220371
-  animation:
+  Animation:
     - 673604608949747723
-  modeling:
+  Modeling:
     - 673604661093203981
-  building:
+  Building:
     - 673604639513641021
-  gfx:
+  GFX:
     - 675821688541151269
-  sfx:
+  SFX:
     - 711803414794731630

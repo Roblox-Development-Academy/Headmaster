@@ -41,7 +41,7 @@ def generate_tables():
         """
         CREATE TABLE IF NOT EXISTS categories (
             id SERIAL PRIMARY KEY UNIQUE NOT NULL,
-            name VARCHAR(100),
+            name VARCHAR(100) UNIQUE,
             exp_rate REAL
         )
         """,
@@ -70,7 +70,22 @@ def generate_tables():
         ON multipliers (user_id)
         """
     )
+    upsert_statements = (
+        """
+        INSERT INTO categories (name)
+        VALUES
+            ('Scripting'),
+            ('Animation'),
+            ('Modeling'),
+            ('Building'),
+            ('GFX'),
+            ('SFX')
+        ON CONFLICT (name) DO NOTHING
+        """,
+    )
     for statement in statements:
+        database.update(statement)
+    for statement in upsert_statements:
         database.update(statement)
 
 
@@ -83,6 +98,7 @@ client.load_extension('cmds.homework')
 
 @client.event
 async def on_ready():
+    generate_tables()
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
 
     # Spam Nitrogen
