@@ -1,9 +1,9 @@
 import psycopg2
-import copy
 
 from bot import *
 from cogs import errorhandler
 from language import LangManager
+from copy import deepcopy
 
 
 class Admin(commands.Cog):
@@ -93,7 +93,7 @@ class Admin(commands.Cog):
                 msg = "**The specified channels are not ignored anymore!**\n\n"
                 give_example = False
                 color = "%color.success%"
-        ignore_node = copy.deepcopy(lang.get('ignore'))
+        ignore_node = deepcopy(lang.get('ignore'))
         if give_example:
             guild_channels = ctx.guild.channels
             num_channels = len(guild_channels)
