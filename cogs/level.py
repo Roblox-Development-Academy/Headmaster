@@ -32,7 +32,7 @@ def add_exp(user_id, category_id, amount, multiplier_immune=False):
         INSERT INTO levels (user_id, category_id, exp)
         VALUES (%s, %s, %s)
         ON CONFLICT (user_id, category_id) DO
-        UPDATE SET exp = exp + EXCLUDED.exp
+        UPDATE SET exp = levels.exp + EXCLUDED.exp
         """,
         (user_id, category_id, amount)
     )
