@@ -15,9 +15,9 @@ def calculate(exp, is_profile=False):
     remainder = exp_left
     level = -1
     while exp_left >= 0:
-        level_exp = 121 * (floor(level / 11) + 1) + (1331 if level >= 121 else 0)
-        remainder = exp_left
         level += 1
+        level_exp = 121 * (floor(level / 11) + 1) + (1331 if level >= 51 else 0) + (14641 if level >= 121 else 0)
+        remainder = exp_left
         exp_left = exp_left - level_exp
     if is_profile:
         return level, remainder, level_exp
@@ -139,8 +139,10 @@ class Level(commands.Cog):
             ).fetchall()
 
             rank_strings[category] = []
+            i = 0
             for row in ranks:
-                rank_strings[category].append(f"<@{row[0]}>\n**Level:** {calculate(row[1])}    **Total Exp:** {row[1]}")
+                i += 1
+                rank_strings[category].append(f"`{i}.)` <@{row[0]}>  **Level:** {calculate(row[1])}    **Total Exp:** {row[1]}")
 
             category_total_pages = floor(len(rank_strings) / 10) + 1
             if category_total_pages > total_pages:

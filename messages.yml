@@ -312,6 +312,7 @@ messages:
 
             Use `%prefix%leaderboard <category>` to view the leaderboard of a specific category.
             Use `%prefix%categories` for a list of the categories.
+            Your multipliers can be viewed using `%prefix%profile`
         reactions:
           - "%emoji.previous%"
           - "%emoji.next%"
