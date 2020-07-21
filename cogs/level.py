@@ -36,14 +36,6 @@ def add_exp(user_id, category_id, amount, multiplier_immune=False):
         """,
         (user_id, category_id, amount)
     )
-    total_exp = database.query(
-                    """
-                    SELECT exp
-                    FROM levels
-                    WHERE user_id = %s AND category_id = %s
-                    """,
-                    (user_id, category_id)
-                ).fetchone()
 
 
 class Level(commands.Cog):
