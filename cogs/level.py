@@ -188,7 +188,6 @@ class Level(commands.Cog):
                 await sent_message.edit(content="This message is inactive. Please execute the command again to interact.", embed=inactive_embed)
                 break
 
-
     @commands.command()
     async def categories(self, ctx):
         rows = database.query(
