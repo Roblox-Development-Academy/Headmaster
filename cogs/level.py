@@ -142,7 +142,9 @@ class Level(commands.Cog):
             i = 0
             for row in ranks:
                 i += 1
-                rank_strings[category].append(f"`{i}.)` <@{row[0]}>  **Level:** {calculate(row[1])}    **Total Exp:** {row[1]}")
+                formatting = '**' if row[0] != ctx.author.id else '`'
+                index_string = formatting + "{}.)".format(i) + formatting
+                rank_strings[category].append(f"{index_string} <@{row[0]}>  **Level:** {calculate(row[1])}    **Total Exp:** {row[1]}")
 
             category_total_pages = floor(len(rank_strings) / 10) + 1
             if category_total_pages > total_pages:
