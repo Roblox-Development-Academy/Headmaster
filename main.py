@@ -98,7 +98,6 @@ client.load_extension('cmds.homework')
 
 @client.event
 async def on_ready():
-    generate_tables()
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
 
     # Spam Nitrogen
