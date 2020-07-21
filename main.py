@@ -42,7 +42,7 @@ def generate_tables():
         CREATE TABLE IF NOT EXISTS categories (
             id SERIAL PRIMARY KEY UNIQUE NOT NULL,
             name VARCHAR(100) UNIQUE,
-            exp_rate REAL
+            exp_rate REAL DEFAULT 11
         )
         """,
         """
