@@ -1,9 +1,12 @@
 import database
 import discord
+
 from discord.ext import commands
 from math import floor
 from bot import lang, get_prefix
 from yaml import load, FullLoader
+from asyncio import TimeoutError
+from copy import deepcopy
 
 
 def calculate(exp, is_profile=False):
@@ -117,12 +120,22 @@ class Level(commands.Cog):
     async def leaderboard(self, ctx, category=None):
         prefix = get_prefix(ctx.guild.id)
 
-        sent_message = None
-        current_page = 1
-        total_pages = 1
-        rank_strings = []
+        shown_categories = []
         if category:
             category = category.upper() if category.upper() in ("GFX", "SFX") else category.capitalize()
+            if category not in self.categories:
+                await lang.get("error.invalid_category").send(ctx, category=category, prefix=prefix)
+                return
+            shown_categories.append(category)
+        else:
+            shown_categories = [category_name for category_name in self.categories]
+
+        current_page = 1
+        total_pages = 1
+        rank_strings = {}
+        lb_node = deepcopy(lang.get("leaderboard.main"))
+
+        for category in shown_categories:
             ranks = database.query(
                 """
                 SELECT user_id, exp
@@ -133,41 +146,17 @@ class Level(commands.Cog):
                 (category,)
             ).fetchall()
 
-            if not ranks and category not in self.categories:
-                await lang.get("error.invalid_category").send(ctx, category=category, prefix=prefix)
-                return
-
+            rank_strings[category] = []
             for row in ranks:
-                rank_strings.append(f"\\{self.client.get_user(row[0]).mention}\n**Level:** {calculate(row[1])}    Total Exp: {row[1]}")
+                rank_strings[category].append(f"\\{self.client.get_user(row[0]).mention}\n**Level:** {calculate(row[1])}    Total Exp: {row[1]}")
 
-            total_pages = floor(len(rank_strings)/10) + 1
+            category_total_pages = floor(len(rank_strings) / 10) + 1
+            if category_total_pages > total_pages:
+                total_pages = category_total_pages
 
-            sent_message = await lang.get("leaderboard.category").send(ctx, category=category, leaderboard='\n\n'.join(rank_strings[(current_page - 1) * 10:current_page * 2]) if ranks else "There are currently no rankings in this category.", page=f"{current_page}/{total_pages}")
-        else:
-            lb_node = lang.get("leaderboard.main")
-            rank_strings = {}
-            for category in self.categories:
-                ranks = database.query(
-                    """
-                    SELECT user_id, exp
-                    FROM levels JOIN categories
-                    ON category_id = categories.id AND categories.name = %s
-                    ORDER BY exp DESC
-                    """,
-                    (category,)
-                ).fetchall()
-
-                rank_strings[category] = []
-                for row in ranks:
-                    rank_strings[category].append(f"\\{self.client.get_user(row[0]).mention}\n**Level:** {calculate(row[1])}    Total Exp: {row[1]}")
-
-                category_total_pages = floor(len(rank_strings) / 10) + 1
-                if category_total_pages > total_pages:
-                    total_pages = category_total_pages
-
-                lb_node.nodes[0].args['embed'].add_field(name=category, value='\n\n'.join(rank_strings[category][(current_page - 1) * 10:current_page * 2]) if rank_strings[category] else "There are currently no rankings for this category.", inline=False)
-            lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
-            sent_message = await lb_node.send(ctx, prefix=prefix)
+            lb_node.nodes[0].args['embed'].add_field(name=category, value='\n\n'.join(rank_strings[category][(current_page - 1) * 10:current_page * 2]) if rank_strings[category] else "There are currently no rankings for this category.", inline=False)
+        lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
+        sent_message = (await lb_node.send(ctx, prefix=prefix))[0]
 
         def check(reaction, user):
             return user == ctx.author and str(reaction.emoji) in (lang.global_placeholders.get("emoji.next"),
@@ -176,7 +165,8 @@ class Level(commands.Cog):
 
         while True:
             try:
-                reaction, user = await self.client.wait_for('reaction_add', timeout=251, check=check)
+                reaction, user = await self.client.wait_for('reaction_add', timeout=1, check=check)
+
                 if reaction == lang.global_placeholders.get("emoji.next"):
                     current_page += 1
                 else:
@@ -185,19 +175,17 @@ class Level(commands.Cog):
                     current_page = 1
                 elif current_page < 1:
                     current_page = total_pages
-                if category:
-                    await lang.get("leaderboard.category").edit(ctx, category=category, leaderboard='\n\n'.join(
-                        rank_strings[(current_page - 1) * 10:current_page * 2]), page=f"{current_page}/{total_pages}")
-                else:
-                    for category in self.categories:
-                        lb_node = lang.get("leaderboard.main")
-                        page_rankings = '\n\n'.join(rank_strings[(current_page - 1) * 10:current_page * 2])
-                        lb_node.nodes[0].args['embed'].add_field(name=category, value=page_rankings if page_rankings else "There are currently no rankings for this category on this page.", inline=False)
-                        lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
+
+                for category in shown_categories:
+                    lb_node = lang.get("leaderboard.main")
+                    page_rankings = '\n\n'.join(rank_strings[(current_page - 1) * 10:current_page * 2])
+                    lb_node.nodes[0].args['embed'].add_field(name=category, value=page_rankings if page_rankings else "There are currently no rankings for this category on this page.", inline=False)
+                lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
             except TimeoutError:
                 inactive_embed = sent_message.embeds[0]
-                inactive_embed.color = lang.global_placeholders.get("color.inactive")
-                await sent_message.edit("This message is inactive. Please execute the command again to interact.", embed=inactive_embed)
+                inactive_embed.color = int(lang.global_placeholders.get("color.inactive"), 16)
+                sent_message: discord.Message
+                await sent_message.edit(content="This message is inactive. Please execute the command again to interact.", embed=inactive_embed)
                 break
 
 

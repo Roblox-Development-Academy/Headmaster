@@ -7,7 +7,7 @@ global_placeholders:
     success: "0x5efb32"
     wizard: "0x00f6ff"
     level: "0x622eff"
-    inactive: ""
+    inactive: "0x5c5c5c"
   emoji:
     confirm: "\U00002705"  # :white_check_mark:
     gotcha: "\U0001f44d"  # :thumbs_up:
@@ -315,19 +315,10 @@ messages:
         reactions:
           - "%emoji.previous%"
           - "%emoji.next%"
-    category:
+    categories:
       - embed:
-          title: "Leaderboard"
-          color: "%color.level%"
-          description: |
-            **%category%**
-
-            %leaderboard%
-          footer:
-            text: "%page%"
-        reactions:
-          - "%emoji.previous%"
-          - "%emoji.next%"
+          title: "Categories"
+          color: "%color.info%"
 
   error:
     prompt_timeout:
@@ -421,5 +412,5 @@ messages:
           title: "%emoji.error% That is not a valid category"
           color: "%color.error%"
           description: |
-            %category% is not a valid category.
+            `%category%` is not a valid category.
             For a list of categories, use `%prefix%categories`
