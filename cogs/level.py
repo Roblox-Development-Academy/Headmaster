@@ -140,7 +140,7 @@ class Level(commands.Cog):
 
             rank_strings[category] = []
             for row in ranks:
-                rank_strings[category].append(f"\\{self.client.get_user(row[0]).mention}\n**Level:** {calculate(row[1])}    Total Exp: {row[1]}")
+                rank_strings[category].append(f"<@{row[0]}>\n**Level:** {calculate(row[1])}    **Total Exp:** {row[1]}")
 
             category_total_pages = floor(len(rank_strings) / 10) + 1
             if category_total_pages > total_pages:
