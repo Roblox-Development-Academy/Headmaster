@@ -165,7 +165,7 @@ class Level(commands.Cog):
 
         while True:
             try:
-                reaction, user = await self.client.wait_for('reaction_add', timeout=1, check=check)
+                reaction, user = await self.client.wait_for('reaction_add', timeout=251, check=check)
 
                 if reaction == lang.global_placeholders.get("emoji.next"):
                     current_page += 1
@@ -197,4 +197,7 @@ class Level(commands.Cog):
             FROM categories
             """
         ).fetchall()
-
+        categories_node = deepcopy(lang.get("leaderboard.categories"))
+        for row in rows:
+            categories_node.nodes[0].args['embed'].add_field(name=row[0], value=f"Channels: <#{'><#'.join(str(channel) for channel in self.categories[row[0]])}>\nExp Rate: {row[1]}")
+        await categories_node.send(ctx)
