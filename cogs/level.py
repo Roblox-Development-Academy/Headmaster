@@ -1,5 +1,6 @@
 import database
 import discord
+from datetime import timezone, datetime
 
 from discord.ext import commands
 from math import floor
@@ -50,8 +51,8 @@ class Level(commands.Cog):
     def __init__(self, client):
         self.client = client
         with open("config.yml") as f:
-            categories = load(f, Loader=FullLoader)
-            self.categories = categories['categories']
+            config = load(f, Loader=FullLoader)
+            self.categories = config['categories']
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -78,8 +79,6 @@ class Level(commands.Cog):
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
             await self.profile(user, (reaction.message.author,))
-        elif reaction.emoji == lang.global_placeholders.get("emoji.report"):
-            await MessageNode.from_message(reaction.message).send()
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
@@ -105,7 +104,7 @@ class Level(commands.Cog):
             add_exp(reaction.message.author.id, category_id, -exp)
 
     @commands.command()
-    async def profile(self, ctx, user: commands.Greedy[discord.User] = None):
+    async def profile(self, ctx, user: commands.Greedy[discord.Member] = None):
         user = user[0] if user else ctx.author
 
         ranks = database.query(
@@ -129,10 +128,9 @@ class Level(commands.Cog):
         for multiplier in multipliers:
             total_multiplier *= multiplier[0]
 
-        rank_strings = [f"`{rank[0]}`\n**Level:** {calculate(rank[1])}  **Total Exp:** {rank[1]}\n**Exp Left Until Next Level:** {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}" for rank in ranks]
+        rank_strings = [f"`{rank[0]}`\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\n**Exp Left Until Next Level:** {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}" for rank in ranks]
         multiplier_strings = "None." if not multipliers else [f"Multiplier: {multiplier[0]}x\nEnd Time: {multiplier[1] if multiplier[1] else 'Never.'}" for multiplier in multipliers]
-
-        await lang.get("profile").send(ctx, user_name=str(user), avatar_url=str(user.avatar_url), nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}", levels='\n'.join(rank_strings) if rank_strings else "There are currently no levels to display.", multipliers=multiplier_strings if not multipliers else '\n'.join(multiplier_strings))
+        await lang.get("profile").send(ctx, user_name=str(user), user_id=str(user.id), avatar_url=str(user.avatar_url), nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}", levels='\n'.join(rank_strings) if rank_strings else "There are currently no levels to display.", multipliers=multiplier_strings if not multipliers else '\n'.join(multiplier_strings), join_server=user.joined_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'), join_discord=user.created_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'))
 
     @commands.command(aliases=("lb", "ranks", "ranking", "rankings", "levels", "leaderboards"))
     async def leaderboard(self, ctx, category=None):
