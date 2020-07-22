@@ -17,8 +17,8 @@ global_placeholders:
     return: "↩"
     keycap: "\u20e3"
     solution: "\u2705"  # :white_check_mark:
-    report: "\u26a0"
-    profile: "\U0001f50d"
+    report: "⚠️"
+    profile: "ℹ️"
     next: "\u25b6"
     previous: "\u25c0"
   prompt:
@@ -338,18 +338,75 @@ messages:
         color: "%color.info%"
         description: |
           %nickname%
+
         author:
           name: "%user_name%"
         thumbnail:
           url: "%avatar_url%"
+        footer:
+          text: "User ID: %user_id%"
         fields:
           - name: "Levels"
             value: "%levels%"
-            inline: false
+            inline: true
 
           - name: "Exp Multipliers"
             value: "%multipliers%"
+            inline: true
+
+          - name: "Joined Server"
+            value: "%join_server%"
             inline: false
+
+          - name: "Joined Discord"
+            value: "%join_discord%"
+            inline: true
+
+  report:
+    start:
+      - embed:
+          title: "%reported% Has Been Reported"
+          color: "%color.info%"
+          description: |
+            This user has been reported for the following message:
+          fields:
+            - name: "Location"
+              value: |
+                **Guild:** %guild_name%
+                ID: %guild_id%
+
+                **Channel:** <#%channel_id%>
+                %channel_name%
+                ID: %channel_id%
+
+                **Message:** [Link.](%jump_url%)
+                ID: %message_id%
+            - name: "Information"
+              value: |
+                **Reported User:**
+                <@%reported_id%>
+                %reported%
+                ID: %reported_id%
+
+                **Reporter:**
+                <@%reporter_id%>
+                %reporter%
+                ID: %reporter_id%
+
+                **Time Message was Sent:** %message_sent_at%
+                **Time of Report:** %report_time%
+    end:
+      - embed:
+          title: "End of Report"
+          color: "%color.success%"
+    success:
+      - embed:
+          title: "Report Received"
+          color: "%color.success%"
+          description: |
+            <@%reported_id%> has been reported.
+            Thank you for your report.
+            If you believe this is an error, please contact one of the staff.
 
   error:
     prompt_timeout:
