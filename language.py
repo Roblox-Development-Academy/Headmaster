@@ -259,7 +259,7 @@ class LangManager:
                     self.nodes[index + "." + key if index != '' else key] = MessageListNode.from_str(value)
 
         for yaml_file in yaml_files:
-            with open(yaml_file) as f:
+            with open(yaml_file, encoding='utf-8') as f:
                 config_dict = yaml.load(f, Loader=yaml.FullLoader)
                 global_placeholders = config_dict.get('global_placeholders')
                 if global_placeholders:
