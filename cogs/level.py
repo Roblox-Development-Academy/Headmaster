@@ -7,6 +7,7 @@ from bot import lang, get_prefix
 from yaml import load, FullLoader
 from asyncio import TimeoutError
 from copy import deepcopy
+from language import MessageNode
 
 
 def calculate(exp, is_profile=False):
@@ -77,9 +78,8 @@ class Level(commands.Cog):
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
             await self.profile(user, (reaction.message.author,))
-        else:
-            print(reaction.emoji)
-            print(lang.global_placeholders.get("emoji.profile"))
+        elif reaction.emoji == lang.global_placeholders.get("emoji.report"):
+            await MessageNode.from_message(reaction.message).send()
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):

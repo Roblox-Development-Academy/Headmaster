@@ -1,6 +1,7 @@
 from bot import *
 from common import prompt_reaction, prompt
 from language import MessageNode
+from yaml import load, FullLoader
 
 
 @commands.command()
@@ -13,7 +14,10 @@ async def apply(ctx):
     user_dm = ctx.author.dm_channel
     gotcha_emote = lang.global_placeholders.get('emoji.gotcha')
 
-    channel = client.get_channel(728753615031763005)  # Change this to the channel we'll be using.
+    channel_id = None
+    with open("config.yml") as f:
+        channel_id = load(f, loader=FullLoader)["channels"]["teacher_application"]
+    channel = client.get_channel(channel_id)
 
     messages = []
     while True:
