@@ -53,6 +53,7 @@ class Level(commands.Cog):
         with open("config.yml") as f:
             config = load(f, Loader=FullLoader)
             self.categories = config['categories']
+            self.rda = config['servers']['rda']
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -105,7 +106,10 @@ class Level(commands.Cog):
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[discord.Member] = None):
-        user = user[0] if user else ctx.author
+        if ctx.guild and ctx.guild.id == self.rda:
+            user = user[0] if user else ctx.author
+        else:
+            user = self.client.get_guild(self.rda).get_member(user[0].id if user else ctx.author.id)
 
         ranks = database.query(
             """
@@ -130,7 +134,18 @@ class Level(commands.Cog):
 
         rank_strings = [f"`{rank[0]}`\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\n**Exp Left Until Next Level:** {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}" for rank in ranks]
         multiplier_strings = "None." if not multipliers else [f"Multiplier: {multiplier[0]}x\nEnd Time: {multiplier[1] if multiplier[1] else 'Never.'}" for multiplier in multipliers]
-        await lang.get("profile").send(ctx, user_name=str(user), user_id=str(user.id), avatar_url=str(user.avatar_url), nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}", levels='\n'.join(rank_strings) if rank_strings else "There are currently no levels to display.", multipliers=multiplier_strings if not multipliers else '\n'.join(multiplier_strings), join_server=user.joined_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'), join_discord=user.created_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'))
+
+        def strfdelta(timedelta):
+            hours, remainder = divmod(timedelta.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            milliseconds, microseconds = divmod(timedelta.microseconds, 1000)
+            return f"{timedelta.days} day{'s' if timedelta.days != 1 else ''}, {hours} hour{'s' if hours != 1 else ''}, {minutes} minute{'s' if minutes != 1 else ''}, {seconds} second{'s' if seconds != 1 else ''}, {milliseconds} millisecond{'s' if milliseconds != 1 else ''}, {microseconds} microsecond{'s' if microseconds != 1 else ''}"
+        time = datetime.utcnow() - user.created_at
+        print(time)
+        print(str(time))
+        print(strfdelta(time))
+
+        await lang.get("profile").send(ctx, user_name=str(user), user_id=str(user.id), avatar_url=str(user.avatar_url), nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}", levels='\n'.join(rank_strings) if rank_strings else "There are currently no levels to display.", multipliers=multiplier_strings if not multipliers else '\n'.join(multiplier_strings), join_server=user.joined_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'), join_discord=user.created_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'), server_duration=strfdelta(datetime.utcnow() - user.joined_at), discord_duration=strfdelta(datetime.utcnow() - user.created_at))
 
     @commands.command(aliases=("lb", "ranks", "ranking", "rankings", "levels", "leaderboards"))
     async def leaderboard(self, ctx, category=None):

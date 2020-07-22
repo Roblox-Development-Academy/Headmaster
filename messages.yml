@@ -354,12 +354,12 @@ messages:
             value: "%multipliers%"
             inline: true
 
-          - name: "Joined Server"
-            value: "%join_server%"
+          - name: "Joined RDA"
+            value: "%join_server%\n%server_duration% ago from now."
             inline: false
 
           - name: "Joined Discord"
-            value: "%join_discord%"
+            value: "%join_discord%\n%discord_duration% ago from now."
             inline: true
 
   report:
