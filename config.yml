@@ -2,8 +2,8 @@ servers:
   rda: 673600024919408680
 
 channels:
-  teacher_application: 728753615031763005
-  report:
+  teacher_application: 728753615031763005 # Testing.
+  report: 735541300644020225 # Testing.
 
 categories:
   Scripting:
