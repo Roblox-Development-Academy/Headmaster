@@ -16,7 +16,7 @@ async def apply(ctx):
 
     channel_id = None
     with open("config.yml") as f:
-        channel_id = load(f, loader=FullLoader)["channels"]["teacher_application"]
+        channel_id = load(f, Loader=FullLoader)["channels"]["teacher_application"]
     channel = client.get_channel(channel_id)
 
     messages = []
