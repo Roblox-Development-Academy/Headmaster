@@ -54,59 +54,85 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if (reaction.emoji != lang.global_placeholders.get("emoji.solution")) or (
-                reaction.message.author.id != user.id):
-            return
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
+            category_name = None
+            for category in self.categories:
+                if reaction.message.channel.id in self.categories[category]:
+                    category_name = category
+                    break
 
-        category_name = None
-        for category in self.categories:
-            if reaction.message.channel.id in self.categories[category]:
-                category_name = category
-                break
+            if category_name is None:
+                return
 
-        if category_name is None:
-            return
+            category_id, exp = database.query(
+                """
+                SELECT id, exp_rate
+                FROM categories
+                WHERE name = %s
+                """,
+                (category_name,)
+            ).fetchone()
 
-        category_id, exp = database.query(
-            """
-            SELECT id, exp_rate
-            FROM categories
-            WHERE name = %s
-            """,
-            (category_name,)
-        ).fetchone()
-
-        add_exp(reaction.message.author.id, category_id, exp)
+            add_exp(reaction.message.author.id, category_id, exp)
+        elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
+            await reaction.remove(user)
+            await self.profile(user, (reaction.message.author,))
+        else:
+            print(reaction.emoji)
+            print(lang.global_placeholders.get("emoji.profile"))
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
-        if (reaction.emoji != lang.global_placeholders.get("emoji.solution")) or (
-                reaction.message.author.id != user.id):
-            return
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
+            category_name = None
+            for category in self.categories:
+                if reaction.message.channel.id in self.categories[category]:
+                    category_name = category
+                    break
 
-        category_name = None
-        for category in self.categories:
-            if reaction.message.channel.id in self.categories[category]:
-                category_name = category
-                break
+            if category_name is None:
+                return
 
-        if category_name is None:
-            return
+            category_id, exp = database.query(
+                """
+                SELECT id, exp_rate
+                FROM categories
+                WHERE name = %s
+                """,
+                (category_name,)
+            ).fetchone()
 
-        category_id, exp = database.query(
-            """
-            SELECT id, exp_rate
-            FROM categories
-            WHERE name = %s
-            """,
-            (category_name,)
-        ).fetchone()
-
-        add_exp(reaction.message.author.id, category_id, -exp)
+            add_exp(reaction.message.author.id, category_id, -exp)
 
     @commands.command()
-    async def profile(self, ctx, member: discord.Member = None):
-        pass
+    async def profile(self, ctx, user: commands.Greedy[discord.User] = None):
+        user = user[0] if user else ctx.author
+
+        ranks = database.query(
+            """
+            SELECT categories.name, levels.exp
+            FROM levels JOIN categories
+            ON category_id = categories.id AND user_id = %s
+            """,
+            (user.id,)
+        ).fetchall()
+
+        multipliers = database.query(
+            """
+            SELECT multiplier, end_time
+            FROM multipliers
+            WHERE user_id = %s
+            """,
+            (user.id,)
+        ).fetchall()
+        total_multiplier = 1
+        for multiplier in multipliers:
+            total_multiplier *= multiplier[0]
+
+        rank_strings = [f"`{rank[0]}`\n**Level:** {calculate(rank[1])}  **Total Exp:** {rank[1]}\n**Exp Left Until Next Level:** {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}" for rank in ranks]
+        multiplier_strings = "None." if not multipliers else [f"Multiplier: {multiplier[0]}x\nEnd Time: {multiplier[1] if multiplier[1] else 'Never.'}" for multiplier in multipliers]
+
+        await lang.get("profile").send(ctx, user_name=str(user), avatar_url=str(user.avatar_url), nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}", levels='\n'.join(rank_strings) if rank_strings else "There are currently no levels to display.", multipliers=multiplier_strings if not multipliers else '\n'.join(multiplier_strings))
 
     @commands.command(aliases=("lb", "ranks", "ranking", "rankings", "levels", "leaderboards"))
     async def leaderboard(self, ctx, category=None):
@@ -150,7 +176,7 @@ class Level(commands.Cog):
             if category_total_pages > total_pages:
                 total_pages = category_total_pages
 
-            lb_node.nodes[0].args['embed'].add_field(name=category, value='\n\n'.join(rank_strings[category][(current_page - 1) * 10:current_page * 2]) if rank_strings[category] else "There are currently no rankings for this category.", inline=False)
+            lb_node.nodes[0].args['embed'].add_field(name=category, value='\n\n'.join(rank_strings[category][(current_page - 1) * 10:current_page * 2]) if rank_strings[category] else "There are currently no rankings for this category.")
         lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
         sent_message = (await lb_node.send(ctx, prefix=prefix))[0]
 
@@ -175,7 +201,7 @@ class Level(commands.Cog):
                 for category in shown_categories:
                     lb_node = lang.get("leaderboard.main")
                     page_rankings = '\n\n'.join(rank_strings[(current_page - 1) * 10:current_page * 2])
-                    lb_node.nodes[0].args['embed'].add_field(name=category, value=page_rankings if page_rankings else "There are currently no rankings for this category on this page.", inline=False)
+                    lb_node.nodes[0].args['embed'].add_field(name=category, value=page_rankings if page_rankings else "There are currently no rankings for this category on this page.")
                 lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
             except TimeoutError:
                 inactive_embed = sent_message.embeds[0]

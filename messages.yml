@@ -9,18 +9,18 @@ global_placeholders:
     level: "0x622eff"
     inactive: "0x5c5c5c"
   emoji:
-    confirm: "\U00002705"  # :white_check_mark:
+    confirm: "\u2705"  # :white_check_mark:
     gotcha: "\U0001f44d"  # :thumbs_up:
     error: "\U0001f63f"  # :crying_cat_face:
     date: "\U0001f4c6"  # :calendar:
-    time: "\U000023f2"  # :timer:
+    time: "\u23f2"  # :timer:
     return: "↩"
     keycap: "\u20e3"
-    solution: "\U00002705"  # :white_check_mark:
-    report: ""
-    profile: ""
-    next: "\U000025b6"
-    previous: "\U000025c0"
+    solution: "\u2705"  # :white_check_mark:
+    report: "\u26a0"
+    profile: "\U0001f50d"
+    next: "\u25b6"
+    previous: "\u25c0"
   prompt:
     cancel: "\n\nRespond with `cancel` to cancel the setup."
     skip_or_cancel: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
@@ -51,6 +51,8 @@ messages:
             value: |
               **help** - Shows this message.
               **profile** - View someone's profile.
+              **leaderboard** - Shows the leaderboard.
+              **categories** - Shows the categories for levels.
               **getprefix** - Show the server command prefix.
               **hw** - Create, submit, and manage assignments.
           - name: "Teacher Commands"
@@ -68,8 +70,9 @@ messages:
             value: |
               *React to a message with one of these emojis.*
 
-              **profile** - View the message author's profile.
-              **report** - Flag a message for inappropriate content.
+              %emoji.profile% **profile** - View the message author's profile.
+              %emoji.report% **report** - Flag a message for inappropriate content.
+              %emoji.solution% **solution** - Mark a message as the solution to your problem.
               **bookmark** - Bookmark a message for later reference.
               **submit_hw** - Submit an assignment to the message author.
 
@@ -328,6 +331,25 @@ messages:
             For example, if twice the number of members ask for scripting help than building help, the exp rate for the building category will be twice as much as the exp rate for the scripting category.
 
             Below is a list of the categories and the corresponding channels and exp rates.
+
+  profile:
+    - embed:
+        title: "Profile"
+        color: "%color.info%"
+        description: |
+          %nickname%
+        author:
+          name: "%user_name%"
+        thumbnail:
+          url: "%avatar_url%"
+        fields:
+          - name: "Levels"
+            value: "%levels%"
+            inline: false
+
+          - name: "Exp Multipliers"
+            value: "%multipliers%"
+            inline: false
 
   error:
     prompt_timeout:
