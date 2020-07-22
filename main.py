@@ -6,6 +6,7 @@ from bot import *
 from cogs.admin import Admin
 from cogs.errorhandler import ErrorHandler
 from cogs.level import Level
+from cogs.report import Report
 
 
 def generate_tables():
@@ -92,6 +93,7 @@ def generate_tables():
 client.add_cog(ErrorHandler())
 client.add_cog(Admin())
 client.add_cog(Level(client))
+client.add_cog(Report(client))
 client.load_extension('cmds.apply')
 client.load_extension('cmds.homework')
 
