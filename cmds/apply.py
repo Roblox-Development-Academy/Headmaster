@@ -14,11 +14,6 @@ async def apply(ctx):
     user_dm = ctx.author.dm_channel
     gotcha_emote = lang.global_placeholders.get('emoji.gotcha')
 
-    channel_id = None
-    with open("config.yml") as f:
-        channel_id = load(f, Loader=FullLoader)["channels"]["teacher_application"]
-    channel = client.get_channel(channel_id)
-
     messages = []
     while True:
         message = await prompt(user_dm, ctx.author, prompt_message)
@@ -31,6 +26,11 @@ async def apply(ctx):
         await message.add_reaction(gotcha_emote)
     in_prompt.pop(ctx.author.id)
     await lang.get('teacher_application.complete').send(user_dm)
+
+    with open("config.yml") as f:
+        channel_id = load(f, Loader=FullLoader)["channels"]["teacher_application"]
+    channel = client.get_channel(channel_id)
+
     await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author),
                                                           user_mention=ctx.author.mention)
     for id in messages:
