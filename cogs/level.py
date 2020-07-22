@@ -8,7 +8,6 @@ from bot import lang, get_prefix
 from yaml import load, FullLoader
 from asyncio import TimeoutError
 from copy import deepcopy
-from language import MessageNode
 
 
 def calculate(exp, is_profile=False):
