@@ -120,7 +120,7 @@ class MessageNode:
                 embed.set_thumbnail(url=LangManager.replace(embed.thumbnail.url, **kwargs))
             for i, field in enumerate(embed.fields):
                 embed.set_field_at(i, name=LangManager.replace(field.name, **kwargs),
-                                   value=LangManager.replace(field.value, **kwargs))
+                                   value=LangManager.replace(field.value, **kwargs), inline=field.inline)
         return clone
 
     async def send(self, to, message_list=None, **placeholders):
