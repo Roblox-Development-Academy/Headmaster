@@ -1,13 +1,13 @@
 import database
 import discord
-from datetime import timezone, datetime
-
+import datetime
 from discord.ext import commands
 from math import floor
 from bot import lang, get_prefix
 from yaml import load, FullLoader
 from asyncio import TimeoutError
 from copy import deepcopy
+import conditions
 
 
 def calculate(exp, is_profile=False):
@@ -27,7 +27,7 @@ def calculate(exp, is_profile=False):
 
 def add_exp(user_id, category_id, amount, multiplier_immune=False):
     if not multiplier_immune:
-        pass
+        total_multiplier = get_multipliers(user_id)
     database.update(
         """
         INSERT INTO levels (user_id, category_id, exp)
@@ -35,8 +35,35 @@ def add_exp(user_id, category_id, amount, multiplier_immune=False):
         ON CONFLICT (user_id, category_id) DO
         UPDATE SET exp = levels.exp + EXCLUDED.exp
         """,
-        (user_id, category_id, amount)
+        (user_id, category_id, amount * total_multiplier)
     )
+
+
+def add_multiplier(user_id, multiplier, duration=None):
+    database.update(
+        """
+        INSERT INTO multipliers (user_id, multiplier, end_time)
+        VALUES (%s, %s, current_timestamp + %s)
+        """,
+        (user_id, multiplier, duration)
+    )
+
+
+def get_multipliers(user_id, raw=False):
+    multipliers = database.query(
+        """
+        SELECT multiplier, end_time
+        FROM multipliers
+        WHERE user_id = %s
+        """,
+        (user_id,)
+    ).fetchall()
+    total_multiplier = 1
+    for multiplier in multipliers:
+        total_multiplier *= multiplier[0]
+    if raw:
+        return multipliers, total_multiplier
+    return total_multiplier
 
 
 class Level(commands.Cog):
@@ -53,10 +80,11 @@ class Level(commands.Cog):
             config = load(f, Loader=FullLoader)
             self.categories = config['categories']
             self.rda = config['servers']['rda']
+            self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution"):  # and reaction.message.author.id != user.id:
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
@@ -82,7 +110,7 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution"):  # and reaction.message.author.id != user.id:
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
@@ -119,32 +147,25 @@ class Level(commands.Cog):
             (user.id,)
         ).fetchall()
 
-        multipliers = database.query(
-            """
-            SELECT multiplier, end_time
-            FROM multipliers
-            WHERE user_id = %s
-            """,
-            (user.id,)
-        ).fetchall()
-        total_multiplier = 1
-        for multiplier in multipliers:
-            total_multiplier *= multiplier[0]
+        multipliers, total_multiplier = get_multipliers(user.id, raw=True)
 
-        rank_strings = [f"`{rank[0]}`\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\n**Exp Left Until Next Level:** {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}" for rank in ranks]
-        multiplier_strings = "None." if not multipliers else [f"Multiplier: {multiplier[0]}x\nEnd Time: {multiplier[1] if multiplier[1] else 'Never.'}" for multiplier in multipliers]
+        rank_strings = [f"`{rank[0]}`\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}"for rank in ranks]
+        multiplier_strings = "None." if not multipliers else [f"Multiplier: {round(multiplier[0], 2)}x\nExpiration Date: {multiplier[1] if multiplier[1] else 'Never.'}" for multiplier in multipliers]
 
         def strfdelta(timedelta):
             hours, remainder = divmod(timedelta.seconds, 3600)
             minutes, seconds = divmod(remainder, 60)
             milliseconds, microseconds = divmod(timedelta.microseconds, 1000)
             return f"{timedelta.days} day{'s' if timedelta.days != 1 else ''}, {hours} hour{'s' if hours != 1 else ''}, {minutes} minute{'s' if minutes != 1 else ''}, {seconds} second{'s' if seconds != 1 else ''}, {milliseconds} millisecond{'s' if milliseconds != 1 else ''}, {microseconds} microsecond{'s' if microseconds != 1 else ''}"
-        time = datetime.utcnow() - user.created_at
-        print(time)
-        print(str(time))
-        print(strfdelta(time))
 
-        await lang.get("profile").send(ctx, user_name=str(user), user_id=str(user.id), avatar_url=str(user.avatar_url), nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}", levels='\n'.join(rank_strings) if rank_strings else "There are currently no levels to display.", multipliers=multiplier_strings if not multipliers else '\n'.join(multiplier_strings), join_server=user.joined_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'), join_discord=user.created_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'), server_duration=strfdelta(datetime.utcnow() - user.joined_at), discord_duration=strfdelta(datetime.utcnow() - user.created_at))
+        await lang.get("profile").send(ctx, user_name=str(user), user_id=str(user.id), avatar_url=str(user.avatar_url),
+                                       nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}",
+                                       levels='\n'.join(rank_strings) if rank_strings else "There are currently no levels to display.",
+                                       multipliers=multiplier_strings if not multipliers else f"__Total Multiplier: {round(total_multiplier, 2)}x__\n\n"+ '\n'.join(multiplier_strings),
+                                       join_server=user.joined_at.strftime(self.date_format),
+                                       join_discord=user.created_at.strftime(self.date_format),
+                                       server_duration=strfdelta(datetime.datetime.utcnow() - user.joined_at),
+                                       discord_duration=strfdelta(datetime.datetime.utcnow() - user.created_at))
 
     @commands.command(aliases=("lb", "ranks", "ranking", "rankings", "levels", "leaderboards"))
     async def leaderboard(self, ctx, category=None):
@@ -234,3 +255,16 @@ class Level(commands.Cog):
         for row in rows:
             categories_node.nodes[0].args['embed'].add_field(name=row[0], value=f"Channels: <#{'><#'.join(str(channel) for channel in self.categories[row[0]])}>\nExp Rate: {row[1]}")
         await categories_node.send(ctx)
+
+    @commands.command()
+    @commands.check(conditions.manager_only)
+    async def multiplier(self, ctx, user: discord.User = None, multiplier: float = None,
+                         duration: datetime.timedelta = None):
+        if (user and multiplier is None) or (not 1 < multiplier <= 121):
+            await lang.get("error.multiplier").send(ctx, multiplier=str(multiplier))
+            return
+        if user:
+            add_multiplier(user.id, multiplier, duration)
+            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention, expire=(datetime.datetime.utcnow() + duration).strftime(self.date_format) + '.' if duration else "Never.")
+        else:
+            await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
