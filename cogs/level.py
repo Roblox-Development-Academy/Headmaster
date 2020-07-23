@@ -25,7 +25,7 @@ def calculate(exp, is_profile=False):
     return level
 
 
-def add_exp(user_id, category_id, amount, multiplier_immune=False):
+def add_exp(user_id, category_id, amount=None, multiplier_immune=False):
     if not multiplier_immune:
         total_multiplier = get_multipliers(user_id)
     database.update(
@@ -37,6 +37,8 @@ def add_exp(user_id, category_id, amount, multiplier_immune=False):
         """,
         (user_id, category_id, amount * total_multiplier)
     )
+
+    exp_rates = None
 
 
 def add_multiplier(user_id, multiplier, duration=None):
@@ -68,10 +70,8 @@ def get_multipliers(user_id, raw=False):
 
 class Level(commands.Cog):
     """
-    Solution emote: Add exp.
-    Profile emote: DM profile and remove reaction.
-    Profile command: Show exp and level.
     Average 11 exp.
+    Exp rate: Float from 5 to 19.
     """
 
     def __init__(self, client):
@@ -257,10 +257,10 @@ class Level(commands.Cog):
         await categories_node.send(ctx)
 
     @commands.command()
-    @commands.check(conditions.manager_only)
+    @conditions.manager_only()
     async def multiplier(self, ctx, user: discord.User = None, multiplier: float = None,
                          duration: datetime.timedelta = None):
-        if (user and multiplier is None) or (not 1 < multiplier <= 121):
+        if (user and multiplier is None) or (multiplier and not (1 < multiplier <= 14641)):
             await lang.get("error.multiplier").send(ctx, multiplier=str(multiplier))
             return
         if user:
