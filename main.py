@@ -50,7 +50,7 @@ def generate_tables():
         CREATE TABLE IF NOT EXISTS levels (
             user_id BIGINT NOT NULL,
             category_id INTEGER NOT NULL,
-            exp INTEGER DEFAULT '0',
+            exp BIGINT DEFAULT '0',
             PRIMARY KEY (user_id, category_id),
             FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
         )
@@ -62,7 +62,7 @@ def generate_tables():
         """
         CREATE TABLE IF NOT EXISTS multipliers (
             user_id BIGINT,
-            multiplier REAL,
+            multiplier REAL NOT NULL,
             end_time TIMESTAMPTZ
         )
         """,
