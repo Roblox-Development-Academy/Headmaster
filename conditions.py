@@ -9,3 +9,9 @@ def teacher_only():
         # member.roles
         return True
     return commands.check(predicate)
+
+
+def manager_only():
+    def predicate(ctx):
+        return ctx.author.id in (260608867292020737, 450375444450115585)
+    return commands.check(predicate)
