@@ -327,8 +327,7 @@ messages:
             You can earn exp by helping people in the help channels.
             React to other members' messages with %emoji.solution% to show that they have answered your question or helped you.
             Message senders with a %emoji.solution% will receive exp depending on the category they helped in (average 11 exp).
-            The exp rates are determined by the ratio of members who ask for help in each category.
-            For example, if twice the number of members ask for scripting help than building help, the exp rate for the building category will be twice as much as the exp rate for the scripting category.
+            The exp rates are determined by the amount of questions in each category.
 
             Below is a list of the categories and the corresponding channels and exp rates.
 
