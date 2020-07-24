@@ -27,18 +27,19 @@ def calculate(exp, is_profile=False):
     return level
 
 
-def add_exp(user_id, category_name, amount, multiplier_immune=False):
+def add_exp(user_id, category_name, amount, multiplier_immune=False, subtract_id: str = None):
     exp_rows = database.query(
         """
         SELECT id, exp_rate, name
         FROM categories
+        ORDER BY id
         """
     ).fetchall()
 
     if amount in ('add', 'subtract'):
         for row in exp_rows:
             if row[2] == category_name:
-                category_id, amount = row[0], row[1]
+                category_id, amount = row[0], - row[1] if amount == 'subtract' else row[1]
                 break
 
     total_multiplier = get_multipliers(user_id) if not multiplier_immune else 1
@@ -52,31 +53,35 @@ def add_exp(user_id, category_name, amount, multiplier_immune=False):
         """,
         (user_id, category_id, amount * total_multiplier)
     )
-    recalculate_exp_rate(exp_rows, category_id)
+
+    recalculate_exp_rate(exp_rows, category_id, subtract_id, False if amount >= 0 else True)
 
 
-def recalculate_exp_rate(previous_rows, category_id):
-    channels = len(previous_rows)
+added_exp = {}
+
+
+def recalculate_exp_rate(previous_rows, category_id, subtract_id=None, subtract=False):
+    other_categories = len(previous_rows) - 1
     distance_from_min = [row[1] - 5 for row in previous_rows]
+    previous_rows = list(previous_rows)
 
-    if sum(distance_from_min) / channels != 0:
-        print("Error.\n" * 11)
-        print(sum(distance_from_min) / channels)
-
-    if previous_rows[category_id][0] == category_id:
-        category_index = category_id
+    if 0 < distance_from_min[category_id - 1] < 14:
+        change_by = round((14 - distance_from_min[category_id - 1]) / (distance_from_min[category_id - 1] * 7) / other_categories, 6)
     else:
-        for row in previous_rows:
-            if row[0] == category_id:
-                category_index = row[0]
+        change_by = 0
 
-    change_by = (14 - distance_from_min[category_id]) / (distance_from_min[category_index] / 7)
+    if subtract:
+        change_by = - added_exp[subtract_id]
+        added_exp.pop(subtract_id)
+    else:
+        added_exp[subtract_id] = change_by
 
     for i in range(len(previous_rows)):
+        previous_rows[i] = list(previous_rows[i])[:-1]
         if previous_rows[i][0] != category_id:
-            previous_rows[i][1] += change_by/channels
+            previous_rows[i][1] += change_by
         else:
-            previous_rows[i][1] -= change_by
+            previous_rows[i][1] -= change_by * other_categories
 
         if not (5 <= previous_rows[i][1] <= 19):
             previous_rows[i][1] = 19 if previous_rows[i][1] > 19 else 5
@@ -85,8 +90,10 @@ def recalculate_exp_rate(previous_rows, category_id):
         try:
             database.cursor.executemany(
                 """
-                INSERT INTO ignored_channels (id, guild_id) VALUES (%s,%s)
-                ON CONFLICT (id) DO NOTHING
+                INSERT INTO categories (id, exp_rate)
+                VALUES (%s,%s)
+                ON CONFLICT (id) DO
+                UPDATE SET exp_rate = EXCLUDED.exp_rate
                 """,
                 previous_rows
             )
@@ -127,6 +134,10 @@ class Level(commands.Cog):
     """
     Average 11 exp.
     Exp rate: Float from 5 to 19.
+
+    TODO: Add rank to profile.
+    TODO: The notifications for levels and exp.
+    TODO: The parse thing for multipliers.
     """
 
     def __init__(self, client):
@@ -137,9 +148,35 @@ class Level(commands.Cog):
             self.rda = config['servers']['rda']
             self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
+    # For testing only:
+    @commands.command()
+    @conditions.manager_only()
+    async def reset(self, ctx, *args):
+        if any(arg.lower() in ('levels', 'all') for arg in args):
+            database.update(
+                """
+                UPDATE levels
+                SET exp = 0
+                """
+            )
+        if any(arg.lower() in ('categories', 'all') for arg in args):
+            database.update(
+                """
+                UPDATE categories
+                SET exp_rate = 11
+                """
+            )
+        if any(arg.lower() in ('multipliers', 'all') for arg in args):
+            database.update(
+                """
+                DELETE FROM multipliers
+                """
+            )
+
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution"):  # and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get(
+                "emoji.solution"):  # and reaction.message.author.id != user.id: # Testing. Uncomment.
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
@@ -149,14 +186,16 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            add_exp(reaction.message.author.id, category_name, 'add')
+            add_exp(reaction.message.author.id, category_name, 'add', subtract_id=f"{reaction.message.id}{user.id}")
+
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
             await self.profile(user, (reaction.message.author,))
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution"):  # and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get(
+                "emoji.solution"):  # and reaction.message.author.id != user.id: # Testing. Uncomment.
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
@@ -166,7 +205,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            add_exp(reaction.message.author.id, category_name, 'subtract')
+            add_exp(reaction.message.author.id, category_name, 'subtract', subtract_id=f"{reaction.message.id}{user.id}")
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[discord.Member] = None):
@@ -186,8 +225,12 @@ class Level(commands.Cog):
 
         multipliers, total_multiplier = get_multipliers(user.id, raw=True)
 
-        rank_strings = [f"`{rank[0]}`\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}"for rank in ranks]
-        multiplier_strings = "None." if not multipliers else [f"Multiplier: {round(multiplier[0], 2)}x\nExpiration Date: {multiplier[1] if multiplier[1] else 'Never.'}" for multiplier in multipliers]
+        rank_strings = [
+            f"`{rank[0]}`\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}"
+            for rank in ranks]
+        multiplier_strings = "None." if not multipliers else [
+            f"Multiplier: {round(multiplier[0], 2)}x\nExpiration Date: {multiplier[1] if multiplier[1] else 'Never.'}"
+            for multiplier in multipliers]
 
         def strfdelta(timedelta):
             hours, remainder = divmod(timedelta.seconds, 3600)
@@ -197,8 +240,10 @@ class Level(commands.Cog):
 
         await lang.get("profile").send(ctx, user_name=str(user), user_id=str(user.id), avatar_url=str(user.avatar_url),
                                        nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}",
-                                       levels='\n'.join(rank_strings) if rank_strings else "There are currently no levels to display.",
-                                       multipliers=multiplier_strings if not multipliers else f"__Total Multiplier: {round(total_multiplier, 2)}x__\n\n"+ '\n'.join(multiplier_strings),
+                                       levels='\n'.join(
+                                           rank_strings) if rank_strings else "There are currently no levels to display.",
+                                       multipliers=multiplier_strings if not multipliers else f"__Total Multiplier: {round(total_multiplier, 2)}x__\n\n" + '\n'.join(
+                                           multiplier_strings),
                                        join_server=user.joined_at.strftime(self.date_format),
                                        join_discord=user.created_at.strftime(self.date_format),
                                        server_duration=strfdelta(datetime.datetime.utcnow() - user.joined_at),
@@ -220,6 +265,7 @@ class Level(commands.Cog):
 
         current_page = 1
         total_pages = 1
+        ranks_per_page = 5 if len(shown_categories) != 1 else 10
         rank_strings = {}
         lb_node = deepcopy(lang.get("leaderboard.main"))
 
@@ -240,13 +286,16 @@ class Level(commands.Cog):
                 i += 1
                 formatting = '**' if row[0] != ctx.author.id else '`'
                 index_string = formatting + "{}.)".format(i) + formatting
-                rank_strings[category].append(f"{index_string} <@{row[0]}>  **Level:** {calculate(row[1])}    **Total Exp:** {row[1]}")
+                rank_strings[category].append(
+                    f"{index_string} <@{row[0]}>  **Level:** {calculate(row[1])}    **Total Exp:** {row[1]}")
 
-            category_total_pages = floor(len(rank_strings) / 10) + 1
+            category_total_pages = floor(len(rank_strings[category]) / ranks_per_page) + 1
             if category_total_pages > total_pages:
                 total_pages = category_total_pages
 
-            lb_node.nodes[0].args['embed'].add_field(name=category, value='\n\n'.join(rank_strings[category][(current_page - 1) * 10:current_page * 2]) if rank_strings[category] else "There are currently no rankings for this category.")
+            lb_node.nodes[0].args['embed'].add_field(name=category, value='\n\n'.join(
+                rank_strings[category][(current_page - 1) * ranks_per_page:current_page * 2]) if rank_strings[
+                category] else "There are currently no rankings for this category.")
         lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
         sent_message = (await lb_node.send(ctx, prefix=prefix))[0]
 
@@ -270,14 +319,17 @@ class Level(commands.Cog):
 
                 for category in shown_categories:
                     lb_node = lang.get("leaderboard.main")
-                    page_rankings = '\n\n'.join(rank_strings[(current_page - 1) * 10:current_page * 2])
-                    lb_node.nodes[0].args['embed'].add_field(name=category, value=page_rankings if page_rankings else "There are currently no rankings for this category on this page.")
+                    page_rankings = '\n\n'.join(rank_strings[(current_page - 1) * ranks_per_page:current_page * 2])
+                    lb_node.nodes[0].args['embed'].add_field(name=category,
+                                                             value=page_rankings if page_rankings else "There are currently no rankings for this category on this page.")
                 lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
             except TimeoutError:
                 inactive_embed = sent_message.embeds[0]
                 inactive_embed.color = int(lang.global_placeholders.get("color.inactive"), 16)
                 sent_message: discord.Message
-                await sent_message.edit(content="This message is inactive. Please execute the command again to interact.", embed=inactive_embed)
+                await sent_message.edit(
+                    content="This message is inactive. Please execute the command again to interact.",
+                    embed=inactive_embed)
                 break
 
     @commands.command()
@@ -286,11 +338,13 @@ class Level(commands.Cog):
             """
             SELECT name, exp_rate
             FROM categories
+            ORDER BY id
             """
         ).fetchall()
         categories_node = deepcopy(lang.get("leaderboard.categories"))
         for row in rows:
-            categories_node.nodes[0].args['embed'].add_field(name=row[0], value=f"Channels: <#{'><#'.join(str(channel) for channel in self.categories[row[0]])}>\nExp Rate: {row[1]}")
+            categories_node.nodes[0].args['embed'].add_field(name=row[0],
+                                                             value=f"Channels:\n<#{'> <#'.join(str(channel) for channel in self.categories[row[0]])}>\nExp Rate: {row[1]}")
         await categories_node.send(ctx)
 
     @commands.command()
@@ -302,6 +356,8 @@ class Level(commands.Cog):
             return
         if user:
             add_multiplier(user.id, multiplier, duration)
-            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention, expire=(datetime.datetime.utcnow() + duration).strftime(self.date_format) + '.' if duration else "Never.")
+            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention,
+                                                      expire=(datetime.datetime.utcnow() + duration).strftime(
+                                                          self.date_format) + '.' if duration else "Never.")
         else:
             await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
