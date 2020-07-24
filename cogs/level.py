@@ -1,13 +1,15 @@
 import database
 import discord
 import datetime
+import conditions
+
 from discord.ext import commands
 from math import floor
 from bot import lang, get_prefix
 from yaml import load, FullLoader
 from asyncio import TimeoutError
 from copy import deepcopy
-import conditions
+from psycopg2 import DatabaseError
 
 
 def calculate(exp, is_profile=False):
@@ -25,9 +27,22 @@ def calculate(exp, is_profile=False):
     return level
 
 
-def add_exp(user_id, category_id, amount=None, multiplier_immune=False):
-    if not multiplier_immune:
-        total_multiplier = get_multipliers(user_id)
+def add_exp(user_id, category_name, amount, multiplier_immune=False):
+    exp_rows = database.query(
+        """
+        SELECT id, exp_rate, name
+        FROM categories
+        """
+    ).fetchall()
+
+    if amount in ('add', 'subtract'):
+        for row in exp_rows:
+            if row[2] == category_name:
+                category_id, amount = row[0], row[1]
+                break
+
+    total_multiplier = get_multipliers(user_id) if not multiplier_immune else 1
+
     database.update(
         """
         INSERT INTO levels (user_id, category_id, exp)
@@ -37,8 +52,48 @@ def add_exp(user_id, category_id, amount=None, multiplier_immune=False):
         """,
         (user_id, category_id, amount * total_multiplier)
     )
+    recalculate_exp_rate(exp_rows, category_id)
 
-    exp_rates = None
+
+def recalculate_exp_rate(previous_rows, category_id):
+    channels = len(previous_rows)
+    distance_from_min = [row[1] - 5 for row in previous_rows]
+
+    if sum(distance_from_min) / channels != 0:
+        print("Error.\n" * 11)
+        print(sum(distance_from_min) / channels)
+
+    if previous_rows[category_id][0] == category_id:
+        category_index = category_id
+    else:
+        for row in previous_rows:
+            if row[0] == category_id:
+                category_index = row[0]
+
+    change_by = (14 - distance_from_min[category_id]) / (distance_from_min[category_index] / 7)
+
+    for i in range(len(previous_rows)):
+        if previous_rows[i][0] != category_id:
+            previous_rows[i][1] += change_by/channels
+        else:
+            previous_rows[i][1] -= change_by
+
+        if not (5 <= previous_rows[i][1] <= 19):
+            previous_rows[i][1] = 19 if previous_rows[i][1] > 19 else 5
+
+    while True:
+        try:
+            database.cursor.executemany(
+                """
+                INSERT INTO ignored_channels (id, guild_id) VALUES (%s,%s)
+                ON CONFLICT (id) DO NOTHING
+                """,
+                previous_rows
+            )
+            database.connection.commit()
+            break
+        except DatabaseError:
+            database.connect()
 
 
 def add_multiplier(user_id, multiplier, duration=None):
@@ -94,16 +149,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            category_id, exp = database.query(
-                """
-                SELECT id, exp_rate
-                FROM categories
-                WHERE name = %s
-                """,
-                (category_name,)
-            ).fetchone()
-
-            add_exp(reaction.message.author.id, category_id, exp)
+            add_exp(reaction.message.author.id, category_name, 'add')
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
             await self.profile(user, (reaction.message.author,))
@@ -120,16 +166,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            category_id, exp = database.query(
-                """
-                SELECT id, exp_rate
-                FROM categories
-                WHERE name = %s
-                """,
-                (category_name,)
-            ).fetchone()
-
-            add_exp(reaction.message.author.id, category_id, -exp)
+            add_exp(reaction.message.author.id, category_name, 'subtract')
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[discord.Member] = None):
