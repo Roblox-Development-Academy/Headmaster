@@ -138,6 +138,7 @@ class Level(commands.Cog):
     TODO: Add rank to profile.
     TODO: The notifications for levels and exp.
     TODO: The parse thing for multipliers.
+    TODO: Test leaderboard's pages.
     """
 
     def __init__(self, client):
@@ -156,8 +157,7 @@ class Level(commands.Cog):
         if any(arg.lower() in ('levels', 'all') for arg in args):
             database.update(
                 """
-                UPDATE levels
-                SET exp = 0
+                DELETE FROM levels
                 """
             )
         if any(arg.lower() in ('categories', 'all') for arg in args):
