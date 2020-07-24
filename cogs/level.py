@@ -148,6 +148,7 @@ class Level(commands.Cog):
             self.rda = config['servers']['rda']
             self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
+    '''
     # For testing only:
     @commands.command()
     @conditions.manager_only()
@@ -172,11 +173,11 @@ class Level(commands.Cog):
                 DELETE FROM multipliers
                 """
             )
+    '''
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get(
-                "emoji.solution"):  # and reaction.message.author.id != user.id: # Testing. Uncomment.
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
@@ -194,8 +195,7 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get(
-                "emoji.solution"):  # and reaction.message.author.id != user.id: # Testing. Uncomment.
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
