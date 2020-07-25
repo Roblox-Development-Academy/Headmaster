@@ -10,6 +10,7 @@ global_placeholders:
     inactive: "0x5c5c5c"
   emoji:
     confirm: "\u2705"  # :white_check_mark:
+    'no': "x\u20e3"
     gotcha: "\U0001f44d"  # :thumbs_up:
     error: "\U0001f63f"  # :crying_cat_face:
     date: "\U0001f4c6"  # :calendar:
@@ -40,8 +41,9 @@ messages:
         title: "Headmaster - Commands"
         color: "%color.info%"
         description: |
-          *Custom bot of [**Roblox Development Academy**](https://discord.gg/NxuhkqH).*
-          *Dedicated to providing a perfect environment for teaching and learning.*
+          𝐿𝑒𝑎𝑟𝑛 𝑙𝑖𝑘𝑒 𝑛𝑜 𝑗𝑜𝑦 𝑖𝑠 𝑔𝑟𝑒𝑎𝑡𝑒𝑟, 𝑆𝑡𝑟𝑖𝑣𝑒 𝑙𝑖𝑘𝑒 𝑦𝑜𝑢'𝑙𝑙 ℎ𝑎𝑣𝑒 𝑛𝑜 𝑟𝑒𝑔𝑟𝑒𝑡𝑠,
+          𝑇𝑒𝑎𝑐ℎ 𝑙𝑖𝑘𝑒 𝑛𝑜 𝑙𝑜𝑣𝑒 𝑖𝑠 ℎ𝑖𝑔ℎ𝑒𝑟, 𝐶𝑟𝑒𝑎𝑡𝑒 𝑤ℎ𝑎𝑡 𝑦𝑜𝑢'𝑙𝑙 𝑛𝑒𝑣𝑒𝑟 𝑓𝑜𝑟𝑔𝑒𝑡.
+          *[**Roblox Development Academy**](https://discord.gg/NxuhkqH)*
         footer:
           text: "Made by JL for Roblox Development Academy."
           icon_url: "https://cdn.discordapp.com/avatars/260608867292020737/6e171a1f5883419ac89a52695c659ba5.webp?size=256"
@@ -237,6 +239,69 @@ messages:
                   %s%%s%%bullet% 5m22.2s
             footer:
               text: "%prompt.respond_5m"
+      7:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: |
+              %header%**When will submitters be shown the assignment?**
+
+              Click [here](%url%) to select a date and time.%prompt.back_or_cancel%
+            footer:
+              text: "%prompt.respond_5m%"
+      8:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: |
+              **After this time has passed, will the assignment be**
+
+              %s%%s%1%emoji.keycap% Deleted or
+              %s%%s%2%emoji.keycap% Open and automatically send solutions right away to submitters?
+            footer:
+              text: "%prompt.respond_5m%"
+          reactions:
+            - "1%emoji.keycap%"
+            - "2%emoji.keycap%"
+            - "%emoji.return%"
+      confirm:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: |
+              **Confirm assignment creation.**
+
+              Click %emoji.confirm% below to confirm or %emoji.return% to go back.
+            fields:
+              - name: "Name"
+                inline: false
+                value: "%name%"
+              - name: "Description"
+                inline: false
+                value: "The description has been linked to [this message](%description_url%). Edit to change it."
+              - name: "Solution"
+                inline: false
+                value: "The solution has been linked to [this message](%solution_url%). Edit to change it."
+              - name: "Time"
+                inline: false
+                value: "%time%"
+            footer:
+              text: "%prompt.respond_5m%"
+          reactions:
+            - "%emoji.confirm%"
+            - "%emoji.return%"
+      completed:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.success%"
+            description: |
+              **Assignment `%name%` successfully created!**
+
+              Use the `assignment submit` command to submit the assignment.
+            fields:
+              - name: "Examples"
+                value: |
+                  %s%%s%%bullet%
 
     main:
       - embed:
