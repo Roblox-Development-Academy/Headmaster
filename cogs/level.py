@@ -1,8 +1,8 @@
 import database
 import discord
-import datetime
 import conditions
 
+from datetime import datetime, timedelta
 from discord.ext import commands
 from math import floor
 from bot import lang, get_prefix
@@ -10,6 +10,7 @@ from yaml import load, FullLoader
 from asyncio import TimeoutError
 from copy import deepcopy
 from psycopg2 import DatabaseError
+from common import parse_interval
 
 
 def calculate(exp, is_profile=False):
@@ -246,8 +247,8 @@ class Level(commands.Cog):
                                            multiplier_strings),
                                        join_server=user.joined_at.strftime(self.date_format),
                                        join_discord=user.created_at.strftime(self.date_format),
-                                       server_duration=strfdelta(datetime.datetime.utcnow() - user.joined_at),
-                                       discord_duration=strfdelta(datetime.datetime.utcnow() - user.created_at))
+                                       server_duration=strfdelta(datetime.utcnow() - user.joined_at),
+                                       discord_duration=strfdelta(datetime.utcnow() - user.created_at))
 
     @commands.command(aliases=("lb", "ranks", "ranking", "rankings", "levels", "leaderboards"))
     async def leaderboard(self, ctx, category=None):
@@ -349,15 +350,19 @@ class Level(commands.Cog):
 
     @commands.command()
     @conditions.manager_only()
-    async def multiplier(self, ctx, user: discord.User = None, multiplier: float = None,
-                         duration: datetime.timedelta = None):
+    async def multiplier(self, ctx, user: discord.User = None, multiplier: float = None, duration=None):
+        if duration:
+            duration = parse_interval(duration)
+            if duration is None:
+                await lang.get("error.interval.parse").send(ctx)
+                return
         if (user and multiplier is None) or (multiplier and not (1 < multiplier <= 14641)):
             await lang.get("error.multiplier").send(ctx, multiplier=str(multiplier))
             return
         if user:
-            add_multiplier(user.id, multiplier, duration)
+            add_multiplier(user.id, multiplier, parse_interval(duration, maximum=timedelta.max))
             await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention,
-                                                      expire=(datetime.datetime.utcnow() + duration).strftime(
+                                                      expire=(datetime.utcnow() + duration).strftime(
                                                           self.date_format) + '.' if duration else "Never.")
         else:
             await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))

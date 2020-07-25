@@ -423,12 +423,23 @@ messages:
             Some events giving out large amounts of exp may be multiplier immune.
           fields:
             - name: "Duration Format"
-              value: "[In Progress]."
+              value: |
+                `0d 0h 0m 0s`
+                or
+                `0d0h0m0s`
+
+                d = days.
+                h = hours.
+                m = minutes.
+                s = seconds.
               inline: false
 
             - name: "Examples"
               value: |
-                %prefix%multiplier <@260608867292020737> 2 [Also In Progress].
+                %prefix%multiplier <@260608867292020737> 2 77d 1h
+                %prefix%multiplier 450375444450115585 1.1 51h
+                %prefix%multiplier Coneylove133 1.7 1d7.5h2s
+                %prefix%multiplier 697655651127525498 2.5
               inline: false
     success:
       - embed:
@@ -511,30 +522,30 @@ messages:
             description: "The prefix can be at most 15 characters. `%prefix%` is %prefix_length%."
       server_only:
         - embed:
-            title: "%emoji.error% Server-only command"
+            title: "%emoji.error% Server-Only Command"
             color: "%color.error%"
             description: "The command prefix can only be set for servers. For private messages with the bot,
               use the default prefix `%default_prefix%`"
     missing_permissions:
       - embed:
-          title: "%emoji.error% No permission to use this command"
+          title: "%emoji.error% No Permission to Use This Command"
           color: "%color.error%"
           description: "%description%"
     server_only:
       - embed:
-          title: "%emoji.error% Server-only command"
+          title: "%emoji.error% Server-Only Command"
           color: "%color.error%"
           description: "You can only use this command in a server."
     invalid_category:
       - embed:
-          title: "%emoji.error% That is not a valid category"
+          title: "%emoji.error% Invalid Category"
           color: "%color.error%"
           description: |
             `%category%` is not a valid category.
             For a list of categories, use `%prefix%categories`
     multiplier:
       - embed:
-          title: "%emoji.error% That is not a valid multiplier"
+          title: "%emoji.error% Invalid Multiplier"
           color: "%color.error%"
           description: |
             `%multiplier%` is not a valid multiplier.
