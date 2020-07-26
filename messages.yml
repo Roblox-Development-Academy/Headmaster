@@ -512,7 +512,8 @@ messages:
           color: "%color.success%"
           description: |
             A multiplier of %multiplier%x has been given to %user%.
-            Expiration Date: %expire%
+            **Duration:** %duration%
+            **Expiration Date:** %expire%
 
   error:
     prompt_timeout:

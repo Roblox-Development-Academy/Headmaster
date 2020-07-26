@@ -352,7 +352,7 @@ class Level(commands.Cog):
     @conditions.manager_only()
     async def multiplier(self, ctx, user: discord.User = None, multiplier: float = None, duration=None):
         if duration:
-            duration = parse_interval(duration)
+            duration = parse_interval(duration, maximum=timedelta.max)
             if duration is None:
                 await lang.get("error.interval.parse").send(ctx)
                 return
@@ -360,9 +360,7 @@ class Level(commands.Cog):
             await lang.get("error.multiplier").send(ctx, multiplier=str(multiplier))
             return
         if user:
-            add_multiplier(user.id, multiplier, parse_interval(duration, maximum=timedelta.max))
-            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention,
-                                                      expire=(datetime.utcnow() + duration).strftime(
-                                                          self.date_format) + '.' if duration else "Never.")
+            add_multiplier(user.id, multiplier, duration)
+            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention, expire=(datetime.utcnow() + duration).strftime(self.date_format) + '.' if duration else "Never.", duration=str(duration) if duration else "Forever.")
         else:
             await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
