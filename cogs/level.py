@@ -4,13 +4,15 @@ import conditions
 
 from datetime import datetime, timedelta, timezone
 from discord.ext import commands
-from math import floor
+from math import floor, ceil
 from bot import lang, get_prefix
 from yaml import load, FullLoader
 from asyncio import TimeoutError
 from copy import deepcopy
 from psycopg2 import DatabaseError
 from common import parse_interval
+
+import random
 
 
 def calculate(exp, is_profile=False):
@@ -67,7 +69,8 @@ def recalculate_exp_rate(previous_rows, category_id, subtract_id=None, subtract=
     previous_rows = list(previous_rows)
 
     if 0 < distance_from_min[category_id - 1] < 14:
-        change_by = round((14 - distance_from_min[category_id - 1]) / (distance_from_min[category_id - 1] * 7) / other_categories, 6)
+        change_by = round(
+            (14 - distance_from_min[category_id - 1]) / (distance_from_min[category_id - 1] * 7) / other_categories, 6)
     else:
         change_by = 0
 
@@ -221,7 +224,8 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            add_exp(reaction.message.author.id, category_name, 'subtract', subtract_id=f"{reaction.message.id}{user.id}")
+            add_exp(reaction.message.author.id, category_name, 'subtract',
+                    subtract_id=f"{reaction.message.id}{user.id}")
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[discord.Member] = None):
@@ -287,7 +291,7 @@ class Level(commands.Cog):
         total_pages = 1
         ranks_per_page = 5 if len(shown_categories) != 1 else 10
         rank_strings = {}
-        lb_node = deepcopy(lang.get("leaderboard.main"))
+        lb_node = deepcopy(lang.get("leaderboard.main").replace(prefix=prefix))
 
         for category in shown_categories:
             ranks = database.query(
@@ -304,25 +308,25 @@ class Level(commands.Cog):
             i = 0
             for row in ranks:
                 i += 1
-                formatting = '**' if row[0] != ctx.author.id else '`'
-                index_string = formatting + "{}.)".format(i) + formatting
-                rank_strings[category].append(
-                    f"{index_string} <@{row[0]}>  **Level:** {calculate(row[1])}    **Total Exp:** {row[1]}")
+                mention = f"{'__' if row[0] == ctx.author.id else ''}<@{row[0]}>{'__' if row[0] == ctx.author.id else ''}"
+                exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}" if len(shown_categories) == 1 else ''
+                rank_strings[category].append(f"**{i})** {mention} **Level:** {calculate(row[1])}{exp}")
 
-            category_total_pages = floor(len(rank_strings[category]) / ranks_per_page) + 1
+            category_total_pages = ceil(len(rank_strings[category]) / ranks_per_page)
             if category_total_pages > total_pages:
                 total_pages = category_total_pages
 
             lb_node.nodes[0].args['embed'].add_field(name=category, value='\n\n'.join(
-                rank_strings[category][(current_page - 1) * ranks_per_page:current_page * 2]) if rank_strings[
+                rank_strings[category][(current_page - 1) * ranks_per_page:current_page * ranks_per_page]) if
+            rank_strings[
                 category] else "There are currently no rankings for this category.")
         lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
-        sent_message = (await lb_node.send(ctx, prefix=prefix))[0]
+        sent_message = (await lb_node.send(ctx))[0]
 
         def check(reaction, user):
             return user == ctx.author and str(reaction.emoji) in (lang.global_placeholders.get("emoji.next"),
                                                                   lang.global_placeholders.get(
-                                                                      "emoji.previous")) and reaction.message == sent_message
+                                                                      "emoji.previous")) and reaction.message.id == sent_message.id
 
         while True:
             try:
@@ -337,12 +341,14 @@ class Level(commands.Cog):
                 elif current_page < 1:
                     current_page = total_pages
 
-                for category in shown_categories:
-                    lb_node = lang.get("leaderboard.main")
-                    page_rankings = '\n\n'.join(rank_strings[(current_page - 1) * ranks_per_page:current_page * 2])
-                    lb_node.nodes[0].args['embed'].add_field(name=category,
-                                                             value=page_rankings if page_rankings else "There are currently no rankings for this category on this page.")
+                for i in range(len(shown_categories)):
+                    category = shown_categories[i]
+                    page_rankings = '\n\n'.join(
+                        rank_strings[category][(current_page - 1) * ranks_per_page:current_page * ranks_per_page])
+                    lb_node.nodes[0].args['embed'].set_field_at(i, name=category,
+                                                                value=page_rankings if page_rankings else "There are currently no rankings for this category on this page.")
                 lb_node.nodes[0].args['embed'].set_footer(text=f"{current_page}/{total_pages}")
+                await sent_message.edit(embed=lb_node.nodes[0].args['embed'])
             except TimeoutError:
                 inactive_embed = sent_message.embeds[0]
                 inactive_embed.color = int(lang.global_placeholders.get("color.inactive"), 16)
@@ -380,6 +386,20 @@ class Level(commands.Cog):
             return
         if user:
             add_multiplier(user.id, multiplier, duration)
-            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention, expire=(datetime.utcnow() + duration).strftime(self.date_format) + '.' if duration else "Never.", duration=str(duration) if duration else "Forever.")
+            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention,
+                                                      expire=(datetime.utcnow() + duration).strftime(
+                                                          self.date_format) + '.' if duration else "Never.",
+                                                      duration=str(duration) if duration else "Forever.")
         else:
             await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
+
+    @commands.command()
+    async def random(self, ctx, *user_ids):
+        for user_id in user_ids:
+            print(user_id)
+            for category in self.categories:
+                print(category)
+                for i in range(random.randint(0, 11)):
+                    print(i)
+                    add_exp(user_id, category, 'add')
+        await ctx.send("Completed.")
