@@ -193,7 +193,7 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution"): # and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
@@ -232,9 +232,13 @@ class Level(commands.Cog):
 
         ranks = database.query(
             """
-            SELECT categories.name, levels.exp
+            SELECT categories.name, levels.exp,
+            RANK () OVER (
+                PARTITION BY levels.category_id
+                ORDER BY levels.exp
+            ) rank
             FROM levels JOIN categories
-            ON category_id = categories.id AND user_id = %s
+            ON levels.category_id = categories.id AND levels.user_id = %s
             """,
             (user.id,)
         ).fetchall()
@@ -242,7 +246,7 @@ class Level(commands.Cog):
         multipliers, total_multiplier = get_multipliers(user.id, raw=True)
 
         rank_strings = [
-            f"`{rank[0]}`\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}"
+            f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}"
             for rank in ranks]
         multiplier_strings = "None." if not multipliers else [
             f"**Multiplier: {multiplier[0]}x**\nExpiration Date: {multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'}"
