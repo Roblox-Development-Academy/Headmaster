@@ -250,7 +250,7 @@ class Level(commands.Cog):
         multipliers, total_multiplier = get_multipliers(user.id, raw=True)
 
         rank_strings = [
-            f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}"
+            f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate(rank[1])}.{lang.global_placeholders.get('s')}**Total Exp:** {rank[1]}.\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}."
             for rank in ranks]
         multiplier_strings = "None." if not multipliers else [
             f"**Multiplier: {multiplier[0]}x**\nExpiration Date: {multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'}"
@@ -309,8 +309,8 @@ class Level(commands.Cog):
             for row in ranks:
                 i += 1
                 mention = f"{'__' if row[0] == ctx.author.id else ''}<@{row[0]}>{'__' if row[0] == ctx.author.id else ''}"
-                exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}" if len(shown_categories) == 1 else ''
-                rank_strings[category].append(f"**{i})** {mention} **Level:** {calculate(row[1])}{exp}")
+                exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(shown_categories) == 1 else ''
+                rank_strings[category].append(f"**{i})** {mention} Level {calculate(row[1])}.{exp}")
 
             category_total_pages = ceil(len(rank_strings[category]) / ranks_per_page)
             if category_total_pages > total_pages:
