@@ -2,7 +2,7 @@ import database
 import discord
 import conditions
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from discord.ext import commands
 from math import floor
 from bot import lang, get_prefix
@@ -108,7 +108,7 @@ def add_multiplier(user_id, multiplier, duration=None):
     database.update(
         """
         INSERT INTO multipliers (user_id, multiplier, end_time)
-        VALUES (%s, %s, current_timestamp + %s)
+        VALUES (%s, %s, CURRENT_TIMESTAMP + %s)
         """,
         (user_id, multiplier, duration)
     )
@@ -120,12 +120,28 @@ def get_multipliers(user_id, raw=False):
         SELECT multiplier, end_time
         FROM multipliers
         WHERE user_id = %s
+        ORDER BY end_time
         """,
         (user_id,)
     ).fetchall()
     total_multiplier = 1
-    for multiplier in multipliers:
-        total_multiplier *= multiplier[0]
+    multipliers = list(multipliers)
+    has_expired = False
+    for i in range(len(multipliers) - 1, -1, -1):
+        multiplier = multipliers[i]
+        if multiplier[1] > datetime.now(timezone.utc):
+            total_multiplier *= multiplier[0]
+        else:
+            has_expired = True
+            multipliers.remove(multiplier)
+    if has_expired:
+        database.update(
+            """
+            DELETE FROM multipliers
+            WHERE end_time <= CURRENT_TIMESTAMP
+            """
+        )
+
     if raw:
         return multipliers, total_multiplier
     return total_multiplier
@@ -138,7 +154,6 @@ class Level(commands.Cog):
 
     TODO: Add rank to profile.
     TODO: The notifications for levels and exp.
-    TODO: The parse thing for multipliers.
     TODO: Test leaderboard's pages.
     """
 
@@ -178,7 +193,7 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution"): # and reaction.message.author.id != user.id:
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
@@ -230,7 +245,7 @@ class Level(commands.Cog):
             f"`{rank[0]}`\n**Level:** {calculate(rank[1])}    **Total Exp:** {rank[1]}\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}"
             for rank in ranks]
         multiplier_strings = "None." if not multipliers else [
-            f"Multiplier: {round(multiplier[0], 2)}x\nExpiration Date: {multiplier[1] if multiplier[1] else 'Never.'}"
+            f"**Multiplier: {multiplier[0]}x**\nExpiration Date: {multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'}"
             for multiplier in multipliers]
 
         def strfdelta(timedelta):
@@ -243,7 +258,7 @@ class Level(commands.Cog):
                                        nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}",
                                        levels='\n'.join(
                                            rank_strings) if rank_strings else "There are currently no levels to display.",
-                                       multipliers=multiplier_strings if not multipliers else f"__Total Multiplier: {round(total_multiplier, 2)}x__\n\n" + '\n'.join(
+                                       multipliers=multiplier_strings if not multipliers else f"__Total Multiplier: {round(total_multiplier, 4)}x__\n\n" + '\n'.join(
                                            multiplier_strings),
                                        join_server=user.joined_at.strftime(self.date_format),
                                        join_discord=user.created_at.strftime(self.date_format),
