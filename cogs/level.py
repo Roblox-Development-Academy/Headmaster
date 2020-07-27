@@ -12,7 +12,7 @@ from copy import deepcopy
 from psycopg2 import DatabaseError
 from common import parse_interval
 
-import random
+# import random
 
 
 def calculate(exp, is_profile=False):
@@ -227,6 +227,14 @@ class Level(commands.Cog):
             add_exp(reaction.message.author.id, category_name, 'subtract',
                     subtract_id=f"{reaction.message.id}{user.id}")
 
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        pass
+
+    @commands.Cog.listener()
+    async def on_reaction_remove(self, reaction, user):
+        pass
+
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[discord.Member] = None):
         if ctx.guild and ctx.guild.id == self.rda:
@@ -393,6 +401,7 @@ class Level(commands.Cog):
         else:
             await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
 
+    """
     @commands.command()
     async def random(self, ctx, *user_ids):
         for user_id in user_ids:
@@ -403,3 +412,4 @@ class Level(commands.Cog):
                     print(i)
                     add_exp(user_id, category, 'add')
         await ctx.send("Completed.")
+    """
