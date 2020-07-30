@@ -187,13 +187,13 @@ class Level(commands.Cog):
                 DELETE FROM multipliers
                 """
             )
-
+    '''
     @commands.command()
     @conditions.manager_only()
     async def exp(self, ctx, user_id, category, amount: int):
         category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
         add_exp(user_id, category, amount)
-    '''
+
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -225,6 +225,8 @@ class Level(commands.Cog):
                 else:
                     return
             elif reaction.emoji == lang.global_placeholders.get("emoji.rewind"):
+                if page == 1:
+                    return
                 page = 1
             elif reaction.emoji == lang.global_placeholders.get("emoji.fast_forward"):
                 page = -1
@@ -232,6 +234,7 @@ class Level(commands.Cog):
             shown_categories = [field.name for field in leaderboard.fields]
             has_ranks = False
             i = 0
+            ranks_per_page = 5 if len(shown_categories) != 1 else 10
             for category in shown_categories:
                 rank_strings = []
                 if page == -1:
@@ -243,9 +246,15 @@ class Level(commands.Cog):
                         """,
                         (category,)
                     ).fetchone())[0]
-                    page = ceil(total_ranks / (5 if len(shown_categories) != 1 else 10))
+                    if total_ranks <= 0:
+                        leaderboard.set_field_at(i, name=category, value="There are currently no rankings for this category.")
+                        i += 1
+                        continue
+                    if int(leaderboard.footer.text.split(' ')[1][:-1]) == ceil(total_ranks / ranks_per_page):
+                        return
+                    page = ceil(total_ranks / ranks_per_page)
 
-                rank_index = (page - 1) * (5 if len(shown_categories) != 1 else 10)
+                rank_index = (page - 1) * ranks_per_page
 
                 ranks = database.query(
                     """
@@ -255,7 +264,7 @@ class Level(commands.Cog):
                     ORDER BY exp DESC
                     LIMIT %s OFFSET %s
                     """,
-                    (category, 5 if len(shown_categories) != 1 else 10, rank_index)
+                    (category, ranks_per_page, rank_index)
                 ).fetchall()
 
                 if ranks:
