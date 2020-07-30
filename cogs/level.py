@@ -199,7 +199,7 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution"): # and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
