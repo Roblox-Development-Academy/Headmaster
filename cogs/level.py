@@ -152,9 +152,7 @@ class Level(commands.Cog):
     Average 11 exp.
     Exp rate: Float from 5 to 19.
 
-    TODO: Add rank to profile.
     TODO: The notifications for levels and exp.
-    TODO: Test leaderboard's pages.
     """
 
     def __init__(self, client):
@@ -163,7 +161,7 @@ class Level(commands.Cog):
             config = load(f, Loader=FullLoader)
             self.categories = config['categories']
             self.rda = config['servers']['rda']
-            self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
+        self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
     '''
     # For testing only:
