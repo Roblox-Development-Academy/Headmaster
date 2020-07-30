@@ -7,7 +7,6 @@ from discord.ext import commands
 from math import floor, ceil, fabs
 from bot import lang, get_prefix
 from yaml import load, FullLoader
-from asyncio import TimeoutError
 from copy import deepcopy
 from psycopg2 import DatabaseError
 from common import parse_interval
@@ -37,11 +36,12 @@ def add_exp(user_id, category_name, amount, multiplier_immune=False, subtract_id
         """
     ).fetchall()
 
-    if amount in ('add', 'subtract'):
-        for row in exp_rows:
-            if row[2] == category_name:
-                category_id, amount = row[0], - row[1] if amount == 'subtract' else row[1]
-                break
+    for row in exp_rows:
+        if row[2] == category_name:
+            category_id = row[0]
+            if amount in ('add', 'subtract'):
+                amount = - row[1] if amount == 'subtract' else row[1]
+            break
 
     total_multiplier = get_multipliers(user_id) if not multiplier_immune else 1
 
@@ -189,11 +189,17 @@ class Level(commands.Cog):
                 DELETE FROM multipliers
                 """
             )
+
+    @commands.command()
+    @conditions.manager_only()
+    async def exp(self, ctx, user_id, category, amount: int):
+        category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
+        add_exp(user_id, category, amount)
     '''
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution"): # and reaction.message.author.id != user.id:
             category_name = None
             for category in self.categories:
                 if reaction.message.channel.id in self.categories[category]:
@@ -209,9 +215,67 @@ class Level(commands.Cog):
             await reaction.remove(user)
             await self.profile(user, (reaction.message.author,))
         elif reaction.emoji in (
-        lang.global_placeholders.get("emoji.next"), lang.global_placeholders.get("emoji.previous"),
-        lang.global_placeholders.get("emoji.rewind"), lang.global_placeholders.get("emoji.fast_forward")) and reaction.message.embeds and reaction.message.embeds[0].footer and f"{user}" == ' '.split(reaction.message.embeds[0].footer.text)[-1]:
-            pass
+                lang.global_placeholders.get("emoji.next"), lang.global_placeholders.get("emoji.previous"), lang.global_placeholders.get("emoji.rewind"), lang.global_placeholders.get("emoji.fast_forward"))\
+                and reaction.message.embeds and reaction.message.embeds[0].footer and f"{user}" in reaction.message.embeds[0].footer.text:
+            leaderboard = reaction.message.embeds[0]
+            page = int(leaderboard.footer.text.split(' ')[1][:-1])
+            if reaction.emoji == lang.global_placeholders.get("emoji.next"):
+                page += 1
+            elif reaction.emoji == lang.global_placeholders.get("emoji.previous"):
+                if page > 1:
+                    page -= 1
+                else:
+                    return
+            elif reaction.emoji == lang.global_placeholders.get("emoji.rewind"):
+                page = 1
+            elif reaction.emoji == lang.global_placeholders.get("emoji.fast_forward"):
+                page = -1
+
+            shown_categories = [field.name for field in leaderboard.fields]
+            has_ranks = False
+            i = 0
+            for category in shown_categories:
+                rank_strings = []
+                if page == -1:
+                    total_ranks = (database.query(
+                        """
+                        SELECT COUNT(user_id)
+                        FROM levels JOIN categories
+                        ON category_id = categories.id AND categories.name = %s
+                        """,
+                        (category,)
+                    ).fetchone())[0]
+                    page = ceil(total_ranks / (5 if len(shown_categories) != 1 else 10))
+
+                rank_index = (page - 1) * (5 if len(shown_categories) != 1 else 10)
+
+                ranks = database.query(
+                    """
+                    SELECT user_id, exp
+                    FROM levels JOIN categories
+                    ON category_id = categories.id AND categories.name = %s
+                    ORDER BY exp DESC
+                    LIMIT %s OFFSET %s
+                    """,
+                    (category, 5 if len(shown_categories) != 1 else 10, rank_index)
+                ).fetchall()
+
+                if ranks:
+                    has_ranks = True
+                    for row in ranks:
+                        rank_index += 1
+                        mention = f"{'__' if row[0] == user.id else ''}<@{row[0]}>{'__' if row[0] == user.id else ''}"
+                        exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(shown_categories) == 1 else ''
+                        rank_strings.append(f"**{rank_index})** {mention} Level {calculate(row[1])}.{exp}")
+                        leaderboard.set_field_at(i, name=category,
+                                                 value='\n\n'.join(rank_strings))
+                else:
+                    leaderboard.set_field_at(i, name=category, value="There are currently no rankings for this category.")
+                i += 1
+            if not has_ranks:
+                return
+            leaderboard.set_footer(text=f"Page: {page}.     " + leaderboard.footer.text.split(' ')[-1])
+            await reaction.message.edit(embed=leaderboard)
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
@@ -311,7 +375,9 @@ class Level(commands.Cog):
                 exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(shown_categories) == 1 else ''
                 rank_strings[category].append(f"**{i})** {mention} Level {calculate(row[1])}.{exp}")
 
-            lb_node.nodes[0].args['embed'].add_field(name=category, value='\n\n'.join(rank_strings[category]) if rank_strings[category] else "There are currently no rankings for this category.")
+            lb_node.nodes[0].args['embed'].add_field(name=category,
+                                                     value='\n\n'.join(rank_strings[category]) if rank_strings[
+                                                         category] else "There are currently no rankings for this category.")
         await lb_node.send(ctx)
 
     @commands.command()
