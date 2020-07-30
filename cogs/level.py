@@ -12,14 +12,22 @@ from psycopg2 import DatabaseError
 from common import parse_interval
 
 
-def calculate(exp, is_profile=False):
+def calculate_level(exp, is_profile=False):
     level_exp = 121
     exp_left = exp
     remainder = exp_left
     level = -1
     while exp_left >= 0:
         level += 1
-        level_exp = 121 * (floor(level / 11) + 1) + (1331 if level >= 51 else 0) + (14641 if level >= 121 else 0)
+        level_exp = 121 * (floor(level / 11) + 1)
+
+        if level >= 51:
+            level_exp += 1331
+            if level >= 121:
+                level_exp += 14641
+                if level >= 142:
+                    level_exp += 161051
+
         remainder = exp_left
         exp_left = exp_left - level_exp
     if is_profile:
@@ -187,13 +195,13 @@ class Level(commands.Cog):
                 DELETE FROM multipliers
                 """
             )
-    '''
+    
     @commands.command()
     @conditions.manager_only()
     async def exp(self, ctx, user_id, category, amount: int):
         category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
         add_exp(user_id, category, amount)
-
+    '''
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -273,7 +281,7 @@ class Level(commands.Cog):
                         rank_index += 1
                         mention = f"{'__' if row[0] == user.id else ''}<@{row[0]}>{'__' if row[0] == user.id else ''}"
                         exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(shown_categories) == 1 else ''
-                        rank_strings.append(f"**{rank_index})** {mention} Level {calculate(row[1])}.{exp}")
+                        rank_strings.append(f"**{rank_index})** {mention} Level {calculate_level(row[1])}.{exp}")
                         leaderboard.set_field_at(i, name=category,
                                                  value='\n\n'.join(rank_strings))
                 else:
@@ -322,7 +330,7 @@ class Level(commands.Cog):
         multipliers, total_multiplier = get_multipliers(user.id, raw=True)
 
         rank_strings = [
-            f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate(rank[1])}.{lang.global_placeholders.get('s')}**Total Exp:** {rank[1]}.\nExp Left Until Next Level: {calculate(rank[1], True)[2] - calculate(rank[1], True)[1]}."
+            f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate_level(rank[1])}.{lang.global_placeholders.get('s')}**Total Exp:** {rank[1]}.\nExp Left Until Next Level: {calculate_level(rank[1], True)[2] - calculate_level(rank[1], True)[1]}."
             for rank in ranks]
         multiplier_strings = "None." if not multipliers else [
             f"**Multiplier: {multiplier[0]}x**\nExpiration Date: {multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'}"
@@ -380,7 +388,7 @@ class Level(commands.Cog):
                 i += 1
                 mention = f"{'__' if row[0] == ctx.author.id else ''}<@{row[0]}>{'__' if row[0] == ctx.author.id else ''}"
                 exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(shown_categories) == 1 else ''
-                rank_strings[category].append(f"**{i})** {mention} Level {calculate(row[1])}.{exp}")
+                rank_strings[category].append(f"**{i})** {mention} Level {calculate_level(row[1])}.{exp}")
 
             lb_node.nodes[0].args['embed'].add_field(name=category,
                                                      value='\n\n'.join(rank_strings[category]) if rank_strings[
