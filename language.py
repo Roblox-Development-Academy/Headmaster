@@ -1,7 +1,8 @@
 import yaml
 import copy
 import re
-from typing import Union
+from typing import Union, List, Dict, Any
+from datetime import datetime
 
 import discord
 
@@ -10,16 +11,35 @@ class MessageNode:
     send_args = ('content', 'tts', 'embed', 'file', 'files', 'nonce', 'delete_after', 'allowed_mentions')
 
     def __init__(self, **kwargs):
-        self.args = {}
-        self.options = {}
+        self.args: Dict[str, Any] = {}
+        self.options: Dict[str, Any] = {}
         for key, value in kwargs.items():
             if key in MessageNode.send_args:
                 self.args[key] = value
             elif key == "timestamp":
-                embed = kwargs['embed']
-                embed.timestamp = value
+                if self.args.get('embed'):
+                    self.args['embed'].timestamp = value
+                else:
+                    kwargs['embed'].timestamp = value
             else:
                 self.options[key] = value
+
+    @classmethod
+    async def from_message(cls, message: discord.Message):
+        serialized = {'content': message.content, 'tts': message.tts, 'nonce': message.nonce,
+                      'embed': message.embeds[0] if message.embeds else None}
+        if message.embeds and isinstance(message.embeds[0].timestamp, datetime):
+            serialized['timestamp'] = message.embeds[0].timestamp
+
+        if message.attachments:
+            files = [await attachment.to_file() for attachment in message.attachments]
+
+            if len(files) > 1:
+                serialized['files'] = files
+            else:
+                serialized['file'] = files[0]
+
+        return cls(**serialized)
 
     @classmethod
     def from_str(cls, serialized: str):
@@ -102,7 +122,7 @@ class MessageNode:
                 embed.set_thumbnail(url=LangManager.replace(embed.thumbnail.url, **kwargs))
             for i, field in enumerate(embed.fields):
                 embed.set_field_at(i, name=LangManager.replace(field.name, **kwargs),
-                                   value=LangManager.replace(field.value, **kwargs))
+                                   value=LangManager.replace(field.value, **kwargs), inline=field.inline)
         return clone
 
     async def send(self, to, message_list=None, **placeholders):
@@ -126,7 +146,6 @@ class MessageNode:
             for element in to:
                 await self.send(element, message_list=message_list, **placeholders)
             return message_list
-        # TODO - Except the exception that comes with sending an empty message node; HTTPRequest
 
     async def edit(self, message, **placeholders):
         msg = await message.edit(**self.replace(**placeholders).args)
@@ -140,7 +159,7 @@ class MessageNode:
 
 class MessageListNode:
     def __init__(self, *nodes: MessageNode):
-        self.nodes = nodes
+        self.nodes: List[MessageNode] = list(nodes)
 
     @classmethod
     def from_list(cls, serialized: list):
@@ -154,10 +173,10 @@ class MessageListNode:
     def replace(self, **kwargs):
         return MessageListNode(*(node.replace(**kwargs) for node in self.nodes))
 
-    async def send(self, *args, **kwargs):
+    async def send(self, to, **kwargs):
         results = []
         for node in self.nodes:
-            await node.send(*args, message_list=results, **kwargs)
+            await node.send(to, results, **kwargs)
         return results
 
     async def edit(self, *messages, **placeholders):
@@ -241,7 +260,7 @@ class LangManager:
                     self.nodes[index + "." + key if index != '' else key] = MessageListNode.from_str(value)
 
         for yaml_file in yaml_files:
-            with open(yaml_file) as f:
+            with open(yaml_file, encoding='utf-8') as f:
                 config_dict = yaml.load(f, Loader=yaml.FullLoader)
                 global_placeholders = config_dict.get('global_placeholders')
                 if global_placeholders:
