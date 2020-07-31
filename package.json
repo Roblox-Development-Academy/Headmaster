@@ -40,6 +40,5 @@
   ],
   "dependencies": {
     "air-datepicker": "^2.2.3",
-    "html2canvas": "^1.0.0-rc.5"
   }
 }
