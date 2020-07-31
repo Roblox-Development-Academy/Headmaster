@@ -388,13 +388,11 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
             await lang.get('assignment.submit.submission').send(stage.results['assigner'], name=stage.results['name'],
                                                                 submitter=ctx.author.mention)
             await (await MessageNode.from_message(submission)).send(stage.results['assigner'])
-            if stage.results['info'][1] is not None and stage.results['info'][1] < datetime.datetime.now(datetime.timezone.utc):
+            if stage.results['info'][1] is not None and \
+                    stage.results['info'][1] < datetime.datetime.now(datetime.timezone.utc):
                 # If it's past time, don't save
                 await schedule_submission(ctx.author, stage.results['assigner'], stage.results['name'], wait=False)
             else:
-                if stage.results['info'][2] is not None:  # If interval
-                    await schedule_submission(ctx.author, stage.results['assigner'], stage.results['name'],
-                                              stage.results['info'][2], datetime.datetime.now(datetime.timezone.utc))
                 database.update(
                     """
                     INSERT INTO submissions (submitter, assigner, name, submitted_at)
@@ -404,6 +402,9 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
                     (ctx.author.id, stage.results['assigner'].id, stage.results['name'],
                      datetime.datetime.now(datetime.timezone.utc))
                 )
+                if stage.results['info'][2] is not None:  # If interval
+                    await schedule_submission(ctx.author, stage.results['assigner'], stage.results['name'],
+                                              stage.results['info'][2], datetime.datetime.now(datetime.timezone.utc))
         else:
             in_prompt.pop(ctx.author.id)
 
