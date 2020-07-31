@@ -10,7 +10,7 @@ from yaml import load, FullLoader
 from copy import deepcopy
 from psycopg2 import DatabaseError
 from common import parse_interval
-from main import client
+from bot import client
 
 
 def calculate_level(exp, is_profile=False):

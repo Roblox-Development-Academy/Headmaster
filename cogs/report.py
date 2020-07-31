@@ -3,7 +3,7 @@ from discord.ext import commands
 from yaml import load, FullLoader
 from bot import lang
 from language import MessageNode
-from main import client
+from bot import client
 
 
 class Report(commands.Cog):
