@@ -88,13 +88,14 @@ async def schedule_submission(submitter: discord.User, assigner: discord.User, n
     else:
         await lang.get('assignment.submit.solution').send(submitter, assigner=assigner.mention, name=name)
         await (await MessageNode.from_message(solution)).send(submitter)
-    database.update(
-        """
-        DELETE FROM submissions
-        WHERE submitter = %s AND assigner = %s AND name = %s
-        """,
-        (submitter.id, assigner.id, name)
-    )
+    if wait:
+        database.update(
+            """
+            DELETE FROM submissions
+            WHERE submitter = %s AND assigner = %s AND name = %s
+            """,
+            (submitter.id, assigner.id, name)
+        )
 
 
 async def schedule_assignment(assigner_id: int, name: str, solution: int, date: datetime.datetime, delete_after: bool):
@@ -384,7 +385,6 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
             await (await MessageNode.from_message(submission)).send(stage.results['assigner'])
             if stage.results['info'][1] is not None and stage.results['info'][1] < datetime.datetime.now(datetime.timezone.utc):
                 # If it's past time, don't save
-                logger.info(f"It's past time for assignment {stage.results['name']}; sending solution!")
                 await schedule_submission(ctx.author, stage.results['assigner'], stage.results['name'], wait=False)
             else:
                 if stage.results['info'][2] is not None:  # If interval
