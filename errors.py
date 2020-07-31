@@ -1,6 +1,10 @@
 from bot import *
 
 
+class CancelProcesses(commands.CommandError):
+    pass
+
+
 class PromptError(commands.CommandError):
     pass
 
