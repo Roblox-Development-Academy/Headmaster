@@ -63,12 +63,13 @@ def add_exp(user_id, category_name, amount, multiplier_immune=False, subtract_id
         (user_id, category_id, amount * total_multiplier)
     )
 
-    recalculate_exp_rate(exp_rows, category_id, subtract_id, False if amount >= 0 else True)
+    # recalculate_exp_rate(exp_rows, category_id, subtract_id, False if amount >= 0 else True)
 
 
 added_exp = {}
 
 
+# TODO: Fix the exp rate recalculation.
 def recalculate_exp_rate(previous_rows, category_id, subtract_id=None, subtract=False):
     other_categories = len(previous_rows) - 1
     distance_from_center = [fabs(row[1] - 12) for row in previous_rows]
