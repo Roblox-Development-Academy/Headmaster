@@ -4,12 +4,20 @@
     color: white;
 }
 
-.datepicker--nav-title.-focus- {
-    background-color: rgb(16, 126, 153);
+.datepicker--nav-title:hover {
+    color: rgb(18, 200, 224);
+}
+
+.datepicker--time-current-hours.-focus- {
+    color: rgb(18, 200, 224);
+}
+
+.datepicker--time-current-minutes.-focus- {
+    color: rgb(18, 200, 224);
 }
 
 .datepicker--day-name {
-    color: rgb(19, 155, 173);
+    color: rgb(10, 52, 57);
 }
 
 .datepicker--cell-day {
@@ -25,7 +33,7 @@
     color: rgb(127, 204, 214);
 }
 
-.datepicker--cell-day.-disabled- {
+.datepicker--cell.-disabled- {
     color: rgb(198, 203, 204);
 }
 
