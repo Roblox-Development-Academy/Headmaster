@@ -1,7 +1,7 @@
 import database
-import discord
 import conditions
 
+from discord import Member, User
 from datetime import datetime, timedelta, timezone
 from discord.ext import commands
 from math import floor, ceil, fabs
@@ -10,6 +10,7 @@ from yaml import load, FullLoader
 from copy import deepcopy
 from psycopg2 import DatabaseError
 from common import parse_interval
+from main import client
 
 
 def calculate_level(exp, is_profile=False):
@@ -80,12 +81,11 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtr
             category = category_name + ' artist'
         elif category_name.endswith('ion'):
             category = category_name[:-3] + 'or'
-
-        user_id: discord.User
+        user = client.get_user(user_id)
         if category:
-            await lang.get("levels.level_up.1").send(user_id, level=calculate_level(current_exp), category=category)
+            await lang.get("levels.level_up.1").send(user, level=calculate_level(current_exp), category=category)
         else:
-            await lang.get("levels.level_up.2").send(user_id, level=calculate_level(current_exp), category=category_name.lower() if not category_name.isupper() else category_name.upper())
+            await lang.get("levels.level_up.2").send(user, level=calculate_level(current_exp), category=category_name.lower() if not category_name.isupper() else category_name.upper())
 
 added_exp = {}
 
@@ -185,8 +185,7 @@ class Level(commands.Cog):
     TODO: The notifications for levels and exp.
     """
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self):
         with open("config.yml") as f:
             config = load(f, Loader=FullLoader)
             self.categories = config['categories']
@@ -330,11 +329,11 @@ class Level(commands.Cog):
                     subtract_id=f"{reaction.message.id}{user.id}")
 
     @commands.command()
-    async def profile(self, ctx, user: commands.Greedy[discord.Member] = None):
+    async def profile(self, ctx, user: commands.Greedy[Member] = None):
         if ctx.guild and ctx.guild.id == self.rda:
             user = user[0] if user else ctx.author
         else:
-            user = self.client.get_guild(self.rda).get_member(user[0].id if user else ctx.author.id)
+            user = client.get_guild(self.rda).get_member(user[0].id if user else ctx.author.id)
 
         ranks = database.query(
             """
@@ -434,7 +433,7 @@ class Level(commands.Cog):
 
     @commands.command()
     @conditions.manager_only()
-    async def multiplier(self, ctx, user: discord.User = None, multiplier: float = None, duration=None):
+    async def multiplier(self, ctx, user: User = None, multiplier: float = None, duration=None):
         if duration:
             duration = parse_interval(duration, maximum=timedelta.max)
             if duration is None:

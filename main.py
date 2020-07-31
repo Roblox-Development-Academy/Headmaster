@@ -92,8 +92,8 @@ def generate_tables():
 
 client.add_cog(ErrorHandler())
 client.add_cog(Admin())
-client.add_cog(Level(client))
-client.add_cog(Report(client))
+client.add_cog(Level())
+client.add_cog(Report())
 client.load_extension('cmds.apply')
 client.load_extension('cmds.homework')
 
