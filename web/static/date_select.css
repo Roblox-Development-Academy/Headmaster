@@ -1,0 +1,26 @@
+.calendar-panel .datepicker {
+    margin: 0 auto;
+    background: linear-gradient(to bottom right, rgb(14, 102, 102), rgb(26, 26, 26));
+    color: white;
+}
+
+.calendar-panel .datepicker--day-name {
+    color: rgb(19, 155, 173);
+}
+
+.calendar-panel .datepicker--cell-day {
+    color: rgb(18, 200, 224);
+}
+
+.calendar-panel .datepicker--cell-day .-current- {
+    color: white;
+    text-shadow: 0 0 3px rgb(18, 200, 224) !important;
+}
+
+.calendar-panel .datepicker--cell-day .-other-month- {
+    color: rgb(127, 204, 214);
+}
+
+.calendar-panel .datepicker--cell-day .-disabled-, .calendar-panel .datepicker--cell-day .-other-month- .-disabled- {
+    color: rgb(198, 203, 204);
+}
