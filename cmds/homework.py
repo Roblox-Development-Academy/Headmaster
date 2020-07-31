@@ -310,9 +310,10 @@ async def __create(stage: Stage, name: str = ''):
 @prompt()
 async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: discord.User = None):
     ctx = stage.ctx
-    dm = ctx.author.dm_channel or await ctx.author.create_dm()
+    channel = (ctx.author.dm_channel or await ctx.author.create_dm()) \
+        if (sub or stage.results['sub']) == "submit" else ctx.channel
     if stage.num == 0:
-        if ctx.guild:
+        if ctx.guild and sub == "submit":
             await lang.get('to_dms').send(ctx.channel)
         stage.results['sub'] = sub
         stage.results['assigner'], stage.results['name'] = assigner, name
@@ -346,7 +347,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
     elif stage.num == 1:
         header = ''
         while True:
-            response = (await common.prompt(dm, ctx.author, lang.get('assignment.submit.1'),
+            response = (await common.prompt(channel, ctx.author, lang.get('assignment.submit.1'),
                                             header=header, sub=stage.results['sub'].capitalize())).content
             try:
                 stage.results['assigner']: discord.User = await MemberConverter().convert(ctx, response)
@@ -357,7 +358,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
     elif stage.num == 2:
         assignments = '\n'.join(stage.results['assignments']) or \
                       '*This user has created no assignments*'
-        stage.results['name'] = (await common.prompt(dm, ctx.author, lang.get('assignment.submit.2'),
+        stage.results['name'] = (await common.prompt(channel, ctx.author, lang.get('assignment.submit.2'),
                                                      back=stage.zap(1), header=stage.results['header'],
                                                      sub=stage.results['sub'].capitalize(), list=assignments)).content
     elif stage.num == 3:
@@ -376,12 +377,12 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
             is_submitting = False
             instructions = ''
         list_node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
-        msgs = await list_node.send(ctx.author, sub=stage.results['sub'].capitalize(), name=stage.results['name'],
+        msgs = await list_node.send(channel, sub=stage.results['sub'].capitalize(), name=stage.results['name'],
                                     assigner=stage.results['assigner'].mention, instructions=instructions)
         if description:
-            await (await MessageNode.from_message(description)).send(ctx.author)
+            await (await MessageNode.from_message(description)).send(channel)
         if is_submitting:
-            submission = await common.prompt(dm, ctx.author, msgs[0], timeout=900, back=stage.back())
+            submission = await common.prompt(channel, ctx.author, msgs[0], timeout=900, back=stage.back())
             in_prompt.pop(ctx.author.id)
             await lang.get('assignment.submit.complete').send(ctx.author, assigner=stage.results['assigner'].mention)
             await lang.get('assignment.submit.submission').send(stage.results['assigner'], name=stage.results['name'],
