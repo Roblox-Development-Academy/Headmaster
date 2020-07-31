@@ -8,20 +8,7 @@ import database
 from language import LangManager as __LangManager
 
 TOKEN = __os.environ['TOKEN']
-JANITOR_TOKEN = __os.environ['JANITOR_TOKEN']
-EMBED_COLORS = {
-    'info': discord.Colour(0x9e33f3),
-    'error': discord.Colour(0xf62323),
-    'success': discord.Colour(0x5efb32),
-    'wizard': discord.Colour(0x00f6ff)
-}
-EMOJIS = {
-    'confirm': "\U00002705",  # :white_check_mark:
-    'gotcha': "\U0001f44d",  # :thumbs_up:
-    'error': "\U0001f63f",  # :crying_cat_face:
-    'date': "\U0001f4c6",  # :calendar:
-    'time': "\U000023f2"  # :timer:
-}
+WEB_URL = __os.environ['URL']
 
 __logging.basicConfig(level=__logging.INFO)
 logger = __logging.getLogger('discord')
@@ -63,10 +50,8 @@ def get_mention_or_prefix(_, message):
 
 client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=True, help_command=None)
 
-janitor = discord.Client()
-
 rda = client.get_guild(673600024919408680)
 
-in_prompt = {}
+in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands
 
-lang = __LangManager('messages.yml', bot=client)
+lang = __LangManager('messages.yml')
