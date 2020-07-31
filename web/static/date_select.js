@@ -130,30 +130,28 @@ function beginAnimation() {
         },
         onComplete: () => console.log("Finished! There are", count, "particles!"),
     });
-    for (let x = imgWidth - 1; x >= 0; x--) {
+
+    let animateColumn = function(x) {
         let progress = {
             p: 0
         }
         tl.to(progress, {p: 2.0, duration: 4, ease: "power1.out",
-        onStart: () => {
-            btnCtx.clearRect(x, 0, imgWidth - x, imgHeight);
-            let density = Math.ceil(imgHeight / (endPts.length / imgWidth));
-            for (let y = 0; y < imgHeight; y += density) {
-                let index = (y * imgWidth + x) * 4;
-                particles.push(new Particle(btnLoc.x + x, btnLoc.y + y, btnData.slice(index, index + 4), endPts[count], progress));
-                count++;
+            onStart: () => {
+                btnCtx.clearRect(x, 0, imgWidth - x, imgHeight);
+                let density = Math.ceil(imgHeight / (endPts.length / imgWidth));
+                for (let y = 0; y < imgHeight && count < endPts.length; y += density) {
+                    let index = (y * imgWidth + x) * 4;
+                    particles.push(new Particle(btnLoc.x + x, btnLoc.y + y, btnData.slice(index, index + 4), endPts[count], progress));
+                    count++;
+                }
+                if (x == 0 && count < endPts.length) // If it is the last column in the button, generate unlimited particles
+                    animateColumn(0);
             }
-            if (x == 0) // If it is the last column in the button, generate unlimited particles to fill the rest of the space
-                generateUnlimited:
-                while (count < endPts.length)
-                    for (let y = 0; y < imgHeight; y += Math.ceil(imgHeight / (endPts.length / imgWidth))) {
-                        let index = (y * imgWidth) * 4;
-                        particles.push(new Particle(btnLoc.x + x, btnLoc.y + y, btnData.slice(index, index + 4), endPts[count], progress));
-                        count++;
-                        if (count == endPts.length)
-                            break generateUnlimited;
-                    }
-        }}, '<0.02');
+        }, '<0.02');
+    }
+
+    for (let x = imgWidth - 1; x >= 0; x--) {
+        animateColumn(x)
     }
 }
 
