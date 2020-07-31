@@ -160,7 +160,7 @@ async def __create(stage: Stage, name: str = ''):
 
     if stage.num == 0:
         results['assignments'] = [x[0] for x in get_assignment_names(ctx.author.id)]
-        if len(results['assignments']) >= 5:
+        if len(results['assignments']) >= 10:
             await lang.get('assignment.error.too_many').send(ctx)
             return
         if ctx.channel != dm:
