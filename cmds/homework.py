@@ -159,6 +159,10 @@ async def __create(stage: Stage, name: str = ''):
     back = stage.back()
 
     if stage.num == 0:
+        results['assignments'] = [x[0] for x in get_assignment_names(ctx.author.id)]
+        if len(results['assignments']) >= 5:
+            await lang.get('assignment.error.too_many').send(ctx)
+            return
         if ctx.channel != dm:
             await lang.get('to_dms').send(ctx)
         if not name:
@@ -220,7 +224,7 @@ async def __create(stage: Stage, name: str = ''):
         await stage.next()
     elif stage.num == 2:
         header = "__**The name of this assignment is `%name%`**__"
-        if results['name'] in (x[0] for x in get_assignment_names(ctx.author.id)):
+        if results['name'] in results['assignments']:
             header = "__**The name, `%name%`, is already taken. Completing the creation will replace the " \
                      "assignment. Respond with `back` to go to the previous stage.**__"
         description = await common.prompt(dm, ctx.author, lang.get('assignment.create.2'), timeout=900, back=back,
@@ -412,9 +416,8 @@ async def homework(ctx, sub=None, name: str = None, assigner: Optional[discord.U
         sub = sub.lower()
         if sub in ("assign", "create", "start", "initiate", "make"):
             await __create(ctx, name)
-            # TODO - Catch error from reversing the name and assigner arguments
             return
-        elif sub in ("remove", "delete", "unassign") and name is not None:
+        elif sub in ("remove", "delete", "unassign", "cancel") and name is not None:
             database.update(
                 """
                 DELETE FROM assignments

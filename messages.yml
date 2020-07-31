@@ -374,6 +374,14 @@ messages:
               inline: false
         no_assignments: "*There are no assignments. Use* `hw create` *to create one.*"
 
+    error:
+      too_many:
+        - embed:
+            title: "%emoji.error% Too Many Assignments!"
+            color: "%color.error%"
+            description: |
+              You have reached the max limit for assignments. You may use the `hw remove` command to delete assignments.
+
   ignore:
     - embed:
         title: "Ignored Channels"
