@@ -35,7 +35,7 @@ def calculate_level(exp, is_profile=False):
     return level
 
 
-def add_exp(user_id, category_name, amount, multiplier_immune=False, subtract_id: str = None):
+async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtract_id: str = None):
     exp_rows = database.query(
         """
         SELECT id, exp_rate, name
@@ -65,6 +65,27 @@ def add_exp(user_id, category_name, amount, multiplier_immune=False, subtract_id
 
     # recalculate_exp_rate(exp_rows, category_id, subtract_id, False if amount >= 0 else True)
 
+    current_exp = (database.query(
+        """
+        SELECT exp
+        FROM levels
+        WHERE user_id = %s
+        """,
+        (user_id,)
+    ).fetchone())[0]
+    if calculate_level(current_exp - amount) < calculate_level(current_exp):
+        if category_name.endswith('ing'):
+            category = category_name[:-3] + 'er'
+        elif category_name.isupper():
+            category = category_name + ' artist'
+        elif category_name.endswith('ion'):
+            category = category_name[:-3] + 'or'
+
+        user_id: discord.User
+        if category:
+            await lang.get("levels.level_up.1").send(user_id, level=calculate_level(current_exp), category=category)
+        else:
+            await lang.get("levels.level_up.2").send(user_id, level=calculate_level(current_exp), category=category_name.lower() if not category_name.isupper() else category_name.upper())
 
 added_exp = {}
 
@@ -172,7 +193,7 @@ class Level(commands.Cog):
             self.rda = config['servers']['rda']
         self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
-    '''
+
     # For testing only:
     @commands.command()
     @conditions.manager_only()
@@ -201,8 +222,8 @@ class Level(commands.Cog):
     @conditions.manager_only()
     async def exp(self, ctx, user_id, category, amount: int):
         category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
-        add_exp(user_id, category, amount)
-    '''
+        await add_exp(user_id, category, amount)
+
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -216,7 +237,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            add_exp(reaction.message.author.id, category_name, 'add', subtract_id=f"{reaction.message.id}{user.id}")
+            await add_exp(reaction.message.author.id, category_name, 'add', subtract_id=f"{reaction.message.id}{user.id}")
 
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
@@ -305,7 +326,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            add_exp(reaction.message.author.id, category_name, 'subtract',
+            await add_exp(reaction.message.author.id, category_name, 'subtract',
                     subtract_id=f"{reaction.message.id}{user.id}")
 
     @commands.command()
@@ -369,7 +390,7 @@ class Level(commands.Cog):
             shown_categories = [category_name for category_name in self.categories]
 
         rank_strings = {}
-        lb_node = deepcopy(lang.get("leaderboard.main").replace(prefix=prefix, page="1", user=f"{ctx.author}"))
+        lb_node = deepcopy(lang.get("levels.leaderboard").replace(prefix=prefix, page="1", user=f"{ctx.author}"))
 
         for category in shown_categories:
             ranks = database.query(
@@ -405,7 +426,7 @@ class Level(commands.Cog):
             ORDER BY id
             """
         ).fetchall()
-        categories_node = deepcopy(lang.get("leaderboard.categories"))
+        categories_node = deepcopy(lang.get("levels.categories"))
         for row in rows:
             categories_node.nodes[0].args['embed'].add_field(name=row[0],
                                                              value=f"Channels:\n<#{'> <#'.join(str(channel) for channel in self.categories[row[0]])}>\nExp Rate: {row[1]}")

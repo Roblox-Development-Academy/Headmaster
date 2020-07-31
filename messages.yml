@@ -368,8 +368,8 @@ messages:
           - name: "Description"
             value: "%description%"
 
-  leaderboard:
-    main:
+  levels:
+    leaderboard:
       - embed:
           title: "Leaderboard"
           color: "%color.level%"
@@ -399,6 +399,19 @@ messages:
             Message senders with a %emoji.solution% will receive exp depending on the category they helped in (average 11 exp).
 
             Below is a list of the categories and the corresponding channels and exp rates.
+    level_up:
+      1:
+        - embed:
+            title: "Level Up"
+            color: "%color.level%"
+            description: |
+              Congratulations, you are now a level %level% %category% in RDA!
+      2:
+        - embed:
+            title: "Level Up"
+            color: "%color.level%"
+            description: |
+              Congratulations, you have advanced to level %level% in %category% in RDA!
 
   profile:
     - embed:
