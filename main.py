@@ -1,11 +1,14 @@
 import asyncio
-from datetime import datetime
-from collections import namedtuple
+import re
+
+import uvicorn
 
 from bot import *
 from bot import in_prompt
 from cogs.admin import Admin
 from cogs.errorhandler import ErrorHandler
+import conditions
+from web.app import app
 
 
 def generate_tables():
@@ -31,15 +34,29 @@ def generate_tables():
             name TEXT NOT NULL,
             description BIGINT,
             solution BIGINT,
-            use_date BOOLEAN,
-            time TIMESTAMPTZ,
+            delete_after_date BOOLEAN,
+            date TIMESTAMPTZ,
             interval INTERVAL,
             PRIMARY KEY (assigner, name)
         )
         """,
+        """
+        CREATE TABLE IF NOT EXISTS submissions(
+            submitter BIGINT NOT NULL,
+            assigner BIGINT NOT NULL,
+            name TEXT NOT NULL,
+            submitted_at TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY (submitter, assigner, name),
+            CONSTRAINT fk_assignment FOREIGN KEY(assigner, name) REFERENCES assignments(assigner, name)
+            ON DELETE CASCADE
+        )
+        """
     )
     for statement in statements:
         database.update(statement)
+
+
+generate_tables()
 
 
 client.add_cog(ErrorHandler())
@@ -52,34 +69,6 @@ client.load_extension('cmds.homework')
 async def on_ready():
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
 
-    # Spam Nitrogen
-    async def wait_for(dt):
-        # sleep until the specified datetime
-        while True:
-            now = datetime.utcnow()
-            remaining = (dt - now).total_seconds()
-            if remaining < 86400:
-                break
-            # asyncio.sleep doesn't like long sleeps, so don't sleep more
-            # than a day at a time
-            await asyncio.sleep(86400)
-        await asyncio.sleep(remaining)
-
-    async def run_at(dt, coro):
-        await wait_for(dt)
-        return await coro
-
-    async def spam():
-        # JL: 260608867292020737
-        # Nitrogen: 450375444450115585
-        user_id = 450375444450115585
-        user = client.get_user(user_id)
-        while True:
-            await user.send("metable")  # You don't need to create the DM channel first.
-            await asyncio.sleep(2)
-
-    # await run_at(datetime(2020, 4, 9, 17, 0, 0, 0), spam())
-
 
 @client.event
 async def on_message(msg):
@@ -90,12 +79,12 @@ async def on_message(msg):
 @client.check
 async def globally_ignore_channels(ctx):
     if database.query(
-            """
+        """
         SELECT id
         FROM ignored_channels
         WHERE id = %s
         """,
-            (ctx.channel.id,)
+        (ctx.channel.id,)
     ).fetchone() is None:
         return True
     else:
@@ -140,39 +129,24 @@ async def command(ctx):
     await lang.get('error.command').send(ctx, prefix=get_prefix(ctx.guild.id))
 
 
-Entry = namedtuple('Entry', 'client event')
-entries = [
-    Entry(client=client, event=asyncio.Event()),
-    Entry(client=janitor, event=asyncio.Event())
-]
+@client.command(aliases=('exec',))
+@conditions.manager_only()
+async def execute(ctx: commands.Context):
+    content = ctx.message.content
+    matcher = re.compile(r'```\w+$(.+)```', re.MULTILINE | re.DOTALL)
+    code = matcher.search(content)
+    if code:
+        try:
+            exec(code.group(1), globals(), locals())
+        except Exception as e:
+            await ctx.send(str(e))
+        await ctx.message.add_reaction(lang.global_placeholders['emoji.gotcha'])
+    else:
+        await ctx.message.add_reaction(lang.global_placeholders['emoji.error'])
+
 
 loop = asyncio.get_event_loop()
+loop.create_task(client.start(TOKEN))
 
-
-async def login():
-    await entries[0].client.login(TOKEN)
-    await entries[1].client.login(JANITOR_TOKEN)
-
-
-async def wrapped_connect(entry):
-    try:
-        await entry.client.connect()
-    except Exception as e:
-        await entry.client.close()
-        logger.error('We got an exception: ', e.__class__.__name__, e)
-        entry.event.set()
-
-
-async def check_close():
-    futures = [e.event.wait() for e in entries]
-    await asyncio.wait(futures)
-
-
-loop.run_until_complete(login())
-
-for entry in entries:
-    loop.create_task(wrapped_connect(entry))
-
-loop.run_until_complete(check_close())
-
-loop.close()
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=5000)
