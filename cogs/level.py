@@ -83,9 +83,11 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtr
             category = category_name[:-3] + 'or'
         user = client.get_user(user_id)
         if category:
-            await lang.get("levels.level_up.1").send(user, level=calculate_level(current_exp), category=category)
+            await lang.get("levels.level_up.1").send(user, level=str(calculate_level(current_exp)), category=category)
         else:
-            await lang.get("levels.level_up.2").send(user, level=calculate_level(current_exp), category=category_name.lower() if not category_name.isupper() else category_name.upper())
+            await lang.get("levels.level_up.2").send(user, level=str(calculate_level(current_exp)),
+                                                     category=category_name.lower() if not category_name.isupper() else category_name.upper())
+
 
 added_exp = {}
 
@@ -192,7 +194,6 @@ class Level(commands.Cog):
             self.rda = config['servers']['rda']
         self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
-
     # For testing only:
     @commands.command()
     @conditions.manager_only()
@@ -216,13 +217,12 @@ class Level(commands.Cog):
                 DELETE FROM multipliers
                 """
             )
-    
+
     @commands.command()
     @conditions.manager_only()
     async def exp(self, ctx, user_id, category, amount: int):
         category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
         await add_exp(user_id, category, amount)
-
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -236,14 +236,17 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            await add_exp(reaction.message.author.id, category_name, 'add', subtract_id=f"{reaction.message.id}{user.id}")
+            await add_exp(reaction.message.author.id, category_name, 'add',
+                          subtract_id=f"{reaction.message.id}{user.id}")
 
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
             await self.profile(user, (reaction.message.author,))
         elif reaction.emoji in (
-                lang.global_placeholders.get("emoji.next"), lang.global_placeholders.get("emoji.previous"), lang.global_placeholders.get("emoji.rewind"), lang.global_placeholders.get("emoji.fast_forward"))\
-                and reaction.message.embeds and reaction.message.embeds[0].footer and f"{user}" in reaction.message.embeds[0].footer.text:
+                lang.global_placeholders.get("emoji.next"), lang.global_placeholders.get("emoji.previous"),
+                lang.global_placeholders.get("emoji.rewind"), lang.global_placeholders.get("emoji.fast_forward")) \
+                and reaction.message.embeds and reaction.message.embeds[0].footer and f"{user}" in \
+                reaction.message.embeds[0].footer.text:
             leaderboard = reaction.message.embeds[0]
             page = int(leaderboard.footer.text.split(' ')[1][:-1])
             if reaction.emoji == lang.global_placeholders.get("emoji.next"):
@@ -276,7 +279,8 @@ class Level(commands.Cog):
                         (category,)
                     ).fetchone())[0]
                     if total_ranks <= 0:
-                        leaderboard.set_field_at(i, name=category, value="There are currently no rankings for this category.")
+                        leaderboard.set_field_at(i, name=category,
+                                                 value="There are currently no rankings for this category.")
                         i += 1
                         continue
                     if int(leaderboard.footer.text.split(' ')[1][:-1]) == ceil(total_ranks / ranks_per_page):
@@ -301,12 +305,14 @@ class Level(commands.Cog):
                     for row in ranks:
                         rank_index += 1
                         mention = f"{'__' if row[0] == user.id else ''}<@{row[0]}>{'__' if row[0] == user.id else ''}"
-                        exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(shown_categories) == 1 else ''
+                        exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(
+                            shown_categories) == 1 else ''
                         rank_strings.append(f"**{rank_index})** {mention} Level {calculate_level(row[1])}.{exp}")
                         leaderboard.set_field_at(i, name=category,
                                                  value='\n\n'.join(rank_strings))
                 else:
-                    leaderboard.set_field_at(i, name=category, value="There are currently no rankings for this category.")
+                    leaderboard.set_field_at(i, name=category,
+                                             value="There are currently no rankings for this category.")
                 i += 1
             if not has_ranks:
                 return
@@ -326,7 +332,7 @@ class Level(commands.Cog):
                 return
 
             await add_exp(reaction.message.author.id, category_name, 'subtract',
-                    subtract_id=f"{reaction.message.id}{user.id}")
+                          subtract_id=f"{reaction.message.id}{user.id}")
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[Member] = None):
@@ -439,8 +445,11 @@ class Level(commands.Cog):
             if duration is None:
                 await lang.get("error.interval.parse").send(ctx)
                 return
-        if (user and multiplier is None) or (multiplier and not (1 < multiplier <= 14641)):
-            await lang.get("error.multiplier").send(ctx, multiplier=str(multiplier))
+        if (user and multiplier is None) or ((multiplier is not None) and not (1 < multiplier <= 14641)):
+            if multiplier is None:
+                await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
+            else:
+                await lang.get("error.multiplier").send(ctx, multiplier=str(multiplier))
             return
         if user:
             add_multiplier(user.id, multiplier, duration)
