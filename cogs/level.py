@@ -444,7 +444,7 @@ class Level(commands.Cog):
     @conditions.manager_only()
     async def multiplier(self, ctx, user: commands.Greedy[User] = None, multiplier: float = None, duration=None):
         if duration:
-            duration = parse_interval(duration, maximum=timedelta.max)
+            duration = parse_interval(duration, maximum=datetime.max - datetime.now())
             if duration is None:
                 await lang.get("error.interval.parse").send(ctx)
                 return
