@@ -439,7 +439,7 @@ class Level(commands.Cog):
 
     @commands.command()
     @conditions.manager_only()
-    async def multiplier(self, ctx, user: User = None, multiplier: float = None, duration=None):
+    async def multiplier(self, ctx, user: commands.Greedy[User] = None, multiplier: float = None, duration=None):
         if duration:
             duration = parse_interval(duration, maximum=timedelta.max)
             if duration is None:
