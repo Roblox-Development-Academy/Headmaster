@@ -50,6 +50,18 @@ def generate_tables():
             CONSTRAINT fk_assignment FOREIGN KEY(assigner, name) REFERENCES assignments(assigner, name)
             ON DELETE CASCADE
         )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS classes(
+            teacher BIGINT NOT NULL,
+            name TEXT NOT NULL,
+            message BIGINT,
+            guild BIGINT,
+            channel BIGINT,
+            voice_channel BIGINT,
+            starting_at TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY (teacher, name)
+        )
         """
     )
     for statement in statements:
@@ -63,6 +75,7 @@ client.add_cog(ErrorHandler())
 client.add_cog(Admin())
 client.load_extension('cmds.apply')
 client.load_extension('cmds.homework')
+client.load_extension('cmds.class')
 
 
 @client.event
