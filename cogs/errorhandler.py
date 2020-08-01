@@ -15,9 +15,9 @@ async def process(ctx, error):
     elif isinstance(error, errors.PromptTimeout):
         await lang.get('error.prompt_timeout').edit(error.args[1])
     elif isinstance(error, errors.PreviousPrompt):
-        try:
+        if len(error.args) > 2:
             await error.args[2]
-        except IndexError:
+        else:
             await lang.get('error.previous_prompt').send(error.args[1])
     elif isinstance(error, commands.CheckFailure):
         pass
