@@ -66,6 +66,7 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtr
 
     # recalculate_exp_rate(exp_rows, category_id, subtract_id, False if amount >= 0 else True)
 
+    # Level-up notifications:
     current_exp = (database.query(
         """
         SELECT exp
@@ -76,12 +77,14 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtr
     ).fetchone())[0]
     if calculate_level(current_exp - amount) < calculate_level(current_exp):
         if category_name.endswith('ing'):
-            category = category_name[:-3] + 'er'
+            category = category_name[:-3].lower() + 'er'
         elif category_name.isupper():
             category = category_name + ' artist'
         elif category_name.endswith('ion'):
-            category = category_name[:-3] + 'or'
+            category = category_name[:-3].lower() + 'or'
         user = client.get_user(user_id)
+        if user is None:
+            user = await client.fetch_user(user_id)
         if category:
             await lang.get("levels.level_up.1").send(user, level=str(calculate_level(current_exp)), category=category)
         else:

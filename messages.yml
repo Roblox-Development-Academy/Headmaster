@@ -402,13 +402,13 @@ messages:
     level_up:
       1:
         - embed:
-            title: "Level Up"
+            title: "Level-Up"
             color: "%color.level%"
             description: |
               Congratulations, you are now a level %level% %category% in RDA!
       2:
         - embed:
-            title: "Level Up"
+            title: "Level-Up"
             color: "%color.level%"
             description: |
               Congratulations, you have advanced to level %level% in %category% in RDA!
