@@ -119,14 +119,11 @@ async def prompt(channel: discord.TextChannel, user: discord.User,
             if msg.content.lower() == "skip":
                 if can_skip:
                     raise errors.PromptSkipped("The skipping wasn't handled", msg)
-                else:
-                    await errorhandler.process(channel,
-                                               errors.PromptSkipped("This prompt cannot be skipped", msg))
+                await errorhandler.process(channel, errors.PromptSkipped("This prompt cannot be skipped", msg))
             elif msg.content.lower() == "back":
                 if back:
                     raise errors.PreviousPrompt("Went back to previous prompt", msg, back)
-                await errorhandler.process(channel, errors.PreviousPrompt("Cannot go back to previous prompt",
-                                                                          channel))
+                await errorhandler.process(channel, errors.PreviousPrompt("Cannot go back to previous prompt", channel))
             elif (await client.get_context(msg)).valid:
                 pass
             else:
