@@ -1,4 +1,4 @@
-from typing import Union, Callable
+from typing import Union, Callable, Tuple, Awaitable, Any
 import asyncio
 import re
 from datetime import datetime, timedelta
@@ -10,12 +10,8 @@ from cogs import errorhandler
 from language import MessageNode, MessageListNode
 
 
-def parameters(*args, **kwargs):
-    return args, kwargs
-
-
-def unpack(packed_parameters, coroutine):
-    return coroutine(*packed_parameters[0], **packed_parameters[1])
+async def __do_nothing():
+    pass
 
 
 interval_matcher = re.compile(r'^((?P<days>[.\d]+?)d)? *'
@@ -59,7 +55,8 @@ def td_format(td_object: timedelta):
 
 
 async def prompt_reaction(msg: Union[discord.Message, MessageNode, MessageListNode], user: discord.User = None, *args,
-                          timeout=300, allowed_emojis=None, remove_other_reactions=True, **kwargs):
+                          timeout=300, allowed_emojis=None, remove_other_reactions=True,
+                          **kwargs) -> Tuple[discord.Reaction, discord.User]:
     if not isinstance(msg, discord.Message):
         msg = await msg.send(*args, **kwargs)
         if isinstance(msg, list):
@@ -161,4 +158,27 @@ async def prompt_date(channel: discord.TextChannel, user: discord.User,
             return None if result is None else result[1]
         except errors.PromptError:  # Means the message was first
             events.date_selected.signals.pop(date_fut)
+            raise
+
+
+async def prompt_wait(channel: discord.TextChannel, user: discord.User,
+                      prompt_msg: Union[discord.Message, MessageNode, MessageListNode], coro: Awaitable, timeout=300,
+                      on_prompt_error: Awaitable = __do_nothing(), **kwargs) -> Any:
+    def msg_check(m):
+        return m.author == user and m.channel == channel and m.content and \
+               m.content.lower() in ('skip', 'back', 'cancel', 'cancel.')
+
+    date_fut = asyncio.get_event_loop().create_future()
+    wait_other = asyncio.create_task(coro)
+    wait_msg = asyncio.create_task(prompt(channel, user, prompt_msg, timeout, check=msg_check,
+                                          url=f"{WEB_URL}/date-select/?user-id={user.id}", **kwargs))
+    for fut in asyncio.as_completed([wait_other, wait_msg]):
+        result = None
+        try:
+            result = await fut
+            raise errors.CancelProcesses
+        except errors.CancelProcesses:  # Means the date succeeded
+            return None if result is None else result[1]
+        except errors.PromptError:  # Means the message was first
+            await on_prompt_error
             raise
