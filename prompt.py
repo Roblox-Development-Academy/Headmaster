@@ -20,8 +20,8 @@ class Stage:
             self.history.append(self.num)
         try:
             return await self.callback(self, *args, **kwargs)
-        except errors.PromptKilled as e:
-            raise e
+        except errors.PromptKilled:
+            raise
         except errors.PromptError as e:
             await self.handler(self.ctx, e)
 
