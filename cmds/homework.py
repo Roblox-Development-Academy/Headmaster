@@ -209,8 +209,8 @@ async def __create(stage: Stage, name: str = ''):
             await lang.get('assignment.create.completed').send(dm, name=results['name'], assigner=ctx.author.mention)
             return
     elif stage.num == 1:
-        if len(results.get('name', '')) > 31:
-            header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"
+        if len(results.get('name', '')) > 32:
+            header = "**The name is too long! It cannot be longer than 32 characters!**\n\n"
         else:
             header = ''
         while True:
@@ -218,8 +218,8 @@ async def __create(stage: Stage, name: str = ''):
                                                    header=header)).content
             if not results['name']:
                 header = "**The name must be longer than 0 characters!**\n\n"
-            elif len(results['name']) > 31:
-                header = "**The name is too long! It cannot be longer than 31 characters!**\n\n"
+            elif len(results['name']) > 32:
+                header = "**The name is too long! It cannot be longer than 32 characters!**\n\n"
             else:
                 break
         await stage.next()
