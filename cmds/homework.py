@@ -186,7 +186,7 @@ async def __create(stage: Stage, name: str = ''):
                 results['date'] = None
             else:
                 time = None
-                results['date]'] = None
+                results['date'] = None
 
             node = lang.get('assignment.create.confirm').replace(name=results['name'],
                                                                  description_url=results['description_url'],
