@@ -77,6 +77,87 @@ messages:
 
           Please proceed to your DMs.
 
+  class:
+    main:
+      - embed:
+          title: "Classes"
+          description: >
+            Create your own classes and teach students. You allow students to sign up, configure your class,
+            and schedule it for a certain date.
+
+            You need the %teacher_role% role to teach classes. You may apply to be teacher via the `.apply` command.
+          fields:
+            - name: "Commands"
+              inline: false
+              value: |
+                **class create** - Schedules a class.
+                **class remove** - Cancels one of your classes.
+            - name: "Your classes"
+              inline: false
+              value: "%classes%"
+        no_classes: "*You have no classes. Use the `class create` command to create one.*"
+        deleted_header: "**`%name%` was successfully deleted!**\n\n"
+        not_found_header: "**You have not scheduled a class named `%name%`.**\n\n"
+
+    create:
+      1:
+        - embed:
+            title: "Create Class"
+            color: "%color.wizard%"
+            description: >
+              %header%**What is the name of the class?**
+
+
+              Respond with the class's name. This will be used as a unique, case-sensitive identifier that will be shown
+              to students.
+
+
+              You may only use alphanumeric characters, underscores, and spaces. Do not make the name longer than 32
+              characters.%prompt.cancel%
+            footer:
+              text: "%prompt.respond_5m%"
+          invalid_name: "**The class name is invalid. Please follow the instructions below.**\n\n"
+      2:
+        - embed:
+            title: "Create Class"
+            color: "%color.wizard%"
+            description: >
+              %header%**Write the description for your class.**
+
+
+              This description will be shown students in the classes channel. Please describe what the class is about
+              and what you will teach in the class.%prompt.back_or_cancel%
+            footer:
+              text: "%prompt.respond%"
+          name_taken: >
+            **You already have a class by this name. If you continue, your new class will override the original.
+            Respond with `cancel` to cancel the prompt.**\n\n
+          name_is: "__**The name of the class is `%name%`.**__\n\n"
+      3:
+        - embed:
+            title: "Create Class"
+            color: "%color.wizard%"
+            description: |
+              %header%__**The class description has been linked to [this message](%description%).**__
+
+              **Describe the prerequisites for attending the class.**
+
+              Include knowledge you expect the students to already know when they sign up.%prompt.options%
+            footer
+          too_long: "**Your response is too long. It cannot be greater than 1024 characters.**\n\n"
+      4:
+        - embed:
+            title: "Create Class"
+            color: "%color.wizard%"
+            description: >
+              %header%**At what time will the class start?**
+
+
+              Click [here](%url%) to select a date and time. When class starts, all students who signed up would be
+              notified and invited into the classroom.
+          prerequisites_is: "__**The prerequisites have been linked to [this message](%prerequisites%).**__\n\n"
+          invalid_submission: "**Invalid submission. Please try again.**\n\n"
+
   teacher_application:
     initiate:
       - embed:
@@ -154,7 +235,7 @@ messages:
 
 
               This is a unique, case-sensitive identifier that students can use to submit the assignment. It cannot be
-              longer than 31 character and it cannot be shorter than 1. Using an existing name will replace the
+              longer than 32 character and it cannot be shorter than 1. Using an existing name will replace the
               previous assignment.%prompt.cancel%
             footer:
               text: "%prompt.respond_5m%"
@@ -166,7 +247,7 @@ messages:
               %header%
 
 
-              **Write the description to the assignment**
+              **Write the description to the assignment.**
 
 
               This will be shown to any student looking for assignment information. You can attach files and
@@ -181,12 +262,11 @@ messages:
               __**The assignment description has been linked to [this message](%url%)**__
 
 
-              **Write the solution to the assignment**
+              **Write the solution to the assignment.**
 
 
               This will be shown at a designated time to all students who have submitted the assignment. You
-              can attach files and edit your solution freely; the newest version will always be used.
-              %prompt.options%
+              can attach files and edit your solution freely; the newest version will always be used.%prompt.options%
             footer:
               text: "%prompt.respond%"
       4:
@@ -292,7 +372,7 @@ messages:
             fields:
               - name: "Examples"
                 value: |
-                  %s%%s%%bullet% hw submit %name% %assigner%
+                  %s%%s%%bullet% hw submit %assigner% %name%
 
     submit:
       1:
