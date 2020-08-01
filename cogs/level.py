@@ -197,6 +197,7 @@ class Level(commands.Cog):
             self.rda = config['servers']['rda']
         self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
+    '''
     # For testing only:
     @commands.command()
     @conditions.manager_only()
@@ -226,6 +227,7 @@ class Level(commands.Cog):
     async def exp(self, ctx, user_id, category, amount: int):
         category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
         await add_exp(user_id, category, amount)
+    '''
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
