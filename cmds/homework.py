@@ -168,6 +168,7 @@ async def __create(stage: Stage, name: str = ''):
         if not name:
             await stage.zap(1)
         else:
+            stage.history.append(1)
             results['name'] = name
             await stage.zap(1 if len(name) > 32 else 2)
 
@@ -410,7 +411,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
 
 
 @commands.command(aliases=['hw', 'assignment', 'assignments'])
-async def homework(ctx, sub=None, name: str = None, assigner: Optional[discord.User] = None):
+async def homework(ctx, sub=None, assigner: Optional[discord.User] = None, *, name: Optional[str]):
     header = ''
     title = 'Assignments'
     color = '%color.info%'
@@ -429,10 +430,10 @@ async def homework(ctx, sub=None, name: str = None, assigner: Optional[discord.U
                 (ctx.author.id, name)
             )
             if database.cursor.rowcount != 0:
-                header = f"**{name} was successfully deleted!\n\n"
+                header = f"**`{name}` was successfully deleted!**\n\n"
                 color = "%color.success%"
             else:
-                header = f"**{name} does not exist!!\n\n"
+                header = f"**You have not assigned an assignment named `{name}`.\n\n"
                 color = "%color.error%"
             # TODO - Also should delete it from current scheduling process
         elif sub in ('submit', 'view', 'show', 'read'):
