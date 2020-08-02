@@ -195,7 +195,7 @@ def strfdelta(timedelta):
         f"{microseconds} microsecond{'s' if microseconds != 1 else ''}"
     ]
     time_string = ''
-    for i in range(1, len(times)):
+    for i in range(0, len(times)):
         if times[i][0] != '0':
             time_string += times[i] + ', '
     return time_string[:-2]
