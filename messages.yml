@@ -532,6 +532,24 @@ messages:
             **Duration:** %duration%.
             **Expiration Date:** %expire%.
 
+  exp:
+    help:
+      - embed:
+          title: "Exp"
+          color: "%color.info%"
+          description: |
+            This command is used to give or remove exp from someone.
+
+            Use `%prefix%exp <user(s)> <category name> <amount>` to give someone exp.
+            To take away exp, enter a negative amount.
+
+            `<amount>` must be an integer. If a float is entered, it will be rounded to the nearest integer.
+    success:
+      - embed:
+          title: "Success"
+          color: "%color.success%"
+          description: "Category: %category%.\n%amount% exp has been %action% %users%."
+
   error:
     prompt_timeout:
       - embed:

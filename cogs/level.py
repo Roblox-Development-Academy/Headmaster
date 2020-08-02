@@ -240,13 +240,31 @@ class Level(commands.Cog):
                 DELETE FROM multipliers
                 """
             )
+    '''
 
     @commands.command()
     @conditions.manager_only()
-    async def exp(self, ctx, user_id, category, amount: int):
-        category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
-        await add_exp(user_id, category, amount)
-    '''
+    async def exp(self, ctx, users: commands.Greedy[User] = None, category=None, amount=None):
+        if category:
+            category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
+        try:
+            amount = int(amount)
+        except ValueError:
+            try:
+                amount = round(float(amount))
+            except ValueError:
+                amount = None
+
+        if (not users) or (category not in self.categories) or (amount is None):
+            await lang.get("exp.help").send(ctx, prefix=get_prefix(self.rda))
+            return
+
+        for user in users:
+            await add_exp(user.id, category, amount)
+        users_string = users[0].mention
+        if len(users) > 1:
+            users_string = ', '.join(user.mention for user in users[:-1]) + (',' if len(users) != 2 else '') + " and " + users[-1].mention
+        await lang.get("exp.success").send(ctx, category=category, amount=str(round(fabs(amount))), action='given to' if amount >= 0 else 'taken away from', users=users_string)
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
