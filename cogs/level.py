@@ -182,6 +182,25 @@ def get_multipliers(user_id, raw=False):
     return total_multiplier
 
 
+def strfdelta(timedelta):
+    hours, remainder = divmod(timedelta.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    milliseconds, microseconds = divmod(timedelta.microseconds, 1000)
+    times = [
+        f"{timedelta.days} day{'s' if timedelta.days != 1 else ''}",
+        f"{hours} hour{'s' if hours != 1 else ''}",
+        f"{minutes} minute{'s' if minutes != 1 else ''}",
+        f"{seconds} second{'s' if seconds != 1 else ''}",
+        f"{milliseconds} millisecond{'s' if milliseconds != 1 else ''}",
+        f"{microseconds} microsecond{'s' if microseconds != 1 else ''}"
+    ]
+    time_string = times[0]
+    for i in range(1, len(times)):
+        if times[i][0] != '0':
+            time_string += ', ' + times[i]
+    return time_string
+
+
 class Level(commands.Cog):
     """
     Average 11 exp.
@@ -368,12 +387,6 @@ class Level(commands.Cog):
             f"**Multiplier: {multiplier[0]}x**\nExpiration Date: {multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'}"
             for multiplier in multipliers]
 
-        def strfdelta(timedelta):
-            hours, remainder = divmod(timedelta.seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            milliseconds, microseconds = divmod(timedelta.microseconds, 1000)
-            return f"{timedelta.days} day{'s' if timedelta.days != 1 else ''}, {hours} hour{'s' if hours != 1 else ''}, {minutes} minute{'s' if minutes != 1 else ''}, {seconds} second{'s' if seconds != 1 else ''}, {milliseconds} millisecond{'s' if milliseconds != 1 else ''}, {microseconds} microsecond{'s' if microseconds != 1 else ''}"
-
         await lang.get("profile").send(ctx, user_name=str(user), user_id=str(user.id), avatar_url=str(user.avatar_url),
                                        nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}",
                                        levels='\n'.join(
@@ -446,7 +459,11 @@ class Level(commands.Cog):
     @conditions.manager_only()
     async def multiplier(self, ctx, user: commands.Greedy[User] = None, multiplier: float = None, duration=None):
         if duration:
-            duration = parse_interval(duration, maximum=datetime.max - datetime.now())
+            try:
+                duration = parse_interval(duration, maximum=datetime.max - datetime.now())
+            except OverflowError:
+                await lang.get("error.multiplier.duration").send(ctx, duration=strfdelta(datetime.max - datetime.now()), date=datetime.max.strftime(self.date_format))
+                return
             if duration is None:
                 await lang.get("error.interval.parse").send(ctx)
                 return
@@ -454,13 +471,13 @@ class Level(commands.Cog):
             if multiplier is None:
                 await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
             else:
-                await lang.get("error.multiplier").send(ctx, multiplier=str(multiplier))
+                await lang.get("error.multiplier.invalid").send(ctx, multiplier=str(multiplier))
             return
         if user:
-            add_multiplier(user.id, multiplier, duration)
-            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user.mention,
+            add_multiplier(user[0].id, multiplier, duration)
+            await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user[0].mention,
                                                       expire=(datetime.utcnow() + duration).strftime(
-                                                          self.date_format) + '.' if duration else "Never.",
-                                                      duration=str(duration) if duration else "Forever.")
+                                                          self.date_format) if duration else "Never.",
+                                                      duration=strfdelta(duration) if duration else "Forever.")
         else:
             await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))

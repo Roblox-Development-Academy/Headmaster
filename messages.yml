@@ -529,8 +529,8 @@ messages:
           color: "%color.success%"
           description: |
             A multiplier of %multiplier%x has been given to %user%.
-            **Duration:** %duration%
-            **Expiration Date:** %expire%
+            **Duration:** %duration%.
+            **Expiration Date:** %expire%.
 
   error:
     prompt_timeout:
@@ -627,9 +627,19 @@ messages:
             `%category%` is not a valid category.
             For a list of categories, use `%prefix%categories`
     multiplier:
-      - embed:
-          title: "%emoji.error% Invalid Multiplier"
-          color: "%color.error%"
-          description: |
-            `%multiplier%` is not a valid multiplier.
-            Please enter a float greater than 1 and at most 14641.
+      invalid:
+        - embed:
+            title: "%emoji.error% Invalid Multiplier"
+            color: "%color.error%"
+            description: |
+              `%multiplier%` is not a valid multiplier.
+              Please enter a float greater than 1 and at most 14641.
+      duration:
+        - embed:
+            title: "%emoji.error% Too Far in the Future"
+            color: "%color.error%"
+            description: |
+              That is too far in the future.
+
+              **The Maximum Duration (Currently):** %duration%.
+              **The Maximum Expiration Date:** %date%.
