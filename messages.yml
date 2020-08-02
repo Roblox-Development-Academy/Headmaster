@@ -500,7 +500,7 @@ messages:
             Use `%prefix%multiplier <user> <multiplier> <duration (optional)>` to give **<user>** a multiplier of **<multiplier>**.
             If a duration is given, the temporary multiplier will last **<duration>** from when the command is executed.
             If no duration is given, the user will be given a pernament multiplier.
-            The multiplier must be a float greater than 1 and at most 14641.
+            The multiplier must be a float greater than or equal to 0 and at most 14641.
 
             Some events giving out large amounts of exp may be multiplier immune.
           fields:
@@ -633,7 +633,7 @@ messages:
             color: "%color.error%"
             description: |
               `%multiplier%` is not a valid multiplier.
-              Please enter a float greater than 1 and at most 14641.
+              Please enter a float greater than or equal to 0 and at most 14641.
       duration:
         - embed:
             title: "%emoji.error% Too Far in the Future"

@@ -164,7 +164,7 @@ def get_multipliers(user_id, raw=False):
     has_expired = False
     for i in range(len(multipliers) - 1, -1, -1):
         multiplier = multipliers[i]
-        if multiplier[1] > datetime.now(timezone.utc):
+        if multiplier[1] is None or multiplier[1] > datetime.now(timezone.utc):
             total_multiplier *= multiplier[0]
         else:
             has_expired = True
@@ -194,11 +194,11 @@ def strfdelta(timedelta):
         f"{milliseconds} millisecond{'s' if milliseconds != 1 else ''}",
         f"{microseconds} microsecond{'s' if microseconds != 1 else ''}"
     ]
-    time_string = times[0]
+    time_string = ''
     for i in range(1, len(times)):
         if times[i][0] != '0':
-            time_string += ', ' + times[i]
-    return time_string
+            time_string += times[i] + ', '
+    return time_string[:-2]
 
 
 class Level(commands.Cog):
@@ -467,7 +467,7 @@ class Level(commands.Cog):
             if duration is None:
                 await lang.get("error.interval.parse").send(ctx)
                 return
-        if (user and multiplier is None) or ((multiplier is not None) and not (1 < multiplier <= 14641)):
+        if (user and multiplier is None) or ((multiplier is not None) and not (0 <= multiplier <= 14641)):
             if multiplier is None:
                 await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
             else:
@@ -477,7 +477,7 @@ class Level(commands.Cog):
             add_multiplier(user[0].id, multiplier, duration)
             await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user[0].mention,
                                                       expire=(datetime.utcnow() + duration).strftime(
-                                                          self.date_format) if duration else "Never.",
-                                                      duration=strfdelta(duration) if duration else "Forever.")
+                                                          self.date_format) if duration else "Never",
+                                                      duration=strfdelta(duration) if duration else "Forever")
         else:
             await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
