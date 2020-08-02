@@ -1,6 +1,6 @@
 servers:
-  # rda: 673600024919408680
-  rda: 676175299121250327 # Testing.
+  rda: 673600024919408680
+  # rda: 676175299121250327 # Testing.
 
 channels:
   teacher_application: 728753615031763005 # Testing.
