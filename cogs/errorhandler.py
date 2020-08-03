@@ -19,6 +19,8 @@ async def process(ctx, error):
             await error.args[2]
         else:
             await lang.get('error.previous_prompt').send(error.args[1])
+    elif isinstance(error, errors.NotInRDA):
+        await lang.get('error.not_in_rda').send(ctx)
     elif isinstance(error, commands.CheckFailure):
         pass
     elif isinstance(error, commands.errors.CommandNotFound):
