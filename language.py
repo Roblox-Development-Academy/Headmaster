@@ -97,7 +97,10 @@ class MessageNode:
     def replace(self, **kwargs):
         if len(kwargs) == 0:
             return self
-        clone = copy.deepcopy(self)
+        if kwargs.get('mutilate'):
+            clone = self
+        else:
+            clone = copy.deepcopy(self)
         content = clone.args.get('content')
         if content:
             clone.args['content'] = LangManager.replace(content, **kwargs)
