@@ -2,11 +2,10 @@ import database
 import conditions
 
 from discord import Member, User
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from discord.ext import commands
 from math import floor, ceil, fabs
-from bot import lang, get_prefix
-from yaml import load, FullLoader
+from bot import lang, get_prefix, categories, servers
 from copy import deepcopy
 from psycopg2 import DatabaseError
 from common import parse_interval
@@ -210,10 +209,6 @@ class Level(commands.Cog):
     """
 
     def __init__(self):
-        with open("config.yml") as f:
-            config = load(f, Loader=FullLoader)
-            self.categories = config['categories']
-            self.rda = config['servers']['rda']
         self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
     '''
@@ -255,8 +250,8 @@ class Level(commands.Cog):
             except ValueError:
                 amount = None
 
-        if (not users) or (category not in self.categories) or (amount is None):
-            await lang.get("exp.help").send(ctx, prefix=get_prefix(self.rda))
+        if (not users) or (category not in categories) or (amount is None):
+            await lang.get("exp.help").send(ctx, prefix=get_prefix(servers['rda']))
             return
 
         for user in users:
@@ -270,8 +265,8 @@ class Level(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
             category_name = None
-            for category in self.categories:
-                if reaction.message.channel.id in self.categories[category]:
+            for category in categories:
+                if reaction.message.channel.id in categories[category]:
                     category_name = category
                     break
 
@@ -365,8 +360,8 @@ class Level(commands.Cog):
     async def on_reaction_remove(self, reaction, user):
         if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
             category_name = None
-            for category in self.categories:
-                if reaction.message.channel.id in self.categories[category]:
+            for category in categories:
+                if reaction.message.channel.id in categories[category]:
                     category_name = category
                     break
 
@@ -378,9 +373,9 @@ class Level(commands.Cog):
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[Member] = None):
-        user = client.get_guild(self.rda).get_member(user[0].id if user else ctx.author.id)
+        user = client.get_guild(servers['rda']).get_member(user[0].id if user else ctx.author.id)
         if user is None:
-            user = client.get_guild(self.rda).get_member(ctx.author.id)
+            user = client.get_guild(servers['rda']).get_member(ctx.author.id)
 
         ranks = database.query(
             """
@@ -422,12 +417,12 @@ class Level(commands.Cog):
         shown_categories = []
         if category:
             category = category.upper() if category.upper() in ("GFX", "SFX") else category.capitalize()
-            if category not in self.categories:
+            if category not in categories:
                 await lang.get("error.invalid_category").send(ctx, category=category, prefix=prefix)
                 return
             shown_categories.append(category)
         else:
-            shown_categories = [category_name for category_name in self.categories]
+            shown_categories = [category_name for category_name in categories]
 
         rank_strings = {}
         lb_node = deepcopy(lang.get("levels.leaderboard").replace(prefix=prefix, page="1", user=f"{ctx.author}"))
@@ -469,7 +464,7 @@ class Level(commands.Cog):
         categories_node = deepcopy(lang.get("levels.categories"))
         for row in rows:
             categories_node.nodes[0].args['embed'].add_field(name=row[0],
-                                                             value=f"Channels:\n<#{'> <#'.join(str(channel) for channel in self.categories[row[0]])}>\nExp Rate: {row[1]}")
+                                                             value=f"Channels:\n<#{'> <#'.join(str(channel) for channel in categories[row[0]])}>\nExp Rate: {row[1]}")
         await categories_node.send(ctx)
 
     @commands.command()

@@ -7,6 +7,8 @@ from discord.ext import commands
 import database
 from language import LangManager as __LangManager
 
+from yaml import load, FullLoader
+
 TOKEN = __os.environ['TOKEN']
 JANITOR_TOKEN = __os.environ['JANITOR_TOKEN']
 EMBED_COLORS = {
@@ -65,8 +67,19 @@ client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=Tru
 
 janitor = discord.Client()
 
-rda = client.get_guild(673600024919408680)
-
 in_prompt = {}
 
 lang = __LangManager('messages.yml', bot=client)
+
+with open("config.yml") as f:
+    config = load(f, Loader=FullLoader)
+    if __os.environ['DEBUG'] == '1':
+        __test = 'test_'
+    elif __os.environ['DEBUG'] == '0':
+        __test = ''
+
+    servers = config[__test + 'servers']
+    channels = config[__test + 'channels']
+    categories = config[__test + 'categories']
+
+rda = client.get_guild(servers['rda'])
