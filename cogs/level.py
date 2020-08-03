@@ -378,10 +378,9 @@ class Level(commands.Cog):
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[Member] = None):
-        if ctx.guild and ctx.guild.id == self.rda:
-            user = user[0] if user else ctx.author
-        else:
-            user = client.get_guild(self.rda).get_member(user[0].id if user else ctx.author.id)
+        user = client.get_guild(self.rda).get_member(user[0].id if user else ctx.author.id)
+        if user is None:
+            user = client.get_guild(self.rda).get_member(ctx.author.id)
 
         ranks = database.query(
             """
