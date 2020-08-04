@@ -116,7 +116,11 @@ messages:
             url: "%image%"
           fields:
             - name: "Prerequisites"
+              inline: false
               value: "%prerequisites%"  # Also need teacher field, max students field
+            - name: "Interest Check Poster"
+              inline: false
+              value: "teacher_mention%"
 
     class_info:
       - embed:
@@ -132,6 +136,9 @@ messages:
             - name: "Prerequisites"
               inline: false
               value: "%prerequisites%"
+            - name: "Teacher"
+              inline: false
+              value: "%teacher_mention%"
         max_students: "%max_students%"
 
     create:
@@ -147,8 +154,14 @@ messages:
               to students.
 
 
-              You may only use alphanumeric characters, underscores, and spaces. Do not make the name longer than 32
-              characters.%prompt.cancel%
+              Do not make the name longer than 32 characters.%prompt.cancel%
+            fields:
+              - name: "Allowed Characters"
+                value: |
+                  %s%%s%%bullet% Alphanumeric characters
+                  %s%%s%%bullet% Spaces
+                  %s%%s%%bullet% Dashes
+                  %s%%s%%bullet% Colons
             footer:
               text: "%prompt.respond_5m%"
           invalid_name: "**The class name is invalid. Please follow the instructions below.**\n\n"

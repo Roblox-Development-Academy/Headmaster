@@ -14,13 +14,23 @@ scheduled_classes: Dict[Tuple[int, str], Tuple[asyncio.Task, discord.Message]] =
 
 
 async def on_ready():
-    pass
+    classes = database.query(
+        """
+        SELECT teacher, name, message, starting_at, channel, voice_channel, guild
+        FROM classes
+        WHERE starting_at > NOW()
+        """
+    ).fetchall()
+    for classroom in classes:
+        await schedule_class(client.get_user(classroom[0]), classroom[1],
+                             await class_channel.fetch_message(classroom[2]), classroom[3], classroom[4], classroom[6])
 
 
 async def schedule_class(teacher: discord.User, name: str, message: discord.Message, date: datetime,
-                         channel_id: Optional[int], voice_channel_id: Optional[int],
-                         guild_id: Optional[str]):
+                         channel_id: Optional[int] = 0, voice_channel_id: Optional[int] = 0,
+                         guild_id: Optional[str] = 0):
     await discord.utils.sleep_until(date)
+    # TODO - Finish schedule_class
 
 
 def get_class_names(user_id: int) -> Tuple[Tuple[str]]:
@@ -63,7 +73,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         while True:
             results['name'] = (await common.prompt(dm, ctx.author, lang.get('class.create.1'),
                                                    header=header, title=results['title'])).content
-            if not (1 < len(results['name']) < 32) or not re.search(r"^[\w ]+$", results['name']):
+            if not (1 < len(results['name']) < 32) or not re.search(r"^[\w :-]+$", results['name']):
                 header = lang.get('class.create.1').nodes[0].options.get('invalid_name', '')
             else:
                 break
@@ -179,7 +189,8 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                 node = lang.get('class.interest_check')
                 msgs = await node.send(class_channel, name=results['name'], description=results['description'].content,
                                        prerequisites=results['prerequisites'].content, image=results.get('image'),
-                                       teacher=rda.get_member(ctx.author.id).nick, avatar=ctx.author.avatar_url)
+                                       teacher=rda.get_member(ctx.author.id).nick, avatar=ctx.author.avatar_url,
+                                       teacher_mention=ctx.author.mention)
                 await lang.get('class.create.interest_check_completed').send(ctx.author, url=msgs[0].jump_url)
                 return
             await stage.zap(100) if results.get('channel') else await stage.next()
@@ -200,13 +211,14 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                                                           prerequisites=results['prerequisites'].content,
                                                           image=results.get('image'),
                                                           teacher=rda.get_member(ctx.author.id).nick,
-                                                          avatar=ctx.author.avatar_url)
+                                                          avatar=ctx.author.avatar_url,
+                                                          teacher_mention=ctx.author.mention)
         class_node.nodes[0].args['embed'].timestamp = results['date']
         if results['max_students']:
             class_node.nodes[0].args['embed'].add_field(name="Maximum Students", inline=False,
                                                         value=class_node.nodes[0].options.get('max_students')
                                                         )
-        class_msgs = await class_node.send(class_channel, mutilate=True, max_students=results['max_students'])
+        class_msgs = await class_node.send(class_channel, mutate=True, max_students=results['max_students'])
         node = lang.get('class.create.completed')
         node.nodes[0].args['embed'].timestamp = results['date']
         await node.send(ctx.author, url=class_msgs[0].jump_url)
@@ -214,6 +226,25 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                                                   results.get('channel'), results.get('voice_channel'),
                                                   results.get('guild')))
         scheduled_classes[(ctx.author.id, results['name'])] = (task, class_msgs[0])
+        database.update(
+            """
+            DELETE FROM classes
+            WHERE teacher = %s AND name = %s
+            RETURNING message
+            """,
+            (ctx.author.id, results['name'])
+        )
+        if database.cursor.rowcount != 0:
+            scheduled_classes.pop((ctx.author.id, results['name']), None)
+            await (await class_channel.fetch_message(database.cursor.fetchone()[0])).delete()
+        database.update(
+            """
+            INSERT INTO classes (teacher, name, message, guild, channel, voice_channel, starting_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (ctx.author.id, results['name'], class_msgs[0].id, results.get('guild'), results.get('channel'),
+             results.get('voice_channel'), results.get['date'])
+        )
         try:
             await task
         except asyncio.CancelledError:
