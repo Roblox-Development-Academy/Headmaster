@@ -97,7 +97,7 @@ class MessageNode:
     def replace(self, **kwargs):
         if len(kwargs) == 0:
             return self
-        if kwargs.get('mutilate'):
+        if kwargs.get('mutate'):
             clone = self
         else:
             clone = copy.deepcopy(self)
