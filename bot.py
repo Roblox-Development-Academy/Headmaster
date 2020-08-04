@@ -12,7 +12,7 @@ WEB_URL = __os.environ['URL']
 
 __logging.basicConfig(level=__logging.INFO)
 logger = __logging.getLogger('discord')
-logger.setLevel(__logging.DEBUG)
+logger.setLevel(__logging.INFO)
 __handler = __logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 __handler.setFormatter(__logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(__handler)
@@ -50,7 +50,8 @@ def get_mention_or_prefix(_, message):
 
 client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=True, help_command=None)
 
-rda = client.get_guild(673600024919408680)
+rda: discord.Guild = client.get_guild(676175299121250327)
+class_channel: discord.TextChannel = rda.get_channel(739213440803012608)
 
 in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands
 
