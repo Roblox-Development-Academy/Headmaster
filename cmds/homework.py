@@ -1,5 +1,6 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, List
 import datetime
+import asyncio
 
 from discord.ext.commands import MemberConverter
 
@@ -21,21 +22,22 @@ On submission, the student only needs to use the assigner and the name and it wi
 
 min_interval = datetime.timedelta(seconds=0)
 max_interval = datetime.timedelta(days=60)
+scheduled_assignments: Dict[Tuple[int, str], Tuple[asyncio.Task]] = {}
+scheduled_submissions: Dict[Tuple[int, str], List[asyncio.Task]] = {}
 
 
-@client.listen()
-async def on_ready():
+async def run():
     logger.info("Scheduling assignments and submissions.")
-    scheduled_assignments = database.query(
+    assignments = database.query(
         """
         SELECT assigner, name, solution, date, delete_after_date
         FROM assignments
         WHERE date IS NOT NULL AND date > NOW()
         """
     ).fetchall()
-    for assignment in scheduled_assignments:
+    for assignment in assignments:
         await schedule_assignment(*assignment)
-    scheduled_submissions = database.query(
+    submissions = database.query(
         """
         SELECT submitter, submissions.assigner, submissions.name, interval, submitted_at
         FROM submissions JOIN assignments
@@ -44,9 +46,12 @@ async def on_ready():
         AND interval IS NOT NULL
         """
     ).fetchall()
-    for submission in scheduled_submissions:
+    for submission in submissions:
         await schedule_submission(client.get_user(submission[0]), client.get_user(submission[1]), submission[2],
                                   submission[3], submission[4])
+
+
+asyncio.get_event_loop().create_task(run())
 
 
 def get_assignment_names(user_id: int) -> Tuple[str]:
@@ -68,72 +73,90 @@ def get_assignment_names(user_id: int) -> Tuple[str]:
 
 async def schedule_submission(submitter: discord.User, assigner: discord.User, name: str,
                               interval: datetime.timedelta = None, start: datetime.datetime = None, wait: bool = True):
-    if wait:
-        await discord.utils.sleep_until(start + interval)
-    solution_id = database.query(
-        """
-        SELECT solution
-        FROM assignments
-        WHERE assigner = %s AND name = %s
-        """,
-        (assigner.id, name)
-    ).fetchone()
-    solution_id = solution_id[0]
-    if not solution_id:
-        return
-    try:
-        solution = await assigner.fetch_message(solution_id)
-    except discord.NotFound:
-        pass
-    else:
-        await lang.get('assignment.submit.solution').send(submitter, assigner=assigner.mention, name=name)
-        await (await MessageNode.from_message(solution)).send(submitter)
-    if wait:
-        database.update(
+    async def scheduling_process():
+        if wait:
+            await discord.utils.sleep_until(start + interval)
+        solution_id = database.query(
             """
-            DELETE FROM submissions
-            WHERE submitter = %s AND assigner = %s AND name = %s
+            SELECT solution
+            FROM assignments
+            WHERE assigner = %s AND name = %s
             """,
-            (submitter.id, assigner.id, name)
-        )
+            (assigner.id, name)
+        ).fetchone()
+        solution_id = solution_id[0]
+        if not solution_id:
+            return
+        try:
+            solution = await assigner.fetch_message(solution_id)
+        except discord.NotFound:
+            pass
+        else:
+            await lang.get('assignment.submit.solution').send(submitter, assigner=assigner.mention, name=name)
+            await (await MessageNode.from_message(solution)).send(submitter)
+        if wait:
+            database.update(
+                """
+                DELETE FROM submissions
+                WHERE submitter = %s AND assigner = %s AND name = %s
+                """,
+                (submitter.id, assigner.id, name)
+            )
+    task = asyncio.create_task(scheduling_process())
+    if scheduled_submissions.get((submitter.id, name)):
+        scheduled_submissions[(submitter.id, name)].append(task)
+    else:
+        scheduled_submissions[(submitter.id, name)] = [task]
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 async def schedule_assignment(assigner_id: int, name: str, solution: int, date: datetime.datetime, delete_after: bool):
-    await discord.utils.sleep_until(date)
-    submissions = database.query(
-        """
-        SELECT submitter
-        FROM submissions
-        WHERE assigner = %s AND name = %s
-        """,
-        (assigner_id, name)
-    ).fetchall()
-    if not solution:
-        return
-    try:
-        solution_msg = await client.get_user(assigner_id).fetch_message(solution)
-    except discord.errors.NotFound:
-        return
-    node = await MessageNode.from_message(solution_msg)
-    for submitter_tuple in submissions:
-        submitter = client.get_user(submitter_tuple[0])
-        await lang.get('assignment.solution').send(submitter, name=name, assigner=client.get_user(assigner_id).mention)
-        await node.send(submitter)
-    if delete_after:
+    async def scheduling_task():
+        if not solution:
+            return
+        await discord.utils.sleep_until(date)
+        submissions = database.query(
+            """
+            SELECT submitter
+            FROM submissions
+            WHERE assigner = %s AND name = %s
+            """,
+            (assigner_id, name)
+        ).fetchall()
+        try:
+            solution_msg = await client.get_user(assigner_id).fetch_message(solution)
+        except discord.errors.NotFound:
+            return
+        node = await MessageNode.from_message(solution_msg)
+        for submitter_tuple in submissions:
+            submitter = client.get_user(submitter_tuple[0])
+            await lang.get('assignment.solution').send(submitter, name=name,
+                                                       assigner=client.get_user(assigner_id).mention)
+            await node.send(submitter)
+        if delete_after:
+            database.update(
+                """
+                DELETE FROM assignments
+                WHERE assigner = %s AND name = %s
+                """,
+                (assigner_id, name)
+            )
         database.update(
             """
-            DELETE FROM assignments
+            DELETE FROM submissions
             WHERE assigner = %s AND name = %s
             """,
             (assigner_id, name)
         )
-    database.update(
-        """
-        DELETE FROM submissions
-        WHERE assigner = %s AND name = %s
-        """,
-        (assigner_id, name)
-    )
+    task = asyncio.create_task(scheduling_task())
+    scheduled_assignments[(assigner_id, name)] = (task,)
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 async def add_assignment(*columns):
@@ -204,9 +227,9 @@ async def __create(stage: Stage, name: str = ''):
                 await back
                 continue
             in_prompt.pop(ctx.author.id)
+            await lang.get('assignment.create.completed').send(dm, name=results['name'], assigner=ctx.author.mention)
             await add_assignment(ctx.author.id, results['name'], results['description_id'], results.get('solution_id'),
                                  results.get('delete_after_date'), results.get('date'), results.get('interval'))
-            await lang.get('assignment.create.completed').send(dm, name=results['name'], assigner=ctx.author.mention)
             return
     elif stage.num == 1:
         if len(results.get('name', '')) > 32:
@@ -432,10 +455,19 @@ async def homework(ctx, sub=None, assigner: Optional[discord.User] = None, *, na
             if database.cursor.rowcount != 0:
                 header = f"**`{name}` was successfully deleted!**\n\n"
                 color = "%color.success%"
+                task = scheduled_assignments.get((ctx.author.id, name))
+                if task:
+                    task[0].cancel()
+                    scheduled_assignments.pop((ctx.author.id, name))
+                else:
+                    tasks = scheduled_submissions.get((ctx.author.id, name))
+                    if tasks:
+                        for task in tasks:
+                            task.cancel()
+                        scheduled_submissions.pop((ctx.author.id, name))
             else:
                 header = f"**You have not assigned an assignment named `{name}`.\n\n"
                 color = "%color.error%"
-            # TODO - Also should delete it from current scheduling process
         elif sub in ('submit', 'view', 'show', 'read'):
             await __submit(ctx, sub, name, assigner)
             return
