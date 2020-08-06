@@ -8,7 +8,10 @@ async def process(ctx, error):
     elif isinstance(error, commands.NoPrivateMessage):
         await lang.get('error.server_only').send(ctx)
     elif isinstance(error, errors.PromptSkipped):
-        await error.args[1].delete()
+        try:
+            await error.args[1].delete()
+        except discord.Forbidden:
+            pass
         await lang.get('error.prompt_skip').send(ctx)
     elif isinstance(error, errors.PromptCancelled):
         await lang.get('error.prompt_cancel').edit(error.args[1])
