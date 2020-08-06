@@ -2,9 +2,15 @@ let selectedDate = new Date();
 let btn = document.getElementById("submit-btn");
 let panel = btn.parentElement;
 
-function disableInput(elem) {
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function disableInput(elem) {
     if (elem.checked)
         elem.disabled = true;
+    await sleep(100)
+    document.querySelector(".datepicker-container").style.overflow = 'visible';
 }
 
 btn.addEventListener("click", function() {
@@ -30,6 +36,7 @@ $(function(){
         },
         onSelect: function(formattedDate, date, inst) {
             selectedDate = date;
+            btn.style.transition = 'all 0.4s ease 0s';
             btn.style.opacity = 1;
             btn.style.boxShadow="0 0 5px #0ff";
             btn.removeAttribute("disabled");

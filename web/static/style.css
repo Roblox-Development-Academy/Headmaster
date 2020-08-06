@@ -61,10 +61,11 @@ glow {
     box-shadow: 0 0 10px 15px rgb(17, 141, 141);
     cursor: pointer;
     transition: all 0.5s;
+    overflow: auto;
 }
 
 #body-override #calendar-panel-toggle:not(:checked) + label * {
-    cursor: pointer;
+    pointer-events: none;
 }
 
 .calendar-panel h4 {
@@ -87,7 +88,7 @@ glow {
 #body-override .calendar-panel #submit-btn {
     display: block;
     opacity: 0;
-    transition: opacity 0.5s ease 0.8s;
+    transition: opacity 1s ease 0.8s;
     margin: 30% auto 0 auto;
     background: linear-gradient(to bottom right, rgb(47, 187, 230), rgb(27, 67, 77));
 }
@@ -95,13 +96,13 @@ glow {
 .calendar-panel .datepicker-container {
     display: block;
     height: 0px;
-    transition: height 0.5s;
-    overflow: visible;
+    transition: height 0.6s ease 0.4s;
+    overflow: hidden;
 }
 
 .calendar-panel .datepicker-here {
     opacity: 0;
-    transition: opacity 0.5s ease 0.3s;
+    transition: opacity 1.5s ease 0.4s;
 }
 
 .calendar-panel:hover {
@@ -119,9 +120,9 @@ glow {
     width: 85vw;
     max-width: 4.5in;
     margin: 10vh auto;
-    overflow: auto;
     box-shadow: 0 0 15px 15px #0ff;
     cursor: auto;
+    overflow: auto;
 }
 
 #calendar-panel-toggle:checked + label h4 {
@@ -139,5 +140,4 @@ glow {
 
 #body-override #calendar-panel-toggle:checked + label #submit-btn {
     opacity: 0.65;
-    transition: all 0.4s ease 0s; /* TODO - This transition doesn't trigger; it uses the old transition with a delay */
 }
