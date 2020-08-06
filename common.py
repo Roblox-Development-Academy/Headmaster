@@ -79,7 +79,7 @@ async def prompt_reaction(msg: Union[discord.Message, MessageNode, MessageListNo
                 except discord.errors.Forbidden:
                     await lang.get('error.invalid_reaction').send(msg.channel)
     except asyncio.TimeoutError:
-        in_prompt.pop(user.id)
+        in_prompt.pop(user.id, None)
         raise errors.PromptTimeout("The prompt has timed out", msg)
     return response, responder
 
@@ -126,11 +126,11 @@ async def prompt(channel: discord.TextChannel, user: discord.User,
             else:
                 break
     except asyncio.TimeoutError:
-        in_prompt.pop(user.id)
+        in_prompt.pop(user.id, None)
         raise errors.PromptTimeout("The prompt has timed out", prompt_msg)
 
     if msg.content.lower() in ('cancel', 'cancel.'):
-        in_prompt.pop(user.id)
+        in_prompt.pop(user.id, None)
         raise errors.PromptCancelled("The prompt was cancelled", prompt_msg)
     return msg
 
@@ -163,7 +163,7 @@ async def prompt_date(channel: discord.TextChannel, user: discord.User,
 
 async def prompt_wait(channel: discord.TextChannel, user: discord.User,
                       prompt_msg: Union[discord.Message, MessageNode, MessageListNode], coro: Awaitable, timeout=300,
-                      on_prompt_error: Awaitable = __do_nothing(), **kwargs) -> Any:
+                      on_msg: Awaitable = __do_nothing(), **kwargs) -> Any:
     def msg_check(m):
         return m.author == user and m.channel == channel and m.content and \
                m.content.lower() in ('skip', 'back', 'cancel', 'cancel.')
@@ -178,7 +178,7 @@ async def prompt_wait(channel: discord.TextChannel, user: discord.User,
             result = await fut
             raise errors.CancelProcesses
         except errors.CancelProcesses:  # Means the date succeeded
-            return None if result is None else result[1]
+            return result
         except errors.PromptError:  # Means the message was first
-            await on_prompt_error
+            await on_msg
             raise
