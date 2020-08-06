@@ -2,7 +2,6 @@
 global_placeholders:
   default_prefix: '.'
   classroom_template: 'https://discord.new/t7uGRXX9HwpF'
-  headmaster_invite: 'https://discord.com/api/oauth2/authorize?client_id=675222760712044564&permissions=8&scope=bot'
   color:
     info: "0x9e33f3"
     error: "0xf62323"
@@ -19,6 +18,7 @@ global_placeholders:
     enroll: "☑" # Blue check mark :ballot_box_with_check:
     return: "↩"
     keycap: "\u20e3"
+    happy: ":slight_smile:"
   prompt:
     cancel: "\n\nRespond with `cancel` to cancel the setup."
     skip_or_cancel: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
@@ -69,8 +69,6 @@ messages:
 
               **profile** - View the message author's profile.
               **report** - Flag a message for inappropriate content.
-              **bookmark** - Bookmark a message for later reference.
-              **submit_hw** - Submit an assignment to the message author.
 
   to_dms:
     - embed:
@@ -96,7 +94,7 @@ messages:
               value: |
                 **class create** - Schedules a class.
                 **class check** - Post an interest check.
-                **class remove** - Cancels one of your classes.
+                **class remove** <name> - Cancels one of your classes.
             - name: "Your classes"
               inline: false
               value: "%classes%"
@@ -106,40 +104,67 @@ messages:
 
     interest_check:
       - embed:
-          title: "Interest Check: %name%"
+          title: "Interest Check | %name%"
           color: "%color.info%"
           description: "%description%"
           author:
             name: "%teacher%"
             icon_url: "%avatar%"
-          image:
-            url: "%image%"
           fields:
-            - name: "Prerequisites"
-              inline: false
-              value: "%prerequisites%"  # Also need teacher field, max students field
             - name: "Interest Check Poster"
               inline: false
-              value: "teacher_mention%"
+              value: "%teacher_mention%"
+        reactions:
+          - "%emoji.interest%"
 
     class_info:
       - embed:
-          title: "Class: %name%"
+          title: "Class | %name%"
           color: "%color.info%"
           description: "%description%"
           author:
             name: "%teacher%"
             icon_url: "%avatar%"
-          image:
-            url: "%image%"
           fields:
-            - name: "Prerequisites"
-              inline: false
-              value: "%prerequisites%"
             - name: "Teacher"
               inline: false
               value: "%teacher_mention%"
+          footer:
+            text: "Click below to enroll"
+        reactions:
+          - "%emoji.enroll%"
         max_students: "%max_students%"
+
+    class_starting:
+      - embed:
+          title: "Class is starting!"
+          color: "%color.info%"
+          description: |
+            **Class `%name%`, taught by %teacher%, is starting now!**
+
+            You have enrolled for this class in the [class information post](%class_info%).
+          fields:
+            - name: "Attend Class"
+              value: "%invite%"
+        no_invite: "*There are no channels in the teacher's classroom server! You may notify the teacher, %teacher%."
+        invite: "Click [here](%invite%) to attend the class."
+
+    your_class_starting:
+      - embed:
+          title: "Your class is starting!"
+          color: "%color.info%"
+          description: |
+            **Your class, `%name%`, is starting now!**
+
+
+            %invite%
+
+
+            Thank you for your commitment to teaching. Take care of your students. We'll be cheering for you from the
+            sidelines %emoji.happy%
+          fields:
+            - name: "Students"
+              value: "%num_students% students enrolled on the [class information post](%class_info%)"
 
     create:
       1:
@@ -174,7 +199,8 @@ messages:
 
 
               This description will be shown students in the classes channel. Please describe what the class is about
-              and what you will teach in the class.%prompt.back_or_cancel%
+              and what you will teach in the class. Feel free to use markdown and make it as fancy as you'd like.
+              %prompt.back_or_cancel%
             footer:
               text: "%prompt.respond%"
           name_taken: >
@@ -192,7 +218,7 @@ messages:
 
               Include knowledge you expect the students to already know when they sign up.%prompt.options%
             footer:
-              text: "%respond_5m%"
+              text: "%prompt.respond_5m%"
           too_long: "**Your response is too long. It cannot be greater than 1024 characters.**\n\n"
       4:
         - embed:
@@ -203,8 +229,9 @@ messages:
 
               You can paste an image URL or attach an image file to your response.%prompt.options%
             footer:
-              text: "%respond_5m%"
+              text: "%prompt.respond_5m%"
           prerequisites_is: "__**The prerequisites have been linked to [this message](%prerequisites%).**__\n\n"
+          no_prerequisites: "__**There are no prerequisites for the class.**__\n\n"
       5:
         - embed:
             title: "Create Class"
@@ -231,7 +258,7 @@ messages:
               Click [here](%url%) to select a date and time. When class starts, all students who signed up would be
               notified and invited into the classroom.
             footer:
-              text: "%respond_5m%"
+              text: "%prompt.respond_5m%"
           max_students_is: "__**The maximum number of students is %max_students%.**__\n\n"
           no_max_students: "__**There is no maximum limit for students.**__\n\n"
           invalid_submission: "**Invalid submission. Please try again.**\n\n"
@@ -250,6 +277,9 @@ messages:
               %s%%s%:three: A new text channel and voice channel in this server you will be able to control.
 
 
+              *Channels on RDA will be deleted after 30 minutes of inactivity.*
+
+
               *Please consider option :one:. You have more categories for organization, ability to add your own bots,
               and full access to Headmaster and ability to customize him. Once Headmaster joins enough servers, he will
               be able to bypass rate limits, which means more and more speed and power!*%prompt.react%
@@ -263,6 +293,7 @@ messages:
       8:
         - embed:
             title: "Confirm Info"
+            color: "%color.wizard%"
             description: "%description%"
             fields:
               - name: "Prerequisites"
@@ -289,16 +320,17 @@ messages:
 
               Click [here](%classroom_template%) to create the server.
 
-              Once you're done, click[here](%headmaster_invite%) and select your newly-created server to add Headmaster.
-              %prompt.back_or_cancel%
+              Once you're done, click [here](%invite%) and select your newly-created server to add
+              Headmaster.%prompt.back_or_cancel%
             footer:
               text: "%prompt.respond_5m%"
       interest_check_completed:
         - embed:
             title: "Create Interest Check"
             color: "%color.success%"
-            description: |
+            description: >
               **Successfully posted interest check!**
+
 
               Students can express their interest in the class by reacting to [the interest check](%url%) with the
               %emoji.interest% emoji.
@@ -759,3 +791,10 @@ messages:
           title: "%emoji.error% Not in RDA"
           color: "%color.error%"
           description: "You must be a member of Roblox Development Academy to execute this command."
+    teacher_only:
+      - embed:
+          title: "%emoji.error% You must be a teacher to do this"
+          color: "%color.error%"
+          description: |
+            You must have the Teacher role in Roblox Development Academy to perform this action.
+            You may apply to be Teacher with the `apply` command.
