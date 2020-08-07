@@ -3,6 +3,7 @@ fastapi>=0.59.0,<0.60.0
 jinja2
 uvicorn
 gunicorn
+aiofiles
 pytz
 PyYAML
 python-dateutil
