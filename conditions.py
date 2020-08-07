@@ -17,7 +17,7 @@ def manager_only():
         return ctx.author.id in (260608867292020737, 450375444450115585)
     return commands.check(predicate)
 
-
+  
 def in_rda():
     def predicate(ctx):
         if rda.get_member(ctx.author.id):

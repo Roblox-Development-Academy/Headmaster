@@ -7,18 +7,26 @@ global_placeholders:
     error: "0xf62323"
     success: "0x5efb32"
     wizard: "0x00f6ff"
+    level: "0x622eff"
   emoji:
-    confirm: "\U00002705"  # :white_check_mark:
+    confirm: "\u2705"  # :white_check_mark:
     'no': "x\u20e3"
     gotcha: "\U0001f44d"  # :thumbs_up:
     error: "\U0001f63f"  # :crying_cat_face:
     date: "\U0001f4c6"  # :calendar:
-    time: "\U000023f2"  # :timer:
+    time: "\u23f2"  # :timer:
     interest: "🤔"  # Thinking emoji
     enroll: "☑" # Blue check mark :ballot_box_with_check:
     return: "↩"
     keycap: "\u20e3"
     happy: ":slight_smile:"
+    solution: "\u2705"  # :white_check_mark:
+    report: "⚠️"
+    profile: "ℹ️"
+    next: "\u25b6"
+    previous: "\u25c0"
+    rewind: "\u23ea"
+    fast_forward: "\u23e9"
   prompt:
     cancel: "\n\nRespond with `cancel` to cancel the setup."
     skip_or_cancel: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
@@ -50,6 +58,8 @@ messages:
             value: |
               **help** - Shows this message.
               **profile** - View someone's profile.
+              **leaderboard** - Shows the leaderboard.
+              **categories** - Shows the categories for levels.
               **getprefix** - Show the server command prefix.
               **hw** - Create, submit, and manage assignments.
           - name: "Teacher Commands"
@@ -67,8 +77,9 @@ messages:
             value: |
               *React to a message with one of these emojis.*
 
-              **profile** - View the message author's profile.
-              **report** - Flag a message for inappropriate content.
+              %emoji.profile% **profile** - View the message author's profile.
+              %emoji.report% **report** - Flag a message for inappropriate content.
+              %emoji.solution% **solution** - Mark a message as the solution to your problem.
 
   to_dms:
     - embed:
@@ -699,6 +710,188 @@ messages:
           - name: "Description"
             value: "%description%"
 
+  levels:
+    leaderboard:
+      - embed:
+          title: "Leaderboard"
+          color: "%color.level%"
+          description: |
+            You can earn exp by helping people in the help channels and participating in contests and also earn multipliers when participating in game nights.
+            You earn a specific amount of exp depending on which category you helped with.
+            If someone helps you, you may react to their message with %emoji.solution% to give them exp.
+            Vice versa, you earn exp whenever someone reacts to your message with %emoji.solution%.
+
+            Use `%prefix%leaderboard <category>` to view the leaderboard of a specific category.
+            Use `%prefix%categories` for a list of the categories.
+            Your multipliers can be viewed using `%prefix%profile`
+          footer:
+            text: "Page: %page%.     %user%"
+        reactions:
+          - "%emoji.rewind%"
+          - "%emoji.previous%"
+          - "%emoji.next%"
+          - "%emoji.fast_forward%"
+    categories:
+      - embed:
+          title: "Categories"
+          color: "%color.info%"
+          description: |
+            You can earn exp by helping people in the help channels.
+            React to other members' messages with %emoji.solution% to show that they have answered your question or helped you.
+            Message senders with a %emoji.solution% will receive exp depending on the category they helped in (average 11 exp).
+
+            Below is a list of the categories and the corresponding channels and exp rates.
+    level_up:
+      1:
+        - embed:
+            title: "Level-Up"
+            color: "%color.level%"
+            description: |
+              Congratulations, you are now a level %level% %category% in RDA!
+      2:
+        - embed:
+            title: "Level-Up"
+            color: "%color.level%"
+            description: |
+              Congratulations, you have advanced to level %level% in %category% in RDA!
+
+  profile:
+    - embed:
+        title: "Profile"
+        color: "%color.info%"
+        description: |
+          %nickname%
+
+        author:
+          name: "%user_name%"
+        thumbnail:
+          url: "%avatar_url%"
+        footer:
+          text: "User ID: %user_id%"
+        fields:
+          - name: "Levels"
+            value: "%levels%"
+            inline: true
+
+          - name: "Exp Multipliers"
+            value: "%multipliers%"
+            inline: true
+
+          - name: "Joined RDA"
+            value: "%join_server%.\n%server_duration% ago."
+            inline: false
+
+          - name: "Joined Discord"
+            value: "%join_discord%.\n%discord_duration% ago."
+            inline: true
+
+  report:
+    start:
+      - embed:
+          title: "%reported% Has Been Reported"
+          color: "%color.info%"
+          description: |
+            This user has been reported for the following message:
+          fields:
+            - name: "Location"
+              value: |
+                **Guild:** %guild_name%
+                ID: %guild_id%
+
+                **Channel:** <#%channel_id%>
+                %channel_name%
+                ID: %channel_id%
+
+                **Message:** [Link.](%jump_url%)
+                ID: %message_id%
+            - name: "Information"
+              value: |
+                **Reported User:**
+                <@%reported_id%>
+                %reported%
+                ID: %reported_id%
+
+                **Reporter:**
+                <@%reporter_id%>
+                %reporter%
+                ID: %reporter_id%
+
+                **Time Message was Sent:** %message_sent_at%
+                **Time of Report:** %report_time%
+    end:
+      - embed:
+          title: "End of Report"
+          color: "%color.success%"
+    success:
+      - embed:
+          title: "Report Received"
+          color: "%color.success%"
+          description: |
+            <@%reported_id%> has been reported.
+            Thank you for your report.
+            If you believe this is an error, please contact one of the staff.
+
+  multiplier:
+    usage:
+      - embed:
+          title: "Give a User a Multiplier"
+          color: "%color.info%"
+          description: |
+            Multipliers increase the exp rate when earning exp.
+
+            Use `%prefix%multiplier <user> <multiplier> <duration (optional)>` to give **<user>** a multiplier of **<multiplier>**.
+            If a duration is given, the temporary multiplier will last **<duration>** from when the command is executed.
+            If no duration is given, the user will be given a pernament multiplier.
+            The multiplier must be a float greater than or equal to 0 and at most 14641.
+
+            Some events giving out large amounts of exp may be multiplier immune.
+          fields:
+            - name: "Duration Format"
+              value: |
+                `0d 0h 0m 0s`
+                or
+                `0d0h0m0s`
+
+                d = days.
+                h = hours.
+                m = minutes.
+                s = seconds.
+              inline: false
+
+            - name: "Examples"
+              value: |
+                %prefix%multiplier <@260608867292020737> 2 77d 1h
+                %prefix%multiplier 450375444450115585 1.1 51h
+                %prefix%multiplier Coneylove133 1.7 1d7.5h2s
+                %prefix%multiplier 697655651127525498 2.5
+              inline: false
+    success:
+      - embed:
+          title: "Multiplier Added"
+          color: "%color.success%"
+          description: |
+            A multiplier of %multiplier%x has been given to %user%.
+            **Duration:** %duration%.
+            **Expiration Date:** %expire%.
+
+  exp:
+    help:
+      - embed:
+          title: "Exp"
+          color: "%color.info%"
+          description: |
+            This command is used to give or remove exp from someone.
+
+            Use `%prefix%exp <user(s)> <category name> <amount>` to give someone exp.
+            To take away exp, enter a negative amount.
+
+            `<amount>` must be an integer. If a float is entered, it will be rounded to the nearest integer.
+    success:
+      - embed:
+          title: "Success"
+          color: "%color.success%"
+          description: "Category: %category%.\n%amount% exp has been %action% %users%."
+
   error:
     prompt_timeout:
       - embed:
@@ -772,20 +965,44 @@ messages:
             description: "The prefix can be at most 15 characters. `%prefix%` is %prefix_length%."
       server_only:
         - embed:
-            title: "%emoji.error% Server-only command"
+            title: "%emoji.error% Server-Only Command"
             color: "%color.error%"
             description: "The command prefix can only be set for servers. For private messages with the bot,
               use the default prefix `%default_prefix%`"
     missing_permissions:
       - embed:
-          title: "%emoji.error% No permission to use this command"
+          title: "%emoji.error% No Permission to Use This Command"
           color: "%color.error%"
           description: "%description%"
     server_only:
       - embed:
-          title: "%emoji.error% Server-only command"
+          title: "%emoji.error% Server-Only Command"
           color: "%color.error%"
           description: "You can only use this command in a server."
+    invalid_category:
+      - embed:
+          title: "%emoji.error% Invalid Category"
+          color: "%color.error%"
+          description: |
+            `%category%` is not a valid category.
+            For a list of categories, use `%prefix%categories`
+    multiplier:
+      invalid:
+        - embed:
+            title: "%emoji.error% Invalid Multiplier"
+            color: "%color.error%"
+            description: |
+              `%multiplier%` is not a valid multiplier.
+              Please enter a float greater than or equal to 0 and at most 14641.
+      duration:
+        - embed:
+            title: "%emoji.error% Too Far in the Future"
+            color: "%color.error%"
+            description: |
+              That is too far in the future.
+
+              **The Maximum Duration (Currently):** %duration%.
+              **The Maximum Expiration Date:** %date%.
     not_in_rda:
       - embed:
           title: "%emoji.error% Not in RDA"

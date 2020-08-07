@@ -13,6 +13,8 @@ async def run():
     await asyncio.sleep(1)
     from cogs.admin import Admin
     from cogs.errorhandler import ErrorHandler
+    from cogs.level import Level
+    from cogs.report import Report
     import conditions
 
     def generate_tables():
@@ -30,7 +32,8 @@ async def run():
             )
             """,
             """
-            CREATE INDEX IF NOT EXISTS idx_channel_guild ON ignored_channels(guild_id)
+            CREATE INDEX IF NOT EXISTS idx_channel_guild
+            ON ignored_channels(guild_id)
             """,
             """
             CREATE TABLE IF NOT EXISTS assignments(
@@ -66,15 +69,63 @@ async def run():
                 starting_at TIMESTAMPTZ NOT NULL,
                 PRIMARY KEY (teacher, name)
             )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS categories (
+                id SERIAL PRIMARY KEY UNIQUE NOT NULL,
+                name VARCHAR(100) UNIQUE,
+                exp_rate REAL DEFAULT 11
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS levels (
+                user_id BIGINT NOT NULL,
+                category_id INTEGER NOT NULL,
+                exp BIGINT DEFAULT '0',
+                PRIMARY KEY (user_id, category_id),
+                FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
+            )
+            """,
+            """
+            CREATE INDEX IF NOT EXISTS idx_leaderboard
+            ON levels (category_id, exp DESC)
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS multipliers (
+                user_id BIGINT,
+                multiplier REAL NOT NULL,
+                end_time TIMESTAMPTZ
+            )
+            """,
+            """
+            CREATE INDEX IF NOT EXISTS idx_multipliers
+            ON multipliers (user_id)
             """
         )
+        upsert_statements = (
+            """
+            INSERT INTO categories (name)
+            VALUES
+                ('Scripting'),
+                ('Animation'),
+                ('Modeling'),
+                ('Building'),
+                ('GFX'),
+                ('SFX')
+            ON CONFLICT (name) DO NOTHING
+            """,
+        )
         for statement in statements:
+            database.update(statement)
+        for statement in upsert_statements:
             database.update(statement)
 
     generate_tables()
 
     client.add_cog(ErrorHandler())
     client.add_cog(Admin())
+    client.add_cog(Level())
+    client.add_cog(Report())
     client.load_extension('cmds.apply')
     client.load_extension('cmds.homework')
     client.load_extension('cmds.class')
@@ -87,12 +138,12 @@ async def run():
     @client.check
     async def globally_ignore_channels(ctx):
         if database.query(
-                """
+            """
             SELECT id
             FROM ignored_channels
             WHERE id = %s
             """,
-                (ctx.channel.id,)
+            (ctx.channel.id,)
         ).fetchone() is None:
             return True
         else:

@@ -1,27 +1,27 @@
 import psycopg2
-import copy
 
 from bot import *
 from cogs import errorhandler
 from language import LangManager
-
-
-def _add_ignored_channels(rows):
-    try:
-        database.cursor.executemany(
-            """
-            INSERT INTO ignored_channels (id, guild_id) VALUES (%s,%s)
-            ON CONFLICT (id) DO NOTHING
-            """,
-            rows
-        )
-        database.connection.commit()
-    except psycopg2.DatabaseError:
-        database.connect()
-        _add_ignored_channels(rows)
+from copy import deepcopy
 
 
 class Admin(commands.Cog):
+    @staticmethod
+    def __add_ignored_channels(rows):
+        try:
+            database.cursor.executemany(
+                """
+                INSERT INTO ignored_channels (id, guild_id) VALUES (%s,%s)
+                ON CONFLICT (id) DO NOTHING
+                """,
+                rows
+            )
+            database.connection.commit()
+        except psycopg2.DatabaseError:
+            database.connect()
+            Admin.__add_ignored_channels(rows)
+
     @commands.command(aliases=["findprefix", "showprefix"])
     @commands.guild_only()
     async def getprefix(self, ctx):
@@ -78,7 +78,7 @@ class Admin(commands.Cog):
                 # args_str = ",".join(database.cursor.mogrify("(%s,%s)", (str(channel.id), str(ctx.guild.id))) for
                 # channel in channels)
                 # logger.debug("Psycopg2's mogrified arg_str: " + str(args_str))
-                _add_ignored_channels(rows)
+                Admin.__add_ignored_channels(rows)
                 msg = "**The specified channels are now ignored!**\n\n"
                 give_example = False
                 color = "%color.success%"
@@ -92,7 +92,7 @@ class Admin(commands.Cog):
                 msg = "**The specified channels are not ignored anymore!**\n\n"
                 give_example = False
                 color = "%color.success%"
-        ignore_node = copy.deepcopy(lang.get('ignore'))
+        ignore_node = deepcopy(lang.get('ignore'))
         if give_example:
             guild_channels = ctx.guild.channels
             num_channels = len(guild_channels)

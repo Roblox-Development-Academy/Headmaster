@@ -8,6 +8,8 @@ from discord.ext import commands
 import database
 from language import LangManager as __LangManager
 
+from yaml import load, FullLoader
+
 TOKEN = __os.environ['TOKEN']
 WEB_URL = __os.environ['URL']
 
@@ -81,3 +83,15 @@ async def __on_ready():
 in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands
 
 lang = __LangManager('messages.yml')
+
+with open("config.yml") as f:
+    config = load(f, Loader=FullLoader)
+    if __os.environ['DEBUG'] == '1':
+        __test = 'test_'
+    elif __os.environ['DEBUG'] == '0':
+        __test = ''
+
+    servers = config[__test + 'servers']
+    channels = config[__test + 'channels']
+    categories = config[__test + 'categories']
+
