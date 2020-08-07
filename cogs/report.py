@@ -1,16 +1,14 @@
 from datetime import timezone, datetime
 from discord.ext import commands
-from yaml import load, FullLoader
-from bot import lang
+from bot import lang, client, channels
 from language import MessageNode
-from bot import client
+from discord import Embed
+from discord.errors import HTTPException
 
 
 class Report(commands.Cog):
     def __init__(self):
-        with open("config.yml") as f:
-            config = load(f, Loader=FullLoader)
-            self.report_channel = config['channels']['report']
+        self.report_channel = channels['report']
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -20,6 +18,9 @@ class Report(commands.Cog):
             await message.remove_reaction(payload.emoji, payload.member)
             await lang.get("report.start").send(report_channel, reported=f"{message.author}", reported_id=str(message.author.id), reporter=f"{payload.member}", reporter_id=str(payload.member.id), guild_name=message.guild.name, guild_id=str(message.guild.id), channel_name=message.channel.name, channel_id=str(message.channel.id), jump_url=message.jump_url, message_id=str(message.id), message_sent_at=message.created_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'), report_time=datetime.now(timezone.utc).strftime('%A, %B %d, %Y; %I:%M %p UTC.'))
             message_copy = await MessageNode.from_message(message)
-            await message_copy.send(report_channel)
+            try:
+                await message_copy.send(report_channel)
+            except HTTPException:
+                await report_channel.send(embed=Embed(description="The reported message has no content.", colour=int(lang.global_placeholders.get("color.info"), 16)))
             await lang.get("report.end").send(report_channel)
             await lang.get("report.success").send(payload.member, reported_id=str(message.author.id), reported_name=message.author.name)
