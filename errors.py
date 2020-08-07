@@ -1,9 +1,33 @@
 from bot import *
 
 
-class PromptCancelled(commands.CommandError):
+class NotInRDA(commands.CheckFailure):
     pass
 
 
-class PromptTimeout(commands.CommandError):
+class CancelProcesses(commands.CommandError):
+    pass
+
+
+class PromptError(commands.CommandError):
+    pass
+
+
+class PromptKilled(PromptError):
+    pass
+
+
+class PromptCancelled(PromptKilled):
+    pass
+
+
+class PromptTimeout(PromptKilled):
+    pass
+
+
+class PromptSkipped(PromptError):
+    pass
+
+
+class PreviousPrompt(PromptError):
     pass

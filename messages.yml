@@ -1,19 +1,35 @@
 # Placeholders that can be used in any message; you can define your own but these don't change
 global_placeholders:
+  default_prefix: '.'
+  classroom_template: 'https://discord.new/t7uGRXX9HwpF'
   color:
     info: "0x9e33f3"
     error: "0xf62323"
     success: "0x5efb32"
     wizard: "0x00f6ff"
   emoji:
-    confirm: ":white_check_mark:"
-    gotcha: ":thumbs_up:"
-    error: ":crying_cat_face:"
-    date: ":calendar:"
-    timer: ":timer:"
-  cancel_prompt: "\n\nRespond with `cancel` to cancel the setup."
-  respond_prompt: "Please respond within 5 minutes."
+    confirm: "\U00002705"  # :white_check_mark:
+    'no': "x\u20e3"
+    gotcha: "\U0001f44d"  # :thumbs_up:
+    error: "\U0001f63f"  # :crying_cat_face:
+    date: "\U0001f4c6"  # :calendar:
+    time: "\U000023f2"  # :timer:
+    interest: "🤔"  # Thinking emoji
+    enroll: "☑" # Blue check mark :ballot_box_with_check:
+    return: "↩"
+    keycap: "\u20e3"
+    happy: ":slight_smile:"
+  prompt:
+    cancel: "\n\nRespond with `cancel` to cancel the setup."
+    skip_or_cancel: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
+    back_or_cancel: "\n\nRespond with `back` to return to the previous step or `cancel` to cancel the setup."
+    options: "\n\nRespond with `skip` to skip this step, `back` to return to the previous step, or `cancel` to
+              cancel the setup."
+    react: "\n\nRespond by selecting one of the options below."
+    respond_5m: "Please respond within 5 minutes."
+    respond: "Please respond within %time_display%."
   s: "\u2800" # Blank space; invisible unicode character
+  bullet: "•"
 
 # Messages the bot will be sending
 messages:
@@ -22,10 +38,11 @@ messages:
         title: "Headmaster - Commands"
         color: "%color.info%"
         description: |
-          *Custom bot of [**Roblox Development Academy**](https://discord.gg/NxuhkqH).*
-          *Dedicated to providing a perfect environment for teaching and learning.*
+          𝐿𝑒𝑎𝑟𝑛 𝑙𝑖𝑘𝑒 𝑛𝑜 𝑗𝑜𝑦 𝑖𝑠 𝑔𝑟𝑒𝑎𝑡𝑒𝑟, 𝑆𝑡𝑟𝑖𝑣𝑒 𝑙𝑖𝑘𝑒 𝑦𝑜𝑢'𝑙𝑙 ℎ𝑎𝑣𝑒 𝑛𝑜 𝑟𝑒𝑔𝑟𝑒𝑡𝑠,
+          𝑇𝑒𝑎𝑐ℎ 𝑙𝑖𝑘𝑒 𝑛𝑜 𝑙𝑜𝑣𝑒 𝑖𝑠 ℎ𝑖𝑔ℎ𝑒𝑟, 𝐶𝑟𝑒𝑎𝑡𝑒 𝑤ℎ𝑎𝑡 𝑦𝑜𝑢'𝑙𝑙 𝑛𝑒𝑣𝑒𝑟 𝑓𝑜𝑟𝑔𝑒𝑡.
+          *[**Roblox Development Academy**](https://discord.gg/NxuhkqH)*
         footer:
-          text: "Made by JL for Roblox Development Academy."
+          text: "Made by JL and líng for Roblox Development Academy."
           icon_url: "https://cdn.discordapp.com/avatars/260608867292020737/6e171a1f5883419ac89a52695c659ba5.webp?size=256"
         fields:
           - name: "General Commands"
@@ -51,12 +68,283 @@ messages:
               *React to a message with one of these emojis.*
 
               **profile** - View the message author's profile.
-              **report** - Report a message with inappropriate contents.
-              **bookmark** - Bookmark a message for later reference.
-              **submit_hw** - Submit an assignment to the message author.
+              **report** - Flag a message for inappropriate content.
+
+  to_dms:
+    - embed:
+        title: "Proceed in Private Messages"
+        color: "%color.success%"
+        description: |
+          **I have sent you a private message!**
+
+          Please proceed to your DMs.
+
+  class:
+    main:
+      - embed:
+          title: "Classes"
+          description: >
+            Create your own classes and teach students. You allow students to sign up, configure your class,
+            and schedule it for a certain date.
+
+            You need the %teacher_role% role to teach classes. You may apply to be teacher via the `.apply` command.
+          fields:
+            - name: "Commands"
+              inline: false
+              value: |
+                **class create** - Schedules a class.
+                **class check** - Post an interest check.
+                **class remove** <name> - Cancels one of your classes.
+            - name: "Your classes"
+              inline: false
+              value: "%classes%"
+        no_classes: "*You have no classes. Use the `class create` command to create one.*"
+        deleted_header: "**`%name%` was successfully deleted!**\n\n"
+        not_found_header: "**You have not scheduled a class named `%name%`.**\n\n"
+
+    interest_check:
+      - embed:
+          title: "Interest Check | %name%"
+          color: "%color.info%"
+          description: "%description%"
+          author:
+            name: "%teacher%"
+            icon_url: "%avatar%"
+          fields:
+            - name: "Interest Check Poster"
+              inline: false
+              value: "%teacher_mention%"
+        reactions:
+          - "%emoji.interest%"
+
+    class_info:
+      - embed:
+          title: "Class | %name%"
+          color: "%color.info%"
+          description: "%description%"
+          author:
+            name: "%teacher%"
+            icon_url: "%avatar%"
+          fields:
+            - name: "Teacher"
+              inline: false
+              value: "%teacher_mention%"
+          footer:
+            text: "Click below to enroll"
+        reactions:
+          - "%emoji.enroll%"
+        max_students: "%max_students%"
+
+    class_starting:
+      - embed:
+          title: "Class is starting!"
+          color: "%color.info%"
+          description: |
+            **Class `%name%`, taught by %teacher%, is starting now!**
+
+            You have enrolled for this class in the [class information post](%class_info%).
+          fields:
+            - name: "Attend Class"
+              value: "%invite%"
+        no_invite: "*There are no channels in the teacher's classroom server! You may notify the teacher, %teacher%."
+        invite: "Click [here](%invite%) to attend the class."
+
+    your_class_starting:
+      - embed:
+          title: "Your class is starting!"
+          color: "%color.info%"
+          description: |
+            **Your class, `%name%`, is starting now!**
+
+
+            %invite%
+
+
+            Thank you for your commitment to teaching. Take care of your students. We'll be cheering for you from the
+            sidelines %emoji.happy%
+          fields:
+            - name: "Students"
+              value: "%num_students% students enrolled on the [class information post](%class_info%)"
+
+    create:
+      1:
+        - embed:
+            title: "%title%"
+            color: "%color.wizard%"
+            description: >
+              %header%**What is the name of the class?**
+
+
+              Respond with the class's name. This will be used as a unique, case-sensitive identifier that will be shown
+              to students.
+
+
+              Do not make the name longer than 32 characters.%prompt.cancel%
+            fields:
+              - name: "Allowed Characters"
+                value: |
+                  %s%%s%%bullet% Alphanumeric characters
+                  %s%%s%%bullet% Spaces
+                  %s%%s%%bullet% Dashes
+                  %s%%s%%bullet% Colons
+            footer:
+              text: "%prompt.respond_5m%"
+          invalid_name: "**The class name is invalid. Please follow the instructions below.**\n\n"
+      2:
+        - embed:
+            title: "%title%"
+            color: "%color.wizard%"
+            description: >
+              %header%**Write the description for your class.**
+
+
+              This description will be shown students in the classes channel. Please describe what the class is about
+              and what you will teach in the class. Feel free to use markdown and make it as fancy as you'd like.
+              %prompt.back_or_cancel%
+            footer:
+              text: "%prompt.respond%"
+          name_taken: >
+            **You already have a class by this name. If you continue, your new class will override the original.
+            Respond with `cancel` to cancel the prompt.**\n\n
+          name_is: "__**The name of the class is `%name%`.**__\n\n"
+      3:
+        - embed:
+            title: "%title%"
+            color: "%color.wizard%"
+            description: |
+              %header%__**The class description has been linked to [this message](%description%).**__
+
+              **Describe the prerequisites for attending the class.**
+
+              Include knowledge you expect the students to already know when they sign up.%prompt.options%
+            footer:
+              text: "%prompt.respond_5m%"
+          too_long: "**Your response is too long. It cannot be greater than 1024 characters.**\n\n"
+      4:
+        - embed:
+            title: "Create Class"
+            color: "%color.wizard%"
+            description: |
+              %header%**What image would you like to show in the class info?**
+
+              You can paste an image URL or attach an image file to your response.%prompt.options%
+            footer:
+              text: "%prompt.respond_5m%"
+          prerequisites_is: "__**The prerequisites have been linked to [this message](%prerequisites%).**__\n\n"
+          no_prerequisites: "__**There are no prerequisites for the class.**__\n\n"
+      5:
+        - embed:
+            title: "Create Class"
+            color: "%color.wizard%"
+            description: >
+              %header%**What is the maximum number of students you will accept in your class?**
+
+
+              This is only for display. You can enforce the limit yourself. For no maximum limit, `skip` this prompt.
+              %prompt.options%
+            footer:
+              text: "%prompt.respond_5m%"
+          image_is: "__**[This image](%image%) will be used for the url.**__\n\n"
+          no_image: "__**No image will be displayed in class info.**__\n\n"
+          invalid_int: "**That is not a valid integer. Please respond with a valid integer.**\n\n"
+      6:
+        - embed:
+            title: "Create Class"
+            color: "%color.wizard%"
+            description: >
+              %header%**At what time will the class start?**
+
+
+              Click [here](%url%) to select a date and time. When class starts, all students who signed up would be
+              notified and invited into the classroom.
+            footer:
+              text: "%prompt.respond_5m%"
+          max_students_is: "__**The maximum number of students is %max_students%.**__\n\n"
+          no_max_students: "__**There is no maximum limit for students.**__\n\n"
+          invalid_submission: "**Invalid submission. Please try again.**\n\n"
+      7:
+        - embed:
+            title: "Create Class"
+            color: "%color.wizard%"
+            description: >
+              **Where do you want the class to be held?**
+
+
+              %s%%s%:one: A new server from a server template with the classroom already set up.
+
+              %s%%s%:two: A new text channel in this server you will be able to control.
+
+              %s%%s%:three: A new text channel and voice channel in this server you will be able to control.
+
+
+              *Channels on RDA will be deleted after 30 minutes of inactivity.*
+
+
+              *Please consider option :one:. You have more categories for organization, ability to add your own bots,
+              and full access to Headmaster and ability to customize him. Once Headmaster joins enough servers, he will
+              be able to bypass rate limits, which means more and more speed and power!*%prompt.react%
+            footer:
+              text: "%prompt.respond_5m%"
+          reactions:
+            - "1%emoji.keycap%"
+            - "2%emoji.keycap%"
+            - "3%emoji.keycap%"
+            - "%emoji.return%"
+      8:
+        - embed:
+            title: "Confirm Info"
+            color: "%color.wizard%"
+            description: "%description%"
+            fields:
+              - name: "Prerequisites"
+                inline: false
+                value: "%prerequisites%"
+              - name: "Classroom"
+                inline: false
+                value: "%classroom%"
+            footer:
+              text: "Click below to confirm the class details"
+          reactions:
+            - "%emoji.confirm%"
+            - "%emoji.return%"
+          server: "%s%%s%%bullet% Server Classroom"
+          text: "%s%%s%%bullet% Text Channel"
+          text_and_voice: |
+            %s%%s%%bullet% Text Channel
+            %s%%s%%bullet% Voice Channel
+      9:
+        - embed:
+            title: "Create Class"
+            description: >
+              **Create the server and add Headmaster.**
+
+              Click [here](%classroom_template%) to create the server.
+
+              Once you're done, click [here](%invite%) and select your newly-created server to add
+              Headmaster.%prompt.back_or_cancel%
+            footer:
+              text: "%prompt.respond_5m%"
+      interest_check_completed:
+        - embed:
+            title: "Create Interest Check"
+            color: "%color.success%"
+            description: >
+              **Successfully posted interest check!**
+
+
+              Students can express their interest in the class by reacting to [the interest check](%url%) with the
+              %emoji.interest% emoji.
+      completed:
+        - embed:
+            title: "Create Class"
+            color: "%color.success%"
+            description: |
+              **Successfully scheduled class!**
+
+              Students can enroll for the class by reacting to [the class information post](%url%) with %emoji.enroll%.
 
   teacher_application:
-    1:
+    initiate:
       - embed:
           title: "Apply for Teacher"
           color: "%color.wizard%"
@@ -74,24 +362,321 @@ messages:
                 %s%%s%- Responsible.
                 %s%%s%- Active.
                 %s%%s%- Knowledgeable about the subject you're teaching.
+          footer:
+            text: "%prompt.respond_5m%"
+        reactions:
+          - "%emoji.confirm%"
+    start:
+      - embed:
+          title: "Apply for Teacher"
+          color: "%color.success%"
+          description: |
+            **I have sent you a private message!**
+
+            Please proceed with the application in your DMs.
+    dm_message:
+      - embed:
+          title: "Teacher Application"
+          color: "%color.wizard%"
+          description: |
+            Please send any proof you have of your expertise, such as portfolios, links, pictures, or files.
+
+            I will react with %emoji.gotcha% to show that I have received that message.
+            If you don't respond within 5 minutes, the application will be canceled.
+          fields:
+            - name: "Done"
+              value: |
+                Please respond with "done" when you are finished with your application.
+              inline: false
+            - name: "Cancel"
+              value: |
+                Please respond with "cancel" to cancel the application.
+              inline: false
+    ta_content:
+      - embed:
+          title: "Teacher Application for %user% has Been Successfully Completed"
+          color: "%color.success%"
+          description: "User: %user_mention%"
+    complete:
+      - embed:
+          title: "Application Submitted"
+          color: "%color.success%"
+          description: >
+            Your application has been submitted! Thank you for applying.
+            You will be contacted once results are out.
+    end:
+      - embed:
+          title: "End of Teacher Application for %user%"
+          color: "%color.success%"
 
   assignment:
     create:
+      1:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: >
+              %header%**What is the name of the assignment?**
+
+
+              This is a unique, case-sensitive identifier that students can use to submit the assignment. It cannot be
+              longer than 32 character and it cannot be shorter than 1. Using an existing name will replace the
+              previous assignment.%prompt.cancel%
+            footer:
+              text: "%prompt.respond_5m%"
+      2:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: >
+              %header%
+
+
+              **Write the description to the assignment.**
+
+
+              This will be shown to any student looking for assignment information. You can attach files and
+              edit your description freely; the newest version will always be used.%prompt.back_or_cancel%
+            footer:
+              text: "%prompt.respond%"
+      3:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: >
+              __**The assignment description has been linked to [this message](%url%)**__
+
+
+              **Write the solution to the assignment.**
+
+
+              This will be shown at a designated time to all students who have submitted the assignment. You
+              can attach files and edit your solution freely; the newest version will always be used.%prompt.options%
+            footer:
+              text: "%prompt.respond%"
+      4:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: >
+              __**The assignment solution has been linked to [this message](%url%)**__
+
+
+              **When do you want the answer to be shown to submitters?**
+
+
+              %s%%s%:one: Immediately after submission
+
+              %s%%s%:two: After a specified time interval has passed after submission
+
+              %s%%s%:three: At a specified date and time
+
+
+              The solution will only be shown to those who have submitted the assignment. You will be able to
+              see all submissions.%prompt.react%
+            footer:
+              text: "%prompt.respond_5m%"
+          reactions:
+            - "1%emoji.keycap%"
+            - "2%emoji.keycap%"
+            - "3%emoji.keycap%"
+            - "%emoji.return%"
+      6:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: |
+              **How long after the submitter submits will he or she be shown the solution?**
+            fields:
+              - name: "Response Format Examples"
+                value: |
+                  %s%%s%%bullet% 3h
+                  %s%%s%%bullet% 7d 8h 32m 11s
+                  %s%%s%%bullet% 5m22.2s
+            footer:
+              text: "%prompt.respond_5m%"
+      7:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: |
+              %header%**When will submitters be shown the assignment?**
+
+              Click [here](%url%) to select a date and time.%prompt.back_or_cancel%
+            footer:
+              text: "%prompt.respond_5m%"
+      8:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: |
+              **After this time has passed, will the assignment be**
+
+              %s%%s%1%emoji.keycap% Deleted or
+              %s%%s%2%emoji.keycap% Open and automatically send solutions right away to submitters?
+            footer:
+              text: "%prompt.respond_5m%"
+          reactions:
+            - "1%emoji.keycap%"
+            - "2%emoji.keycap%"
+            - "%emoji.return%"
+      confirm:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.wizard%"
+            description: |
+              **Confirm assignment creation.**
+
+              Click %emoji.confirm% below to confirm or %emoji.return% to go back.
+            fields:
+              - name: "Name"
+                inline: false
+                value: "%name%"
+              - name: "Description"
+                inline: false
+                value: "The description has been linked to [this message](%description_url%). Edit to change it."
+              - name: "Solution"
+                inline: false
+                value: "The solution has been linked to [this message](%solution_url%). Edit to change it."
+              - name: "Time"
+                inline: false
+                value: "%time%"
+            footer:
+              text: "%prompt.respond_5m%"
+          reactions:
+            - "%emoji.confirm%"
+            - "%emoji.return%"
+      completed:
+        - embed:
+            title: "Create Assignment"
+            color: "%color.success%"
+            description: |
+              **Assignment `%name%` successfully created!**
+
+              Use the `hw submit` command to submit the assignment.
+            fields:
+              - name: "Examples"
+                value: |
+                  %s%%s%%bullet% hw submit %assigner% %name%
+
+    submit:
+      1:
+        - embed:
+            title: "%sub% Assignment"
+            color: "%color.wizard%"
+            description: |
+              %header%**Who is the creator of the assignment?**
+
+              Enter the name or user id of the assignment creator.
+
+              *You can get the id by enabling developer mode and right clicking the profile picture and selecting 'Copy ID'*%prompt.cancel%
+            footer:
+              text: "%prompt.respond_5m%"
+      2:
+        - embed:
+            title: "%sub% Assignment"
+            color: "%color.wizard%"
+            description: |
+              %header%**What is the name of the assignment?**%prompt.back_or_cancel%
+            fields:
+              - name: "Assignments"
+                value: "%list%"
+            footer:
+              text: "%prompt.respond_5m%"
+      3:
+        - embed:
+            title: "%sub% Assignment"
+            description: |
+              Assignment `%name%` created by %assigner%%instructions%
+          submit_instructions: |
+
+            **Respond with your assignment submission.**
+
+            Your submission will be sent to the assignment creator. You may re-submit at any time.%prompt.back_or_cancel%
+      complete:
+        - embed:
+            title: "Submit Assignment"
+            color: "%color.success%"
+            description: |
+              Assignment submitted to %assigner%!
+      submission:
+        - embed:
+            title: "Assignment Submitted"
+            color: "%color.info%"
+            description: |
+              %submitter% submitted the assignment `%name%`!
+      solution:
+        - embed:
+            title: "Assignment Solution"
+            color: "%color.info%"
+            description: |
+              The solution for assignment `%name%` created by %assigner%:
+
+    solution:
       - embed:
-          title: "Assignments"
+          title: "Assignment Solution:"
           color: "%color.info%"
+          description: |
+            Solution for assignment `%name%` by %assigner%:
+
     main:
       - embed:
           title: "%title%"
           description: |
             %header%Give students assignments to complete and a solution to check afterwards.
-            Use `%prefix%hw assign` to create an assignment.
-            Use `%prefix%hw remove <assignment name>` to remove one of your assignments.
+            Use `hw create` to create an assignment.
+            Use `hw remove <assignment name>` to remove one of your assignments.
           fields:
+            - name: "Commands"
+              value: |
+                **hw create** - Create an assignment
+                **hw remove** - Remove one of your assignments
+                **hw submit** - Submit a solution to an assignment
+                **hw view** <assigner> - View an assigner's assignments
+              inline: false
             - name: "Your Assignments"
               value: "%assignments%"
+              inline: false
+        no_assignments: "*There are no assignments. Use* `hw create` *to create one.*"
+
+    error:
+      too_many:
+        - embed:
+            title: "%emoji.error% Too Many Assignments!"
+            color: "%color.error%"
+            description: |
+              You have reached the max limit for assignments. You may use the `hw remove` command to delete assignments.
+
+  ignore:
+    - embed:
+        title: "Ignored Channels"
+        description: |
+          %message%Server members will not be able to use commands in ignored channels.
+          Use `%prefix%ignore add <channel>` to add channels to the list of ignored channels.
+          Use `%prefix%ignore remove <channels>` to unignore channels.
+          You can add/remove multiple channels at a time.
+        fields:
+          - name: "Examples"
+            inline: false
+            value: |
+              %prefix%ignore add %example%
+              %prefix%ignore remove %example%
+
+          - name: "Ignored Channels"
+            inline: false
+            value: "%channels%"
 
   prefix:
+    info:
+      - embed:
+          title: "Command Usage - setprefix"
+          color: "%color.info%"
+          description: "**setprefix** <new prefix>"
+          fields:
+            - name: "Description"
+              value: |
+                The current server command prefix is `%prefix%`
+                Use this command to change it. The prefix is case-sensitive and can be at most 15 characters.
     get:
       - embed:
           title: "Server Command Prefix:"
@@ -105,9 +690,68 @@ messages:
           color: "%color.success%"
           description: "You can now execute bot commands like **%prefix%command** or **%client% command**."
 
+  usage_embed:
+    - embed:
+        title: "Command Usage - %cmd%"
+        color: "%color.info%"
+        description: "**%cmd%** %usage%"
+        fields:
+          - name: "Description"
+            value: "%description%"
+
   error:
-    prompt_timeout: "The prompt has timed out."
-    prompt_cancel: "The prompt was cancelled."
+    prompt_timeout:
+      - embed:
+          title: "%emoji.error% Timed Out"
+          color: "%color.error%"
+          description: "You have waited too long. The prompt timed out. Please re-execute the command to restart."
+    prompt_skip:
+      - delete_after: 3
+        embed:
+          title: "%emoji.error% This prompt cannot be skipped"
+          color: "%color.error%"
+          description: "Please continue the prompt and send a response or respond with `cancel` to cancel the prompt."
+    prompt_cancel:
+      - embed:
+          title: "Prompt Cancelled"
+          color: "%color.error%"
+          description: "You have cancelled the prompt. Please re-execute the command again to restart the prompt."
+    previous_prompt:
+      - delete_after: 5
+        embed:
+          title: "%emoji.error% You cannot go to the previous stage"
+          color: "%color.error%"
+          description: "Please continue and complete the prompt or respond with `cancel` to cancel the prompt."
+    invalid_reaction:
+      - delete_after: 3
+        embed:
+          title: "%emoji.error% Invalid Choice"
+          color: "%color.error%"
+          description: "Please react with a valid emoji."
+    in_prompt:
+      - delete_after: 3
+        embed:
+          title: "%emoji.error% You are currently in a prompt"
+          color: "%color.error%"
+          description: "Before executing another command, please complete your [prompt](%prompt%)!"
+    interval:
+      parse:
+        - delete_after: 5
+          embed:
+            title: "%emoji.error% Unrecognized Time Interval"
+            color: "%color.error%"
+            description: "Please follow the designated format."
+            fields:
+              - name: "Response Format Examples"
+                value: |
+                  %s%%s%%bullet% 3h
+                  %s%%s%%bullet% 7d 8h 32m 11s
+                  %s%%s%%bullet% 5m22.2s
+      range:
+        - delete_after: 5
+          embed:
+            title: "%emoji.error% You exceeded the maximum time interval"
+            description: "Please do not use a time interval that's longer than %range_display%."
     ignored_channel:
       - delete_after: 3
         embed:
@@ -142,3 +786,15 @@ messages:
           title: "%emoji.error% Server-only command"
           color: "%color.error%"
           description: "You can only use this command in a server."
+    not_in_rda:
+      - embed:
+          title: "%emoji.error% Not in RDA"
+          color: "%color.error%"
+          description: "You must be a member of Roblox Development Academy to execute this command."
+    teacher_only:
+      - embed:
+          title: "%emoji.error% You must be a teacher to do this"
+          color: "%color.error%"
+          description: |
+            You must have the Teacher role in Roblox Development Academy to perform this action.
+            You may apply to be Teacher with the `apply` command.

@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<link href="/datepicker/css/datepicker.min.css" rel="stylesheet" type="text/css">
+<script src="/datepicker/js/datepicker.min.js"></script>
+<script src="/datepicker/js/i18n/datepicker.en.js"></script>
+<link href="/static/dark_datepicker.css" rel="stylesheet" type="text/css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.4.2/gsap.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<input type="checkbox" id="calendar-panel-toggle" onchange="disableInput(this)">
+<label for="calendar-panel-toggle" class="calendar-panel">
+    <h4>Select Time</h4>
+    <span>Use your local timezone</span>
+    <div class="datepicker-container">
+        <div id="datepicker" class="datepicker-here" data-language='en' data-timepicker=true></div>
+    </div>
+    <button id="submit-btn" type="button" class="btn btn-primary" disabled>Submit</button>
+</label>
+<canvas id="foreCanvas"></canvas>
+<canvas id="backCanvas"></canvas>
+
+<script type="text/javascript">
+    let userId = "{{ user_id }}";
+</script>
+<script src="/static/date_select.js"></script>
+{% endblock %}

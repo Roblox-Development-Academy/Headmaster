@@ -2,34 +2,39 @@ from bot import *
 import errors
 
 
-async def process_errors(ctx, error):
+async def process(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await lang.get('error.missing_permissions').send(ctx, description=error.args[0])
     elif isinstance(error, commands.NoPrivateMessage):
         await lang.get('error.server_only').send(ctx)
+    elif isinstance(error, errors.PromptSkipped):
+        try:
+            await error.args[1].delete()
+        except discord.Forbidden:
+            pass
+        await lang.get('error.prompt_skip').send(ctx)
     elif isinstance(error, errors.PromptCancelled):
-        embed = discord.Embed(title="Setup Cancelled", colour=EMBED_COLORS['error'],
-                              description="You have cancelled the setup. Please re-execute the command "
-                                          "again to restart the setup.")
-        await error.args[0].edit(embed=embed)
+        await lang.get('error.prompt_cancel').edit(error.args[1])
     elif isinstance(error, errors.PromptTimeout):
-        embed = discord.Embed(title=f"{EMOJIS['error']} Timed Out", colour=EMBED_COLORS['error'],
-                              description="You have waited too long. The prompt timed out. Please re-execute "
-                                          "the command to restart.")
-        await error.args[0].edit(embed=embed)
+        await lang.get('error.prompt_timeout').edit(error.args[1])
+    elif isinstance(error, errors.PreviousPrompt):
+        if len(error.args) > 2:
+            await error.args[2]
+        else:
+            await lang.get('error.previous_prompt').send(error.args[1])
+    elif isinstance(error, errors.NotInRDA):
+        await lang.get('error.not_in_rda').send(ctx)
     elif isinstance(error, commands.CheckFailure):
+        pass
+    elif isinstance(error, commands.errors.CommandNotFound):
         pass
     else:
         raise error
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
     @commands.Cog.listener()
-    @client.event
     async def on_command_error(self, ctx, error):
         if hasattr(ctx.command, "on_error"):
             return
-        await process_errors(ctx, error)
+        await process(ctx, error)

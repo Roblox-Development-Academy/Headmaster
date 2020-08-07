@@ -1,6 +1,8 @@
 import yaml
 import copy
-from typing import Union
+import re
+from typing import Union, List, Dict, Any
+from datetime import datetime
 
 import discord
 
@@ -9,16 +11,35 @@ class MessageNode:
     send_args = ('content', 'tts', 'embed', 'file', 'files', 'nonce', 'delete_after', 'allowed_mentions')
 
     def __init__(self, **kwargs):
-        self.args = {}
-        self.options = {}
+        self.args: Dict[str, Any] = {}
+        self.options: Dict[str, Any] = {}
         for key, value in kwargs.items():
             if key in MessageNode.send_args:
                 self.args[key] = value
             elif key == "timestamp":
-                embed = kwargs['embed']
-                embed.timestamp = value
+                if self.args.get('embed'):
+                    self.args['embed'].timestamp = value
+                else:
+                    kwargs['embed'].timestamp = value
             else:
                 self.options[key] = value
+
+    @classmethod
+    async def from_message(cls, message: discord.Message):
+        serialized = {'content': message.content, 'tts': message.tts, 'nonce': message.nonce,
+                      'embed': message.embeds[0] if message.embeds else None}
+        if message.embeds and isinstance(message.embeds[0].timestamp, datetime):
+            serialized['timestamp'] = message.embeds[0].timestamp
+
+        if message.attachments:
+            files = [await attachment.to_file() for attachment in message.attachments]
+
+            if len(files) > 1:
+                serialized['files'] = files
+            else:
+                serialized['file'] = files[0]
+
+        return cls(**serialized)
 
     @classmethod
     def from_str(cls, serialized: str):
@@ -73,60 +94,75 @@ class MessageNode:
             serialized['allowed_mentions'] = discord.AllowedMentions(**allowed_mentions)
         return cls(**serialized)
 
-    @staticmethod
-    def __replace(text, placeholders):
-        if not isinstance(text, str):
-            return text
-        for key, value in placeholders.items():
-            global_value = LangManager.global_placeholders[value]
-            if global_value is not None:
-                value = global_value
-            text = text.replace(f"%{key}%", str(value))
-        return text
-
     def replace(self, **kwargs):
         if len(kwargs) == 0:
             return self
-        clone = copy.deepcopy(self)
+        if kwargs.get('mutate'):
+            clone = self
+        else:
+            clone = copy.deepcopy(self)
         content = clone.args.get('content')
         if content:
-            clone.args['content'] = MessageNode.__replace(content, kwargs)
+            clone.args['content'] = LangManager.replace(content, **kwargs)
         embed: discord.Embed = clone.args.get('embed')
         if embed:
-            embed.title = MessageNode.__replace(embed.title, kwargs)
-            embed.description = MessageNode.__replace(embed.description, kwargs)
-            embed.url = MessageNode.__replace(embed.url, kwargs)
+            if embed.title:
+                embed.title = LangManager.replace(embed.title, **kwargs)
+            if embed.description:
+                embed.description = LangManager.replace(embed.description, **kwargs)
+            if embed.url:
+                embed.url = LangManager.replace(embed.url, **kwargs)
             if embed.footer:
-                embed.set_footer(text=MessageNode.__replace(embed.footer.text, kwargs),
-                                 icon_url=MessageNode.__replace(embed.footer.icon_url, kwargs))
+                embed.set_footer(text=LangManager.replace(embed.footer.text, **kwargs),
+                                 icon_url=LangManager.replace(embed.footer.icon_url, **kwargs))
             if embed.author:
-                embed.set_author(name=MessageNode.__replace(embed.author.name, kwargs),
-                                 url=MessageNode.__replace(embed.author.url, kwargs),
-                                 icon_url=MessageNode.__replace(embed.author.icon_url, kwargs))
+                embed.set_author(name=LangManager.replace(embed.author.name, **kwargs),
+                                 url=LangManager.replace(embed.author.url, **kwargs),
+                                 icon_url=LangManager.replace(embed.author.icon_url, **kwargs))
             if embed.image:
-                embed.set_image(url=MessageNode.__replace(embed.image.url, kwargs))
+                embed.set_image(url=LangManager.replace(embed.image.url, **kwargs))
             if embed.thumbnail:
-                embed.set_thumbnail(url=MessageNode.__replace(embed.thumbnail.url, kwargs))
+                embed.set_thumbnail(url=LangManager.replace(embed.thumbnail.url, **kwargs))
             for i, field in enumerate(embed.fields):
-                embed.set_field_at(i, name=MessageNode.__replace(field.name, kwargs),
-                                   value=MessageNode.__replace(field.value, kwargs))
+                embed.set_field_at(i, name=LangManager.replace(field.name, **kwargs),
+                                   value=LangManager.replace(field.value, **kwargs), inline=field.inline)
         return clone
 
-    async def send(self, to, **placeholders):
-        try:
-            return await to.send(**self.replace(**placeholders).args)
-        except AttributeError:
-            print("MessageNode attribute error")
-            for to_message in to:
-                return await to_message.send(**self.replace(**placeholders).args)
+    async def send(self, to, message_list=None, **placeholders):
+        if len(self.args) == 0:
+            return message_list
+        if isinstance(to, discord.abc.Messageable):
+            msg = await to.send(**self.replace(**placeholders).args)
+
+            reactions = self.options.get('reactions')
+            if reactions:
+                for reaction in reactions:
+                    if isinstance(reaction, int):
+                        reaction = LangManager.bot.get_emoji(reaction)
+                    await msg.add_reaction(reaction)
+            if message_list is not None:
+                message_list.append(msg)
+                return message_list
+            else:
+                return msg
+        else:
+            for element in to:
+                await self.send(element, message_list=message_list, **placeholders)
+            return message_list
 
     async def edit(self, message, **placeholders):
-        return await message.edit(**self.replace(**placeholders).args)
+        msg = await message.edit(**self.replace(**placeholders).args)
+
+        reactions = self.args.get('reactions')
+        if reactions:
+            for reaction in reactions:
+                await msg.add_reaction(reaction)
+        return msg
 
 
 class MessageListNode:
     def __init__(self, *nodes: MessageNode):
-        self.nodes = nodes
+        self.nodes: List[MessageNode] = list(nodes)
 
     @classmethod
     def from_list(cls, serialized: list):
@@ -137,22 +173,31 @@ class MessageListNode:
     def from_str(cls, serialized: str):
         return cls(MessageNode.from_str(serialized))
 
-    async def send(self, *args, **kwargs):
+    def replace(self, **kwargs):
+        return MessageListNode(*(node.replace(**kwargs) for node in self.nodes))
+
+    async def send(self, to, **kwargs):
         results = []
         for node in self.nodes:
-            results.append(await node.send(*args, **kwargs))
+            await node.send(to, results, **kwargs)
         return results
 
     async def edit(self, *messages, **placeholders):
         results = []
         for to_edit, node in zip(messages, self.nodes):
-            results.append(await node.edit(to_edit, **placeholders))
+            if isinstance(to_edit, list):
+                for msg in to_edit:
+                    results.append(await node.edit(msg, **placeholders))
+            else:
+                results.append(await node.edit(to_edit, **placeholders))
         return results
 
 
 class LangManager:
     empty = MessageListNode()
+    matcher = re.compile(r'%([\w._]+)%')
     global_placeholders = {}
+    bot = None
 
     @staticmethod
     def __index_strings(config: dict, final_dict: dict = None, index: str = ''):
@@ -162,18 +207,32 @@ class LangManager:
             if isinstance(value, dict):
                 LangManager.__index_strings(value, final_dict, index + "." + key if index != '' else key)
             else:
-                final_dict[f"%{index + '.' + key if index != '' else key}%"] = str(value)
+                final_dict[index + '.' + key if index != '' else key] = str(value)
         return final_dict
 
     @staticmethod
-    def replace(to_replace):
-        for replace, replace_with in LangManager.global_placeholders:
-            to_replace = to_replace.replace(replace, replace_with)
+    def replace(to_replace: str, **placeholders):
+        if not placeholders:
+            placeholders = LangManager.global_placeholders
+        try:
+            match = LangManager.matcher.search(to_replace)
+        except TypeError:
+            return to_replace
+        while match is not None:
+            value = placeholders.get(match.group(1))
+            span = match.span()
+            if value is not None:
+                to_replace = to_replace[:span[0]] + str(value) + to_replace[span[1]:]
+                match = LangManager.matcher.search(to_replace, span[0])
+            else:
+                match = LangManager.matcher.search(to_replace, span[1])
         return to_replace
 
-    def __init__(self, *yaml_files):
+    def __init__(self, *yaml_files, bot=None):
         self.nodes = {}
         self.files = set(yaml_files)
+        if not LangManager.bot:
+            LangManager.bot = bot
 
         self.load()
 
@@ -186,11 +245,9 @@ class LangManager:
         self.files.update(yaml_files)
 
         def globally_replace(config):
-            for key, value in (config.items() if isinstance(config, dict) else enumerate(config)):
+            for key, value in (enumerate(config) if isinstance(config, list) else config.items()):
                 if isinstance(value, str):
-                    for replace, replace_with in LangManager.global_placeholders.items():
-                        value = value.replace(replace, replace_with)
-                        config[key] = value
+                    config[key] = LangManager.replace(value)
                 elif isinstance(value, list) or isinstance(value, dict):
                     globally_replace(value)
 
@@ -206,11 +263,12 @@ class LangManager:
                     self.nodes[index + "." + key if index != '' else key] = MessageListNode.from_str(value)
 
         for yaml_file in yaml_files:
-            with open(yaml_file) as f:
+            with open(yaml_file, encoding='utf-8') as f:
                 config_dict = yaml.load(f, Loader=yaml.FullLoader)
-                LangManager.__index_strings(config_dict['global_placeholders'], LangManager.global_placeholders)
+                global_placeholders = config_dict.get('global_placeholders')
+                if global_placeholders:
+                    LangManager.__index_strings(global_placeholders, LangManager.global_placeholders)
                 index_messages(config_dict['messages'])
 
     def get(self, index: str):
-        node = self.nodes.get(index)
-        return node if node else LangManager.empty
+        return self.nodes.get(index, LangManager.empty)

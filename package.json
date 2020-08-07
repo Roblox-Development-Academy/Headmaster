@@ -1,0 +1,44 @@
+{
+  "name": "headmaster",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack -p --progress --config webpack.config.js",
+    "dev-build": "webpack --progress -d --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --progress -d --config webpack.config.js --watch"
+  },
+  "keywords": [
+    "fullstack",
+    "template",
+    "python",
+    "react",
+    "npm",
+    "webpack"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Roblox-Development-Academy/Headmaster.git"
+  },
+  "author": "Asinphi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Roblox-Development-Academy/Headmaster/issues"
+  },
+  "homepage": "https://github.com/Roblox-Development-Academy/Headmaster#readme",
+  "devDependencies": {
+    "@babel/core": "^7.10.5",
+    "@babel/preset-env": "^7.10.4",
+    "@babel/preset-react": "^7.10.4",
+    "babel-loader": "^8.1.0",
+    "webpack": "^4.43.0"
+  },
+  "presets": [
+    "@babel/preset-env",
+    "@babel/preset-react"
+  ],
+  "dependencies": {
+    "air-datepicker": "^2.2.3",
+  }
+}

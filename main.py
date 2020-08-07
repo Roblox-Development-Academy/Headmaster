@@ -1,164 +1,151 @@
 import asyncio
-import datetime
-from collections import namedtuple
+import re
 
-import pytz
+import uvicorn
 
-from cmds.apply import *
+from web.app import app
 from bot import *
-from cogs.admin import Admin
-from cogs.errorhandler import ErrorHandler
 
 
-def generate_tables():
-    statements = (
-        f"""
-        CREATE TABLE IF NOT EXISTS guilds(
-            id BIGINT PRIMARY KEY UNIQUE NOT NULL,
-            prefix TEXT DEFAULT '{DEFAULT_PREFIX}'
-        )
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS ignored_channels(
-            id BIGINT PRIMARY KEY UNIQUE NOT NULL,
-            guild_id BIGINT NOT NULL
-        )
-        """,
-        """
-        CREATE INDEX IF NOT EXISTS idx_channel_guild ON ignored_channels(guild_id)
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS assignments(
-            assigner BIGINT PRIMARY KEY NOT NULL,
-            name TEXT NOT NULL,
-            description BIGINT,
-            solution BIGINT,
-            use_time BOOLEAN,
-            time TIMESTAMPTZ,
-            interval INTERVAL
-        )
-        """,
-    )
-    for statement in statements:
-        database.update(statement)
+async def run():
+    await client.wait_until_ready()
+    await asyncio.sleep(1)
+    from cogs.admin import Admin
+    from cogs.errorhandler import ErrorHandler
+    import conditions
 
-
-client.add_cog(ErrorHandler(client))
-client.add_cog(Admin())
-
-
-@client.event
-async def on_ready():
-    logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
-
-    # Spam Nitrogen
-    async def wait_for(dt):
-        # sleep until the specified datetime
-        while True:
-            now = datetime.datetime.now(pytz.utc)
-            remaining = (dt - now).total_seconds()
-            if remaining < 86400:
-                break
-            # asyncio.sleep doesn't like long sleeps, so don't sleep more
-            # than a day at a time
-            await asyncio.sleep(86400)
-        await asyncio.sleep(remaining)
-
-    async def run_at(dt, coro):
-        await wait_for(dt)
-        return await coro
-
-    async def spam():
-        # JL: 260608867292020737
-        # Nitrogen: 450375444450115585
-        user_id = 450375444450115585
-        user = client.get_user(user_id)
-        while True:
-            await user.send("metable")  # You don't need to create the DM channel first.
-            await asyncio.sleep(2)
-
-    # await run_at(datetime.datetime(2020, 4, 9, 17, 0, 0, 0, pytz.UTC), spam())
-
-
-@client.event
-async def on_message(msg):
-    await client.process_commands(msg)
-    pass
-
-
-@client.check
-async def globally_ignore_channels(ctx):
-    if database.query(
+    def generate_tables():
+        statements = (
+            f"""
+            CREATE TABLE IF NOT EXISTS guilds(
+                id BIGINT PRIMARY KEY UNIQUE NOT NULL,
+                prefix TEXT DEFAULT '{lang.global_placeholders.get('default_prefix')}'
+            )
+            """,
             """
-        SELECT id
-        FROM ignored_channels
-        WHERE id = %s
-        """,
-            (ctx.channel.id,)
-    ).fetchone() is None:
+            CREATE TABLE IF NOT EXISTS ignored_channels(
+                id BIGINT PRIMARY KEY UNIQUE NOT NULL,
+                guild_id BIGINT NOT NULL
+            )
+            """,
+            """
+            CREATE INDEX IF NOT EXISTS idx_channel_guild ON ignored_channels(guild_id)
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS assignments(
+                assigner BIGINT NOT NULL,
+                name TEXT NOT NULL,
+                description BIGINT,
+                solution BIGINT,
+                delete_after_date BOOLEAN,
+                date TIMESTAMPTZ,
+                interval INTERVAL,
+                PRIMARY KEY (assigner, name)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS submissions(
+                submitter BIGINT NOT NULL,
+                assigner BIGINT NOT NULL,
+                name TEXT NOT NULL,
+                submitted_at TIMESTAMPTZ NOT NULL,
+                PRIMARY KEY (submitter, assigner, name),
+                CONSTRAINT fk_assignment FOREIGN KEY(assigner, name) REFERENCES assignments(assigner, name)
+                ON DELETE CASCADE
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS classes(
+                teacher BIGINT NOT NULL,
+                name TEXT NOT NULL,
+                message BIGINT,
+                guild BIGINT,
+                channel BOOLEAN,
+                voice_channel BOOLEAN,
+                starting_at TIMESTAMPTZ NOT NULL,
+                PRIMARY KEY (teacher, name)
+            )
+            """
+        )
+        for statement in statements:
+            database.update(statement)
+
+    generate_tables()
+
+    client.add_cog(ErrorHandler())
+    client.add_cog(Admin())
+    client.load_extension('cmds.apply')
+    client.load_extension('cmds.homework')
+    client.load_extension('cmds.class')
+
+    @client.event
+    async def on_message(msg):
+        await client.process_commands(msg)
+        pass
+
+    @client.check
+    async def globally_ignore_channels(ctx):
+        if database.query(
+                """
+            SELECT id
+            FROM ignored_channels
+            WHERE id = %s
+            """,
+                (ctx.channel.id,)
+        ).fetchone() is None:
+            return True
+        else:
+            await ctx.message.delete()
+            await lang.get('error.ignored_channel').send(ctx)
+            return False
+
+    @client.check
+    async def globally_ignore_banned(ctx):
+        # TODO
         return True
-    else:
-        await ctx.message.delete()
-        await lang.get('error.ignored_channel').send(ctx)
-        return False
 
+    @client.check
+    async def ignore_in_prompt(ctx):
+        prompt = in_prompt.get(ctx.message.author.id)
+        if prompt:
+            try:
+                await ctx.message.delete()
+            except discord.errors.Forbidden:
+                pass
+            await lang.get('error.in_prompt').send(ctx, prompt=prompt)
+            return False
+        return True
 
-@client.check
-async def globally_ignore_banned(ctx):
-    # TODO
-    return True
+    # help is a default command - could be overridden if it looks ugly
+    @client.command(aliases=["help", "cmds", "commands"])
+    async def _help(ctx):
+        await lang.get('help').send(ctx)
 
+    @client.command(name="reverse")
+    async def reverse_poem(ctx, msg: discord.Message):
+        lines = msg.content.split("\n")
+        await ctx.send("\n".join(reversed(lines)))
 
-# help is a default command - could be overridden if it looks ugly
-@client.command(aliases=["help", "cmds", "commands"])
-async def _help(ctx):
-    await lang.get('help').send(ctx)
+    @client.command(name='command')
+    async def command(ctx):
+        await lang.get('error.command').send(ctx, prefix=get_prefix(ctx.guild.id))
 
+    @client.command(aliases=('exec',))
+    @conditions.manager_only()
+    async def execute(ctx: commands.Context):
+        content = ctx.message.content
+        matcher = re.compile(r'```\w+$(.+)```', re.MULTILINE | re.DOTALL)
+        code = matcher.search(content)
+        if code:
+            try:
+                exec(code.group(1), globals(), locals())
+            except Exception as e:
+                await ctx.send(str(e))
+            await ctx.message.add_reaction(lang.global_placeholders['emoji.gotcha'])
+        else:
+            await ctx.message.add_reaction(lang.global_placeholders['emoji.error'])
 
-@client.command(name="reverse")
-async def reverse_poem(ctx, msg: discord.Message):
-    lines = msg.content.split("\n")
-    await ctx.send("\n".join(reversed(lines)))
+asyncio.create_task(run())
 
-
-@client.command(name='command')
-async def command(ctx):
-    await lang.get('error.command').send(ctx, prefix=get_prefix(ctx.guild.id))
-
-
-Entry = namedtuple('Entry', 'client event')
-entries = [
-    Entry(client=client, event=asyncio.Event()),
-    Entry(client=janitor, event=asyncio.Event())
-]
-
-loop = asyncio.get_event_loop()
-
-
-async def login():
-    await entries[0].client.login(TOKEN)
-    await entries[1].client.login(JANITOR_TOKEN)
-
-
-async def wrapped_connect(entry):
-    try:
-        await entry.client.connect()
-    except Exception as e:
-        await entry.client.close()
-        logger.error('We got an exception: ', e.__class__.__name__, e)
-        entry.event.set()
-
-
-async def check_close():
-    futures = [e.event.wait() for e in entries]
-    await asyncio.wait(futures)
-
-
-loop.run_until_complete(login())
-
-for entry in entries:
-    loop.create_task(wrapped_connect(entry))
-
-loop.run_until_complete(check_close())
-
-loop.close()
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=5000)
