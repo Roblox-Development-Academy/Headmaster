@@ -4,6 +4,8 @@ import re
 import uvicorn
 
 from web.app import app
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=5000)
 from bot import *
 
 
@@ -146,6 +148,3 @@ async def run():
             await ctx.message.add_reaction(lang.global_placeholders['emoji.error'])
 
 asyncio.create_task(run())
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=5000)
