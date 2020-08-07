@@ -326,6 +326,7 @@ messages:
       9:
         - embed:
             title: "Create Class"
+            color: "%color.wizard%"
             description: >
               **Create the server and add Headmaster.**
 
