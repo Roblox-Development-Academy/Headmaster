@@ -372,10 +372,10 @@ class Level(commands.Cog):
                           subtract_id=f"{reaction.message.id}{user.id}")
 
     @commands.command()
-    async def profile(self, ctx, user: commands.Greedy[Member] = None):
-        user = client.get_guild(servers['rda']).get_member(user[0].id if user else ctx.author.id)
-        if user is None:
-            user = client.get_guild(servers['rda']).get_member(ctx.author.id)
+    async def profile(self, ctx, user: commands.Greedy[User] = None):
+        member = client.get_guild(servers['rda']).get_member(user[0].id if user else ctx.author.id)
+        if member is None:
+            member = client.get_guild(servers['rda']).get_member(ctx.author.id)
 
         ranks = database.query(
             """
@@ -387,10 +387,10 @@ class Level(commands.Cog):
             FROM levels JOIN categories
             ON levels.category_id = categories.id AND levels.user_id = %s
             """,
-            (user.id,)
+            (member.id,)
         ).fetchall()
 
-        multipliers, total_multiplier = get_multipliers(user.id, raw=True)
+        multipliers, total_multiplier = get_multipliers(member.id, raw=True)
 
         rank_strings = [
             f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate_level(rank[1])}.{lang.global_placeholders.get('s')}**Total Exp:** {rank[1]}.\nExp Left Until Next Level: {calculate_level(rank[1], True)[2] - calculate_level(rank[1], True)[1]}."
@@ -399,16 +399,16 @@ class Level(commands.Cog):
             f"**Multiplier: {multiplier[0]}x**\nExpiration Date: {multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'}"
             for multiplier in multipliers]
 
-        await lang.get("profile").send(ctx, user_name=str(user), user_id=str(user.id), avatar_url=str(user.avatar_url),
-                                       nickname='' if user.name == user.display_name else f"**Nickname:** {user.display_name}",
+        await lang.get("profile").send(ctx, user_name=str(member), user_id=str(member.id), avatar_url=str(member.avatar_url),
+                                       nickname='' if member.name == member.display_name else f"**Nickname:** {member.display_name}",
                                        levels='\n'.join(
                                            rank_strings) if rank_strings else "There are currently no levels to display.",
                                        multipliers=multiplier_strings if not multipliers else f"__Total Multiplier: {round(total_multiplier, 4)}x__\n\n" + '\n'.join(
                                            multiplier_strings),
-                                       join_server=user.joined_at.strftime(self.date_format),
-                                       join_discord=user.created_at.strftime(self.date_format),
-                                       server_duration=strfdelta(datetime.utcnow() - user.joined_at),
-                                       discord_duration=strfdelta(datetime.utcnow() - user.created_at))
+                                       join_server=member.joined_at.strftime(self.date_format),
+                                       join_discord=member.created_at.strftime(self.date_format),
+                                       server_duration=strfdelta(datetime.utcnow() - member.joined_at),
+                                       discord_duration=strfdelta(datetime.utcnow() - member.created_at))
 
     @commands.command(aliases=("lb", "ranks", "ranking", "rankings", "levels", "leaderboards"))
     async def leaderboard(self, ctx, category=None):
