@@ -4,8 +4,6 @@ import re
 import uvicorn
 
 from web.app import app
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=5000)
 from bot import *
 
 
@@ -147,4 +145,11 @@ async def run():
         else:
             await ctx.message.add_reaction(lang.global_placeholders['emoji.error'])
 
-asyncio.create_task(run())
+try:
+    asyncio.create_task(run())
+except RuntimeError:
+    time.sleep(5)  # Give gunicorn some time to start up; it starts slow
+    asyncio.create_task(run())
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=5000)
