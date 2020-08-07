@@ -430,7 +430,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
                     await schedule_submission(ctx.author, stage.results['assigner'], stage.results['name'],
                                               stage.results['info'][2], datetime.datetime.now(datetime.timezone.utc))
         else:
-            in_prompt.pop(ctx.author.id)
+            in_prompt.pop(ctx.author.id, None)
 
 
 @commands.command(aliases=['hw', 'assignment', 'assignments'])
