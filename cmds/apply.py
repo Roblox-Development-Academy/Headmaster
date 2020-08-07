@@ -1,7 +1,6 @@
 from bot import *
 from common import prompt_reaction, prompt
 from language import MessageNode
-from yaml import load, FullLoader
 
 
 @commands.command()
@@ -27,9 +26,7 @@ async def apply(ctx):
     in_prompt.pop(ctx.author.id)
     await lang.get('teacher_application.complete').send(user_dm)
 
-    with open("config.yml") as f:
-        channel_id = load(f, Loader=FullLoader)["channels"]["teacher_application"]
-    channel = client.get_channel(channel_id)
+    channel = client.get_channel(channels["teacher_application"])
 
     await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author),
                                                           user_mention=ctx.author.mention)
