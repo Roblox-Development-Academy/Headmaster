@@ -1,5 +1,6 @@
 import os as __os
 import logging as __logging
+import asyncio as __asyncio
 
 import discord
 from discord.ext import commands
@@ -10,24 +11,11 @@ from language import LangManager as __LangManager
 from yaml import load, FullLoader
 
 TOKEN = __os.environ['TOKEN']
-JANITOR_TOKEN = __os.environ['JANITOR_TOKEN']
-EMBED_COLORS = {
-    'info': discord.Colour(0x9e33f3),
-    'error': discord.Colour(0xf62323),
-    'success': discord.Colour(0x5efb32),
-    'wizard': discord.Colour(0x00f6ff)
-}
-EMOJIS = {
-    'confirm': "\U00002705",  # :white_check_mark:
-    'gotcha': "\U0001f44d",  # :thumbs_up:
-    'error': "\U0001f63f",  # :crying_cat_face:
-    'date': "\U0001f4c6",  # :calendar:
-    'time': "\U000023f2"  # :timer:
-}
+WEB_URL = __os.environ['URL']
 
 __logging.basicConfig(level=__logging.INFO)
 logger = __logging.getLogger('discord')
-logger.setLevel(__logging.DEBUG)
+logger.setLevel(__logging.INFO)
 __handler = __logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 __handler.setFormatter(__logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(__handler)
@@ -65,11 +53,36 @@ def get_mention_or_prefix(_, message):
 
 client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=True, help_command=None)
 
-janitor = discord.Client()
 
-in_prompt = {}
+rda: discord.Guild
+class_channel: discord.TextChannel
+class_category: discord.CategoryChannel
+teacher_role: discord.Role
 
-lang = __LangManager('messages.yml', bot=client)
+__loop = __asyncio.get_event_loop()
+__loop.create_task(client.start(TOKEN))
+
+
+@client.listen('on_ready')
+async def __on_ready():
+    global rda, class_channel, class_category, teacher_role
+    if __os.environ['DEBUG']:
+        rda = client.get_guild(676175299121250327)
+        class_channel = rda.get_channel(739213440803012608)
+        class_category = rda.get_channel(677766311530594305)
+        teacher_role = rda.get_role(677766292714815508)
+        logger.info("Created globals using DEBUG set")
+    else:
+        rda = client.get_guild(673600024919408680)
+        class_channel = rda.get_channel(673604720601858069)
+        class_category = rda.get_channel(673604345316638730)
+        teacher_role = rda.get_role(673608309198028811)
+        logger.info("Created globals using production set")
+    logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
+
+in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands
+
+lang = __LangManager('messages.yml')
 
 with open("config.yml") as f:
     config = load(f, Loader=FullLoader)
@@ -82,4 +95,3 @@ with open("config.yml") as f:
     channels = config[__test + 'channels']
     categories = config[__test + 'categories']
 
-rda = client.get_guild(servers['rda'])

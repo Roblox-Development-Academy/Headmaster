@@ -7,7 +7,6 @@ from copy import deepcopy
 
 
 class Admin(commands.Cog):
-
     @staticmethod
     def __add_ignored_channels(rows):
         try:
@@ -118,6 +117,7 @@ class Admin(commands.Cog):
                     )
         else:
             ignored_channels_list = "*There are no ignored channels.*"
-        ignore_node = ignore_node.replace(message=msg, prefix=get_prefix(ctx.guild.id), channels=ignored_channels_list, example=example)
+        ignore_node = ignore_node.replace(message=msg, prefix=get_prefix(ctx.guild.id), channels=ignored_channels_list,
+                                          example=example)
         ignore_node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
         await ignore_node.send(ctx)

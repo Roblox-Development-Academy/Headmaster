@@ -1,4 +1,4 @@
-from typing import Union, Callable
+from typing import Union, Callable, Tuple, Awaitable, Any
 import asyncio
 import re
 from datetime import datetime, timedelta
@@ -10,12 +10,8 @@ from cogs import errorhandler
 from language import MessageNode, MessageListNode
 
 
-def parameters(*args, **kwargs):
-    return args, kwargs
-
-
-def unpack(packed_parameters, coroutine):
-    return coroutine(*packed_parameters[0], **packed_parameters[1])
+async def __do_nothing():
+    pass
 
 
 interval_matcher = re.compile(r'^((?P<days>[.\d]+?)d)? *'
@@ -40,26 +36,27 @@ def parse_interval(time: str, minimum: timedelta = timedelta(seconds=0), maximum
     raise OverflowError
 
 
-def td_format(td_object):
+def td_format(td_object: timedelta):
     seconds = int(td_object.total_seconds())
-    periods = [
-        ('day',         60*60*24),
-        ('hour',        60*60),
-        ('minute',      60),
-        ('second',      1)
-    ]
+    periods = {
+        'day': 60*60*24,
+        'hour': 60*60,
+        'minute': 60,
+        'second': 1
+    }
 
     strings = []
-    for period_name, period_seconds in periods:
+    for period_name, period_seconds in periods.items():
         if seconds > period_seconds:
             period_value, seconds = divmod(seconds, period_seconds)
             has_s = 's' if period_value > 1 else ''
-            strings.append("%s %s%s" % (period_value, period_name, has_s))
+            strings.append(f"{period_value} {period_name}{has_s}")
     return ", ".join(strings)
 
 
 async def prompt_reaction(msg: Union[discord.Message, MessageNode, MessageListNode], user: discord.User = None, *args,
-                          timeout=300, allowed_emojis=None, remove_other_reactions=True, **kwargs):
+                          timeout=300, allowed_emojis=None, remove_other_reactions=True,
+                          **kwargs) -> Tuple[discord.Reaction, discord.User]:
     if not isinstance(msg, discord.Message):
         msg = await msg.send(*args, **kwargs)
         if isinstance(msg, list):
@@ -82,7 +79,7 @@ async def prompt_reaction(msg: Union[discord.Message, MessageNode, MessageListNo
                 except discord.errors.Forbidden:
                     await lang.get('error.invalid_reaction').send(msg.channel)
     except asyncio.TimeoutError:
-        in_prompt.pop(user.id)
+        in_prompt.pop(user.id, None)
         raise errors.PromptTimeout("The prompt has timed out", msg)
     return response, responder
 
@@ -119,24 +116,21 @@ async def prompt(channel: discord.TextChannel, user: discord.User,
             if msg.content.lower() == "skip":
                 if can_skip:
                     raise errors.PromptSkipped("The skipping wasn't handled", msg)
-                else:
-                    await errorhandler.process(channel,
-                                               errors.PromptSkipped("This prompt cannot be skipped", msg))
+                await errorhandler.process(channel, errors.PromptSkipped("This prompt cannot be skipped", msg))
             elif msg.content.lower() == "back":
                 if back:
                     raise errors.PreviousPrompt("Went back to previous prompt", msg, back)
-                await errorhandler.process(channel, errors.PreviousPrompt("Cannot go back to previous prompt",
-                                                                          channel))
+                await errorhandler.process(channel, errors.PreviousPrompt("Cannot go back to previous prompt", channel))
             elif (await client.get_context(msg)).valid:
                 pass
             else:
                 break
     except asyncio.TimeoutError:
-        in_prompt.pop(user.id)
+        in_prompt.pop(user.id, None)
         raise errors.PromptTimeout("The prompt has timed out", prompt_msg)
 
     if msg.content.lower() in ('cancel', 'cancel.'):
-        in_prompt.pop(user.id)
+        in_prompt.pop(user.id, None)
         raise errors.PromptCancelled("The prompt was cancelled", prompt_msg)
     return msg
 
@@ -164,4 +158,27 @@ async def prompt_date(channel: discord.TextChannel, user: discord.User,
             return None if result is None else result[1]
         except errors.PromptError:  # Means the message was first
             events.date_selected.signals.pop(date_fut)
+            raise
+
+
+async def prompt_wait(channel: discord.TextChannel, user: discord.User,
+                      prompt_msg: Union[discord.Message, MessageNode, MessageListNode], coro: Awaitable, timeout=300,
+                      on_msg: Awaitable = __do_nothing(), **kwargs) -> Any:
+    def msg_check(m):
+        return m.author == user and m.channel == channel and m.content and \
+               m.content.lower() in ('skip', 'back', 'cancel', 'cancel.')
+
+    date_fut = asyncio.get_event_loop().create_future()
+    wait_other = asyncio.create_task(coro)
+    wait_msg = asyncio.create_task(prompt(channel, user, prompt_msg, timeout, check=msg_check,
+                                          url=f"{WEB_URL}/date-select/?user-id={user.id}", **kwargs))
+    for fut in asyncio.as_completed([wait_other, wait_msg]):
+        result = None
+        try:
+            result = await fut
+            raise errors.CancelProcesses
+        except errors.CancelProcesses:  # Means the date succeeded
+            return result
+        except errors.PromptError:  # Means the message was first
+            await on_msg
             raise

@@ -1,0 +1,43 @@
+.datepicker {
+    margin: 0 auto;
+    background: linear-gradient(to bottom right, rgb(23, 164, 164), rgb(26, 26, 26));
+    color: white;
+}
+
+.datepicker--nav-title:hover {
+    color: rgb(18, 200, 224);
+}
+
+.datepicker--time-current-hours.-focus- {
+    color: rgb(18, 200, 224);
+}
+
+.datepicker--time-current-minutes.-focus- {
+    color: rgb(18, 200, 224);
+}
+
+.datepicker--day-name {
+    color: rgb(10, 52, 57);
+}
+
+.datepicker--cell-day {
+    color: rgb(18, 200, 224);
+}
+
+.datepicker--cell-day.-current- {
+    color: white;
+    text-shadow: 0 0 3px rgb(18, 200, 224);
+}
+
+.datepicker--cell-day.-other-month- {
+    color: rgb(127, 204, 214);
+}
+
+.datepicker--cell.-disabled- {
+    color: rgb(198, 203, 204);
+}
+
+.datepicker--cell-day.-selected- {
+    color: white;
+    text-shadow: none;
+}

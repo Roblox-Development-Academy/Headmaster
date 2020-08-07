@@ -1,7 +1,8 @@
 import yaml
 import copy
 import re
-from typing import Union
+from typing import Union, List, Dict, Any
+from datetime import datetime
 
 import discord
 
@@ -10,24 +11,25 @@ class MessageNode:
     send_args = ('content', 'tts', 'embed', 'file', 'files', 'nonce', 'delete_after', 'allowed_mentions')
 
     def __init__(self, **kwargs):
-        self.args = {}
-        self.options = {}
+        self.args: Dict[str, Any] = {}
+        self.options: Dict[str, Any] = {}
         for key, value in kwargs.items():
             if key in MessageNode.send_args:
                 self.args[key] = value
             elif key == "timestamp":
-                embed = kwargs['embed']
-                embed.timestamp = value
+                if self.args.get('embed'):
+                    self.args['embed'].timestamp = value
+                else:
+                    kwargs['embed'].timestamp = value
             else:
                 self.options[key] = value
 
     @classmethod
     async def from_message(cls, message: discord.Message):
-        serialized = {}
-        serialized['content'] = message.content
-        serialized['tts'] = message.tts
-        serialized['nonce'] = message.nonce
-        serialized['embed'] = message.embeds[0] if message.embeds else None
+        serialized = {'content': message.content, 'tts': message.tts, 'nonce': message.nonce,
+                      'embed': message.embeds[0] if message.embeds else None}
+        if message.embeds and isinstance(message.embeds[0].timestamp, datetime):
+            serialized['timestamp'] = message.embeds[0].timestamp
 
         if message.attachments:
             files = [await attachment.to_file() for attachment in message.attachments]
@@ -95,7 +97,10 @@ class MessageNode:
     def replace(self, **kwargs):
         if len(kwargs) == 0:
             return self
-        clone = copy.deepcopy(self)
+        if kwargs.get('mutate'):
+            clone = self
+        else:
+            clone = copy.deepcopy(self)
         content = clone.args.get('content')
         if content:
             clone.args['content'] = LangManager.replace(content, **kwargs)
@@ -144,7 +149,6 @@ class MessageNode:
             for element in to:
                 await self.send(element, message_list=message_list, **placeholders)
             return message_list
-        # TODO - Except the exception that comes with sending an empty message node; HTTPRequest
 
     async def edit(self, message, **placeholders):
         msg = await message.edit(**self.replace(**placeholders).args)
@@ -158,7 +162,7 @@ class MessageNode:
 
 class MessageListNode:
     def __init__(self, *nodes: MessageNode):
-        self.nodes = nodes
+        self.nodes: List[MessageNode] = list(nodes)
 
     @classmethod
     def from_list(cls, serialized: list):
@@ -172,10 +176,10 @@ class MessageListNode:
     def replace(self, **kwargs):
         return MessageListNode(*(node.replace(**kwargs) for node in self.nodes))
 
-    async def send(self, *args, **kwargs):
+    async def send(self, to, **kwargs):
         results = []
         for node in self.nodes:
-            await node.send(*args, message_list=results, **kwargs)
+            await node.send(to, results, **kwargs)
         return results
 
     async def edit(self, *messages, **placeholders):
@@ -218,7 +222,7 @@ class LangManager:
             value = placeholders.get(match.group(1))
             span = match.span()
             if value is not None:
-                to_replace = to_replace[:span[0]] + value + to_replace[span[1]:]
+                to_replace = to_replace[:span[0]] + str(value) + to_replace[span[1]:]
                 match = LangManager.matcher.search(to_replace, span[0])
             else:
                 match = LangManager.matcher.search(to_replace, span[1])
@@ -267,5 +271,4 @@ class LangManager:
                 index_messages(config_dict['messages'])
 
     def get(self, index: str):
-        node = self.nodes.get(index)
-        return node or LangManager.empty
+        return self.nodes.get(index, LangManager.empty)

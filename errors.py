@@ -1,6 +1,14 @@
 from bot import *
 
 
+class NotInRDA(commands.CheckFailure):
+    pass
+
+
+class CancelProcesses(commands.CommandError):
+    pass
+
+
 class PromptError(commands.CommandError):
     pass
 
