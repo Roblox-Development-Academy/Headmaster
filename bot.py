@@ -1,6 +1,7 @@
 import os as __os
 import logging as __logging
 import asyncio as __asyncio
+import warnings as __warnings
 
 import discord
 from discord.ext import commands
@@ -12,6 +13,8 @@ from yaml import load, FullLoader
 
 TOKEN = __os.environ['TOKEN']
 WEB_URL = __os.environ['URL']
+
+__warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 __logging.basicConfig(level=__logging.INFO)
 logger = __logging.getLogger('discord')
