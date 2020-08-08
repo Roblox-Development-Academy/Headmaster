@@ -142,7 +142,7 @@ function beginAnimation() {
         let progress = {
             p: 0
         }
-        tl.to(progress, {p: 2.0, duration: 2.5, ease: "power1.out",
+        tl.to(progress, {p: 2.0, duration: 3.2, ease: "power1.out",
             onStart: () => {
                 btnCtx.clearRect(x, 0, imgWidth - x, imgHeight);
                 let density = Math.ceil(imgHeight / (endPts.length / imgWidth));
