@@ -5,8 +5,8 @@ test_servers:
   rda: 676175299121250327 # Testing.
 
 channels:
-  teacher_application:
-  report:
+  teacher_application: 741447717368102982
+  report: 741447824662724736
 
 test_channels:
   teacher_application: 728753615031763005 # Testing.
