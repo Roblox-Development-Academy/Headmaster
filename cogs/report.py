@@ -19,11 +19,21 @@ class Report(commands.Cog):
                 await lang.get("error.report").send(message.channel)
                 return
             report_channel = client.get_channel(self.report_channel)
-            await lang.get("report.start").send(report_channel, reported=f"{message.author}", reported_id=str(message.author.id), reporter=f"{payload.member}", reporter_id=str(payload.member.id), guild_name=message.guild.name, guild_id=str(message.guild.id), channel_name=message.channel.name, channel_id=str(message.channel.id), jump_url=message.jump_url, message_id=str(message.id), message_sent_at=message.created_at.strftime('%A, %B %d, %Y; %I:%M %p UTC.'), report_time=datetime.now(timezone.utc).strftime('%A, %B %d, %Y; %I:%M %p UTC.'))
+            time_format = '%A, %B %d, %Y; %I:%M %p UTC.'
+            await lang.get("report.start").send(report_channel, reported=f"{message.author}",
+                                                reported_id=str(message.author.id), reporter=f"{payload.member}",
+                                                reporter_id=str(payload.member.id), guild_name=message.guild.name,
+                                                guild_id=str(message.guild.id), channel_name=message.channel.name,
+                                                channel_id=str(message.channel.id), jump_url=message.jump_url,
+                                                message_id=str(message.id),
+                                                message_sent_at=message.created_at.strftime(time_format),
+                                                report_time=datetime.now(timezone.utc).strftime(time_format))
             message_copy = await MessageNode.from_message(message)
             try:
                 await message_copy.send(report_channel)
             except HTTPException:
-                await report_channel.send(embed=Embed(description="The reported message has no content.", colour=int(lang.global_placeholders.get("color.error"), 16)))
+                await report_channel.send(embed=Embed(description="The reported message has no content.",
+                                                      colour=int(lang.global_placeholders.get("color.error"), 16)))
             await lang.get("report.end").send(report_channel)
-            await lang.get("report.success").send(payload.member, reported_id=str(message.author.id), reported_name=message.author.name)
+            await lang.get("report.success").send(payload.member, reported_id=str(message.author.id),
+                                                  reported_name=message.author.name)

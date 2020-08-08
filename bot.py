@@ -94,4 +94,3 @@ with open("config.yml") as f:
     servers = config[__test + 'servers']
     channels = config[__test + 'channels']
     categories = config[__test + 'categories']
-

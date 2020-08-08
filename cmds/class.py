@@ -29,8 +29,8 @@ async def run():
         """
     ).fetchall()
     for classroom in classes:
-        task = asyncio.create_task(schedule_class(client.get_user(classroom[0]), classroom[1], classroom[2], classroom[3],
-                                                  classroom[4], classroom[5]))
+        task = asyncio.create_task(schedule_class(client.get_user(classroom[0]), classroom[1], classroom[2],
+                                                  classroom[3], classroom[4], classroom[5]))
         scheduled_classes[(classroom[0], classroom[1])] = (task, await class_channel.fetch_message(classroom[2]))
         try:
             await task
