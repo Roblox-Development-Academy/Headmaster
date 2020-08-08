@@ -1016,3 +1016,11 @@ messages:
           description: |
             You must have the Teacher role in Roblox Development Academy to perform this action.
             You may apply to be Teacher with the `apply` command.
+    report:
+      - delete_after: 5
+        embed:
+          title: "%emoji.error% Report Failed"
+          color: "%color.error%"
+          description: |
+            You can not report the bot.
+            If you believe there is an error/bug, please contact one of the staff.
