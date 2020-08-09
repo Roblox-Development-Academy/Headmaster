@@ -8,7 +8,7 @@ from math import floor, ceil, fabs
 from bot import lang, get_prefix, categories, servers
 from copy import deepcopy
 from psycopg2 import DatabaseError
-from common import parse_interval
+from common import parse_interval, td_format
 from bot import client
 from random import seed, uniform
 
@@ -165,25 +165,6 @@ def get_multipliers(user_id, raw=False):
     if raw:
         return multipliers, total_multiplier
     return total_multiplier
-
-
-def strfdelta(timedelta):
-    hours, remainder = divmod(timedelta.seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    milliseconds, microseconds = divmod(timedelta.microseconds, 1000)
-    times = [
-        f"{timedelta.days} day{'s' if timedelta.days != 1 else ''}",
-        f"{hours} hour{'s' if hours != 1 else ''}",
-        f"{minutes} minute{'s' if minutes != 1 else ''}",
-        f"{seconds} second{'s' if seconds != 1 else ''}",
-        f"{milliseconds} millisecond{'s' if milliseconds != 1 else ''}",
-        f"{microseconds} microsecond{'s' if microseconds != 1 else ''}"
-    ]
-    time_string = ''
-    for i in range(0, len(times)):
-        if times[i][0] != '0':
-            time_string += times[i] + ', '
-    return time_string[:-2]
 
 
 class Level(commands.Cog):
@@ -401,8 +382,8 @@ class Level(commands.Cog):
                                            multiplier_strings),
                                        join_server=member.joined_at.strftime(self.date_format),
                                        join_discord=member.created_at.strftime(self.date_format),
-                                       server_duration=strfdelta(datetime.utcnow() - member.joined_at),
-                                       discord_duration=strfdelta(datetime.utcnow() - member.created_at))
+                                       server_duration=td_format(datetime.utcnow() - member.joined_at),
+                                       discord_duration=td_format(datetime.utcnow() - member.created_at))
 
     @commands.command(aliases=("lb", "ranks", "ranking", "rankings", "levels", "leaderboards"))
     async def leaderboard(self, ctx, category=None):
@@ -470,7 +451,7 @@ class Level(commands.Cog):
             try:
                 duration = parse_interval(duration, maximum=datetime.max - datetime.now())
             except OverflowError:
-                await lang.get("error.multiplier.duration").send(ctx, duration=strfdelta(datetime.max - datetime.now()),
+                await lang.get("error.multiplier.duration").send(ctx, duration=td_format(datetime.max - datetime.now()),
                                                                  date=datetime.max.strftime(self.date_format))
                 return
             if duration is None:
@@ -487,6 +468,6 @@ class Level(commands.Cog):
             await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user[0].mention,
                                                       expire=(datetime.utcnow() + duration).strftime(
                                                           self.date_format) if duration else "Never",
-                                                      duration=strfdelta(duration) if duration else "Forever")
+                                                      duration=td_format(duration) if duration else "Forever")
         else:
             await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
