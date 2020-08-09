@@ -66,7 +66,7 @@ __loop.create_task(client.start(TOKEN))
 @client.listen('on_ready')
 async def __on_ready():
     global rda, class_channel, class_category, teacher_role
-    if __os.environ['DEBUG']:
+    if __os.environ['DEBUG'] == 1:
         rda = client.get_guild(676175299121250327)
         class_channel = rda.get_channel(739213440803012608)
         class_category = rda.get_channel(677766311530594305)
