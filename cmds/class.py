@@ -42,10 +42,11 @@ async def run():
         for channel in class_category.text_channels:
             match = re.search(r'classroom-(\d+)', channel.name)
             if not match:
-                continue
+                return
             now = datetime.utcnow()
-            if (not channel.last_message and now - channel.created_at > timedelta(minutes=30)) or \
-                    (channel.last_message and now - channel.last_message.created_at > timedelta(minutes=30)):
+            last_messages = (await channel.history(limit=1).flatten())
+            if (not last_messages and now - channel.created_at > timedelta(minutes=30)) or \
+                    (last_messages and now - last_messages[0].created_at > timedelta(minutes=30)):
                 await channel.delete()
                 voice_channel: discord.VoiceChannel = discord.utils.get(class_category.voice_channels,
                                                                         name=channel.name)
