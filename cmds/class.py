@@ -96,7 +96,8 @@ async def schedule_class(teacher: discord.User, name: str, message_id: int, date
         student_text_perms = discord.PermissionOverwrite(read_messages=True)
         overwrites_text = {
             rda.default_role: discord.PermissionOverwrite(read_messages=False),
-            teacher: discord.PermissionOverwrite(read_messages=True, mention_everyone=True, manage_channels=True),
+            teacher: discord.PermissionOverwrite(read_messages=True, mention_everyone=True, manage_channels=True,
+                                                 manage_messages=True, manage_permissions=True),
             **{student: student_text_perms for student in students}
         }
         channel = await class_category.create_text_channel(f"classroom-{str(class_index)}", overwrites=overwrites_text)
