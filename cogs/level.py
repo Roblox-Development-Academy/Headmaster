@@ -7,9 +7,10 @@ from discord.ext import commands
 from math import floor, ceil, fabs
 from bot import lang, get_prefix, categories, servers
 from copy import deepcopy
-# from psycopg2 import DatabaseError
+from psycopg2 import DatabaseError
 from common import parse_interval
 from bot import client
+from random import seed, uniform
 
 
 def calculate_level(exp, is_profile=False):
@@ -35,7 +36,7 @@ def calculate_level(exp, is_profile=False):
     return level
 
 
-async def add_exp(user_id, category_name, amount, multiplier_immune=False):  # , subtract_id: str = None):
+async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False):
     exp_rows = database.query(
         """
         SELECT id, exp_rate, name
@@ -65,7 +66,8 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False):  # ,
         (user_id, category_id, amount * total_multiplier)
     )
 
-    # recalculate_exp_rate(exp_rows, category_id, subtract_id, False if amount >= 0 else True)
+    # TODO: Uncomment line below after the recalculation is fixed.
+    # recalculate_exp_rate(exp_rows, category_id, seed_id, False if amount >= 0 else True)
 
     # Level-up notifications:
     current_exp = (database.query(
@@ -95,35 +97,15 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False):  # ,
                                                      category_name.upper())
 
 
-# TODO: Fix the exp rate recalculation.
-'''
-added_exp = {}
-
-def recalculate_exp_rate(previous_rows, category_id, subtract_id=None, subtract=False):
-    other_categories = len(previous_rows) - 1
-    distance_from_center = [fabs(row[1] - 12) for row in previous_rows]
+def recalculate_exp_rate(previous_rows, category_id, seed_id: int = None, subtract=False):
     previous_rows = list(previous_rows)
 
-    if distance_from_center[category_id - 1] < 7:
-        change_by = round(((distance_from_center[category_id - 1] * 11 + 7) / 142.857) / other_categories, 6)
-    else:
-        change_by = 0
-
-    if subtract:
-        change_by = - added_exp[subtract_id]
-        added_exp.pop(subtract_id)
-    else:
-        added_exp[subtract_id] = change_by
-
+    seed(seed_id)
     for i in range(len(previous_rows)):
-        previous_rows[i] = list(previous_rows[i])[:-1]
-        if previous_rows[i][0] != category_id:
-            previous_rows[i][1] += change_by
-        else:
-            previous_rows[i][1] -= change_by * other_categories
+        previous_rows[i] = list(previous_rows[i])
+        amount = uniform(5, 19)  # TODO: Check with JL on what to do with the weighing of the exp_rate.
 
-        if not (5 <= previous_rows[i][1] <= 19):
-            previous_rows[i][1] = 19 if previous_rows[i][1] > 19 else 5
+        previous_rows[i] = (- amount) if subtract else amount
 
     while True:
         try:
@@ -140,7 +122,6 @@ def recalculate_exp_rate(previous_rows, category_id, subtract_id=None, subtract=
             break
         except DatabaseError:
             database.connect()
-'''
 
 
 def add_multiplier(user_id, multiplier, duration=None):
@@ -280,8 +261,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            await add_exp(reaction.message.author.id, category_name, 'add')
-            # , subtract_id=f"{reaction.message.id}{user.id}")
+            await add_exp(reaction.message.author.id, category_name, 'add', seed_id=reaction.message.id - user.id)
 
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
@@ -375,8 +355,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            await add_exp(reaction.message.author.id, category_name, 'subtract')
-            # , subtract_id=f"{reaction.message.id}{user.id}")
+            await add_exp(reaction.message.author.id, category_name, 'subtract', seed_id=reaction.message.id - user.id)
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[User] = None):
