@@ -10,7 +10,7 @@ global_placeholders:
     level: "0x622eff"
   emoji:
     confirm: "\u2705"  # :white_check_mark:
-    'no': "x\u20e3"
+    'no': "🇽"
     gotcha: "\U0001f44d"  # :thumbs_up:
     error: "\U0001f63f"  # :crying_cat_face:
     date: "\U0001f4c6"  # :calendar:
@@ -365,8 +365,9 @@ messages:
             You need only to satisfy the requirements and periodically teach lessons.
 
 
-            Click the check mark below if you believe you satisfy these requirements
+            React with %emoji.confirm% if you believe you satisfy these requirements
             and wish to apply to be a teacher at Roblox Development Academy.
+            React with %emoji.no% to cancel.
           fields:
             - name: "Requirements"
               value: |
@@ -378,6 +379,7 @@ messages:
             text: "%prompt.respond_5m%"
         reactions:
           - "%emoji.confirm%"
+          - "%emoji.no%"
     start:
       - embed:
           title: "Apply for Teacher"
@@ -1016,3 +1018,11 @@ messages:
           description: |
             You must have the Teacher role in Roblox Development Academy to perform this action.
             You may apply to be Teacher with the `apply` command.
+    report:
+      - delete_after: 5
+        embed:
+          title: "%emoji.error% Report Failed"
+          color: "%color.error%"
+          description: |
+            You can not report the bot.
+            If you believe there is an error/bug, please contact one of the staff.

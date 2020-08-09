@@ -1,7 +1,7 @@
 import database
 import conditions
 
-from discord import Member, User
+from discord import User
 from datetime import datetime, timezone
 from discord.ext import commands
 from math import floor, ceil, fabs
@@ -10,6 +10,7 @@ from copy import deepcopy
 from psycopg2 import DatabaseError
 from common import parse_interval
 from bot import client
+from random import seed, uniform
 
 
 def calculate_level(exp, is_profile=False):
@@ -35,7 +36,7 @@ def calculate_level(exp, is_profile=False):
     return level
 
 
-async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtract_id: str = None):
+async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False):
     exp_rows = database.query(
         """
         SELECT id, exp_rate, name
@@ -43,6 +44,8 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtr
         ORDER BY id
         """
     ).fetchall()
+
+    category_id = None
 
     for row in exp_rows:
         if row[2] == category_name:
@@ -63,7 +66,8 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtr
         (user_id, category_id, amount * total_multiplier)
     )
 
-    # recalculate_exp_rate(exp_rows, category_id, subtract_id, False if amount >= 0 else True)
+    # TODO: Uncomment line below after the recalculation is fixed.
+    # recalculate_exp_rate(exp_rows, category_id, seed_id, False if amount >= 0 else True)
 
     # Level-up notifications:
     current_exp = (database.query(
@@ -74,6 +78,7 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtr
         """,
         (user_id,)
     ).fetchone())[0]
+    category = None
     if calculate_level(current_exp - amount) < calculate_level(current_exp):
         if category_name.endswith('ing'):
             category = category_name[:-3].lower() + 'er'
@@ -88,38 +93,19 @@ async def add_exp(user_id, category_name, amount, multiplier_immune=False, subtr
             await lang.get("levels.level_up.1").send(user, level=str(calculate_level(current_exp)), category=category)
         else:
             await lang.get("levels.level_up.2").send(user, level=str(calculate_level(current_exp)),
-                                                     category=category_name.lower() if not category_name.isupper() else category_name.upper())
+                                                     category=category_name.lower() if not category_name.isupper() else
+                                                     category_name.upper())
 
 
-added_exp = {}
-
-
-# TODO: Fix the exp rate recalculation.
-def recalculate_exp_rate(previous_rows, category_id, subtract_id=None, subtract=False):
-    other_categories = len(previous_rows) - 1
-    distance_from_center = [fabs(row[1] - 12) for row in previous_rows]
+def recalculate_exp_rate(previous_rows, category_id, seed_id: int = None, subtract=False):
     previous_rows = list(previous_rows)
 
-    if distance_from_center[category_id - 1] < 7:
-        change_by = round(((distance_from_center[category_id - 1] * 11 + 7) / 142.857) / other_categories, 6)
-    else:
-        change_by = 0
-
-    if subtract:
-        change_by = - added_exp[subtract_id]
-        added_exp.pop(subtract_id)
-    else:
-        added_exp[subtract_id] = change_by
-
+    seed(seed_id)
     for i in range(len(previous_rows)):
-        previous_rows[i] = list(previous_rows[i])[:-1]
-        if previous_rows[i][0] != category_id:
-            previous_rows[i][1] += change_by
-        else:
-            previous_rows[i][1] -= change_by * other_categories
+        previous_rows[i] = list(previous_rows[i])
+        amount = uniform(5, 19)  # TODO: Check with JL on what to do with the weighing of the exp_rate.
 
-        if not (5 <= previous_rows[i][1] <= 19):
-            previous_rows[i][1] = 19 if previous_rows[i][1] > 19 else 5
+        previous_rows[i] = (- amount) if subtract else amount
 
     while True:
         try:
@@ -258,12 +244,15 @@ class Level(commands.Cog):
             await add_exp(user.id, category, amount)
         users_string = users[0].mention
         if len(users) > 1:
-            users_string = ', '.join(user.mention for user in users[:-1]) + (',' if len(users) != 2 else '') + " and " + users[-1].mention
-        await lang.get("exp.success").send(ctx, category=category, amount=str(round(fabs(amount))), action='given to' if amount >= 0 else 'taken away from', users=users_string)
+            users_string = ', '.join(user.mention for user in users[:-1]) + (',' if len(users) != 2 else '') \
+                           + " and " + users[-1].mention
+        await lang.get("exp.success").send(ctx, category=category, amount=str(round(fabs(amount))),
+                                           action='given to' if amount >= 0 else 'taken away from', users=users_string)
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution")\
+                and reaction.message.author.id not in (user.id, client.user.id):
             category_name = None
             for category in categories:
                 if reaction.message.channel.id in categories[category]:
@@ -273,8 +262,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            await add_exp(reaction.message.author.id, category_name, 'add',
-                          subtract_id=f"{reaction.message.id}{user.id}")
+            await add_exp(reaction.message.author.id, category_name, 'add', seed_id=reaction.message.id - user.id)
 
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
@@ -358,7 +346,8 @@ class Level(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
-        if reaction.emoji == lang.global_placeholders.get("emoji.solution") and reaction.message.author.id != user.id:
+        if reaction.emoji == lang.global_placeholders.get("emoji.solution")\
+                and reaction.message.author.id not in (user.id, client.user.id):
             category_name = None
             for category in categories:
                 if reaction.message.channel.id in categories[category]:
@@ -368,8 +357,7 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            await add_exp(reaction.message.author.id, category_name, 'subtract',
-                          subtract_id=f"{reaction.message.id}{user.id}")
+            await add_exp(reaction.message.author.id, category_name, 'subtract', seed_id=reaction.message.id - user.id)
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[User] = None):
@@ -393,17 +381,23 @@ class Level(commands.Cog):
         multipliers, total_multiplier = get_multipliers(member.id, raw=True)
 
         rank_strings = [
-            f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate_level(rank[1])}.{lang.global_placeholders.get('s')}**Total Exp:** {rank[1]}.\nExp Left Until Next Level: {calculate_level(rank[1], True)[2] - calculate_level(rank[1], True)[1]}."
+            f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate_level(rank[1])}." +
+            f"{lang.global_placeholders.get('s')}**Total Exp:** {rank[1]}.\nExp Left Until Next Level: " +
+            f"{calculate_level(rank[1], True)[2] - calculate_level(rank[1], True)[1]}."
             for rank in ranks]
         multiplier_strings = "None." if not multipliers else [
-            f"**Multiplier: {multiplier[0]}x**\nExpiration Date: {multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'}"
+            f"**Multiplier: {multiplier[0]}x**\nExpiration Date: " +
+            f"{multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'} "
             for multiplier in multipliers]
 
-        await lang.get("profile").send(ctx, user_name=str(member), user_id=str(member.id), avatar_url=str(member.avatar_url),
-                                       nickname='' if member.name == member.display_name else f"**Nickname:** {member.display_name}",
-                                       levels='\n'.join(
-                                           rank_strings) if rank_strings else "There are currently no levels to display.",
-                                       multipliers=multiplier_strings if not multipliers else f"__Total Multiplier: {round(total_multiplier, 4)}x__\n\n" + '\n'.join(
+        await lang.get("profile").send(ctx, user_name=str(member), user_id=str(member.id),
+                                       avatar_url=str(member.avatar_url),
+                                       nickname='' if member.name == member.display_name
+                                       else f"**Nickname:** {member.display_name}",
+                                       levels='\n'.join(rank_strings) if rank_strings
+                                       else "There are currently no levels to display.",
+                                       multipliers=multiplier_strings if not multipliers
+                                       else f"__Total Multiplier: {round(total_multiplier, 4)}x__\n\n" + '\n'.join(
                                            multiplier_strings),
                                        join_server=member.joined_at.strftime(self.date_format),
                                        join_discord=member.created_at.strftime(self.date_format),
@@ -443,13 +437,14 @@ class Level(commands.Cog):
             i = 0
             for row in ranks:
                 i += 1
-                mention = f"{'__' if row[0] == ctx.author.id else ''}<@{row[0]}>{'__' if row[0] == ctx.author.id else ''}"
+                mention = f"{'__' if row[0] == ctx.author.id else ''}<@{row[0]}>" \
+                          f"{'__' if row[0] == ctx.author.id else ''}"
                 exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(shown_categories) == 1 else ''
                 rank_strings[category].append(f"**{i})** {mention} Level {calculate_level(row[1])}.{exp}")
 
             lb_node.nodes[0].args['embed'].add_field(name=category,
-                                                     value='\n\n'.join(rank_strings[category]) if rank_strings[
-                                                         category] else "There are currently no rankings for this category.")
+                                                     value='\n\n'.join(rank_strings[category]) if rank_strings[category]
+                                                     else "There are currently no rankings for this category.")
         await lb_node.send(ctx)
 
     @commands.command()
@@ -463,8 +458,9 @@ class Level(commands.Cog):
         ).fetchall()
         categories_node = deepcopy(lang.get("levels.categories"))
         for row in rows:
-            categories_node.nodes[0].args['embed'].add_field(name=row[0],
-                                                             value=f"Channels:\n<#{'> <#'.join(str(channel) for channel in categories[row[0]])}>\nExp Rate: {row[1]}")
+            channel_info = f"Channels:\n<#{'> <#'.join(str(channel) for channel in categories[row[0]])}>" \
+                           f"\nExp Rate: {row[1]}"
+            categories_node.nodes[0].args['embed'].add_field(name=row[0], value=channel_info)
         await categories_node.send(ctx)
 
     @commands.command()
@@ -474,7 +470,8 @@ class Level(commands.Cog):
             try:
                 duration = parse_interval(duration, maximum=datetime.max - datetime.now())
             except OverflowError:
-                await lang.get("error.multiplier.duration").send(ctx, duration=strfdelta(datetime.max - datetime.now()), date=datetime.max.strftime(self.date_format))
+                await lang.get("error.multiplier.duration").send(ctx, duration=strfdelta(datetime.max - datetime.now()),
+                                                                 date=datetime.max.strftime(self.date_format))
                 return
             if duration is None:
                 await lang.get("error.interval.parse").send(ctx)
