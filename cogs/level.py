@@ -5,11 +5,10 @@ from discord import User
 from datetime import datetime, timezone
 from discord.ext import commands
 from math import floor, ceil, fabs
-from bot import lang, get_prefix, categories, servers
+from bot import lang, get_prefix, level_categories, rda, client
 from copy import deepcopy
 from psycopg2 import DatabaseError
 from common import parse_interval, td_format
-from bot import client
 from random import seed, uniform
 
 
@@ -217,8 +216,8 @@ class Level(commands.Cog):
             except ValueError:
                 amount = None
 
-        if (not users) or (category not in categories) or (amount is None):
-            await lang.get("exp.help").send(ctx, prefix=get_prefix(servers['rda']))
+        if (not users) or (category not in level_categories) or (amount is None):
+            await lang.get("exp.help").send(ctx, prefix=get_prefix(rda.id))
             return
 
         for user in users:
@@ -235,8 +234,8 @@ class Level(commands.Cog):
         if reaction.emoji == lang.global_placeholders.get("emoji.solution")\
                 and reaction.message.author.id not in (user.id, client.user.id):
             category_name = None
-            for category in categories:
-                if reaction.message.channel.id in categories[category]:
+            for category in level_categories:
+                if reaction.message.channel.id in level_categories[category]:
                     category_name = category
                     break
 
@@ -330,8 +329,8 @@ class Level(commands.Cog):
         if reaction.emoji == lang.global_placeholders.get("emoji.solution")\
                 and reaction.message.author.id not in (user.id, client.user.id):
             category_name = None
-            for category in categories:
-                if reaction.message.channel.id in categories[category]:
+            for category in level_categories:
+                if reaction.message.channel.id in level_categories[category]:
                     category_name = category
                     break
 
@@ -342,9 +341,9 @@ class Level(commands.Cog):
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[User] = None):
-        member = client.get_guild(servers['rda']).get_member(user[0].id if user else ctx.author.id)
+        member = rda.get_member(user[0].id if user else ctx.author.id)
         if member is None:
-            member = client.get_guild(servers['rda']).get_member(ctx.author.id)
+            member = rda.get_member(ctx.author.id)
 
         ranks = database.query(
             """
@@ -392,12 +391,12 @@ class Level(commands.Cog):
         shown_categories = []
         if category:
             category = category.upper() if category.upper() in ("GFX", "SFX") else category.capitalize()
-            if category not in categories:
+            if category not in level_categories:
                 await lang.get("error.invalid_category").send(ctx, category=category, prefix=prefix)
                 return
             shown_categories.append(category)
         else:
-            shown_categories = [category_name for category_name in categories]
+            shown_categories = [category_name for category_name in level_categories]
 
         rank_strings = {}
         lb_node = deepcopy(lang.get("levels.leaderboard").replace(prefix=prefix, page="1", user=f"{ctx.author}"))
@@ -439,7 +438,7 @@ class Level(commands.Cog):
         ).fetchall()
         categories_node = deepcopy(lang.get("levels.categories"))
         for row in rows:
-            channel_info = f"Channels:\n<#{'> <#'.join(str(channel) for channel in categories[row[0]])}>" \
+            channel_info = f"Channels:\n<#{'> <#'.join(str(channel) for channel in level_categories[row[0]])}>" \
                            f"\nExp Rate: {row[1]}"
             categories_node.nodes[0].args['embed'].add_field(name=row[0], value=channel_info)
         await categories_node.send(ctx)

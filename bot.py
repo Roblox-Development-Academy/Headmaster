@@ -56,11 +56,12 @@ def get_mention_or_prefix(_, message):
 
 client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=True, help_command=None)
 
-
 rda: discord.Guild
 class_channel: discord.TextChannel
+report_channel: discord.TextChannel
 class_category: discord.CategoryChannel
 teacher_role: discord.Role
+level_categories: dict
 
 __loop = __asyncio.get_event_loop()
 __loop.create_task(client.start(TOKEN))
@@ -68,32 +69,31 @@ __loop.create_task(client.start(TOKEN))
 
 @client.listen('on_ready')
 async def __on_ready():
-    global rda, class_channel, class_category, teacher_role
-    if __os.environ['DEBUG'] == 1:
-        rda = client.get_guild(676175299121250327)
-        class_channel = rda.get_channel(739213440803012608)
-        class_category = rda.get_channel(677766311530594305)
-        teacher_role = rda.get_role(677766292714815508)
-        logger.info("Created globals using DEBUG set")
-    else:
-        rda = client.get_guild(673600024919408680)
-        class_channel = rda.get_channel(673604720601858069)
-        class_category = rda.get_channel(673604345316638730)
-        teacher_role = rda.get_role(673608309198028811)
-        logger.info("Created globals using production set")
+    global rda, class_channel, class_category, teacher_role, level_categories, report_channel
+    with open("config.yml") as f:
+        config = load(f, Loader=FullLoader)
+        if __os.environ['DEBUG'] == '1':
+            pre_text = 'test_'
+            status = 'DEBUG'
+        elif __os.environ['DEBUG'] == '0':
+            pre_text = ''
+            status = 'production'
+
+        rda = client.get_guild(config[pre_text + 'servers']['rda'])
+
+        level_categories = config[pre_text + 'level_categories']
+
+        class_channel = rda.get_channel(config[pre_text + 'channels']['class'])
+        report_channel = rda.get_channel(config[pre_text + 'channels']['report'])
+
+        class_category = rda.get_channel(config[pre_text + 'categories']['class'])
+        teacher_role = rda.get_role(config[pre_text + 'roles']['teacher'])
+
+        logger.info("Created globals using {} set".format(status))
+
+
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
 
 in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands
 
 lang = __LangManager('messages.yml')
-
-with open("config.yml") as f:
-    config = load(f, Loader=FullLoader)
-    if __os.environ['DEBUG'] == '1':
-        __test = 'test_'
-    elif __os.environ['DEBUG'] == '0':
-        __test = ''
-
-    servers = config[__test + 'servers']
-    channels = config[__test + 'channels']
-    categories = config[__test + 'categories']
