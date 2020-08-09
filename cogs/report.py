@@ -1,15 +1,12 @@
 from datetime import timezone, datetime
 from discord.ext import commands
-from bot import lang, client, channels
+from bot import lang, client, report_channel
 from language import MessageNode
 from discord import Embed
 from discord.errors import HTTPException
 
 
 class Report(commands.Cog):
-    def __init__(self):
-        self.report_channel = channels['report']
-
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if str(payload.emoji) == lang.global_placeholders.get("emoji.report"):
@@ -18,7 +15,6 @@ class Report(commands.Cog):
             if message.author == client.user:
                 await lang.get("error.report").send(message.channel)
                 return
-            report_channel = client.get_channel(self.report_channel)
             time_format = '%A, %B %d, %Y; %I:%M %p UTC.'
             await lang.get("report.start").send(report_channel, reported=f"{message.author}",
                                                 reported_id=str(message.author.id), reporter=f"{payload.member}",
