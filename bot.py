@@ -88,7 +88,6 @@ async def __on_ready():
 
         logger.info("Created globals using {} set".format(status))
 
-
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
 
 in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands
