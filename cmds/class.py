@@ -42,7 +42,7 @@ async def run():
         for channel in class_category.text_channels:
             match = re.search(r'classroom-(\d+)', channel.name)
             if not match:
-                return
+                continue
             now = datetime.utcnow()
             last_messages = (await channel.history(limit=1).flatten())
             if (not last_messages and now - channel.created_at > timedelta(minutes=30)) or \
