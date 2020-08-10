@@ -35,18 +35,47 @@ def calculate_level(exp, is_profile=False):
     return level
 
 
-async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False):
-    exp_rows = database.query(
+category_rows: list
+
+
+def get_exp_rows():
+    global category_rows
+
+    category_rows = database.query(
         """
         SELECT id, exp_rate, name
         FROM categories
         ORDER BY id
         """
     ).fetchall()
+    total_exp = database.query(
+        """
+        SELECT category_id, SUM(exp)
+        FROM levels
+        GROUP BY category_id
+        ORDER BY category_id
+        """
+    ).fetchall()
+    for i in range(len(category_rows)):
+        category_rows[i] = list(category_rows[i])
+        for index in range(0, len(total_exp) if len(total_exp) < i else i):
+            if total_exp[index][0] == i + 1:
+                category_rows[i].append(int(total_exp[index][1]))
+                break
+        if len(category_rows[i]) < 4:
+            category_rows[i].append(0)
 
+    print(category_rows)
+    print(total_exp)
+
+
+get_exp_rows()
+
+
+async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False):
     category_id = None
 
-    for row in exp_rows:
+    for row in category_rows:
         if row[2] == category_name:
             category_id = row[0]
             if amount in ('add', 'subtract'):
@@ -64,9 +93,8 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
         """,
         (user_id, category_id, amount * total_multiplier)
     )
-
-    # TODO: Uncomment line below after the recalculation is fixed.
-    # recalculate_exp_rate(exp_rows, category_id, seed_id, False if amount >= 0 else True)
+    category_rows[category_id][3] += amount * total_multiplier
+    # recalculate_exp_rate(seed_id) # TODO: Uncomment after.
 
     # Level-up notifications:
     current_exp = (database.query(
@@ -96,16 +124,20 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
                                                      category_name.upper())
 
 
-def recalculate_exp_rate(previous_rows, category_id, seed_id: int = None, subtract=False):
-    previous_rows = list(previous_rows)
-
+# TODO: Fix this again.
+def recalculate_exp_rate(seed_id: int = None):
     seed(seed_id)
-    for i in range(len(previous_rows)):
-        previous_rows[i] = list(previous_rows[i])
-        amount = uniform(5, 19)  # TODO: Check with JL on what to do with the weighing of the exp_rate.
+    total_exp = sum([row[3] for row in category_rows])
+    for i in range(len(category_rows)):
+        amount = 6 * category_rows[i][1] / total_exp
 
-        previous_rows[i] = (- amount) if subtract else amount
+        category_rows[i][1] = 11 + amount + uniform(-2, 2)
 
+        if category_rows[i][1] > 19 or category_rows[i][1] < 5:
+            category_rows[i][1] = 5 if category_rows[i][1] < 5 else 19
+
+    # TODO: discord.ext.commands.errors.CommandInvokeError: Command raised an exception:
+    #  TypeError: not all arguments converted during string formatting
     while True:
         try:
             database.cursor.executemany(
@@ -115,7 +147,7 @@ def recalculate_exp_rate(previous_rows, category_id, seed_id: int = None, subtra
                 ON CONFLICT (id) DO
                 UPDATE SET exp_rate = EXCLUDED.exp_rate
                 """,
-                previous_rows
+                category_rows
             )
             database.connection.commit()
             break
@@ -205,7 +237,7 @@ class Level(commands.Cog):
 
     @commands.command()
     @conditions.manager_only()
-    async def exp(self, ctx, users: commands.Greedy[User] = None, category=None, amount=None):
+    async def exp_add(self, ctx, users: commands.Greedy[User] = None, category=None, amount=None):
         if category:
             category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
         try:
@@ -350,7 +382,7 @@ class Level(commands.Cog):
             SELECT categories.name, levels.exp,
             RANK () OVER (
                 PARTITION BY levels.category_id
-                ORDER BY levels.exp
+                ORDER BY levels.exp DESC
             ) rank
             FROM levels JOIN categories
             ON levels.category_id = categories.id AND levels.user_id = %s
@@ -384,7 +416,7 @@ class Level(commands.Cog):
                                        server_duration=td_format(datetime.utcnow() - member.joined_at),
                                        discord_duration=td_format(datetime.utcnow() - member.created_at))
 
-    @commands.command(aliases=("lb", "ranks", "ranking", "rankings", "levels", "leaderboards"))
+    @commands.command(aliases=("lb", "rank", "ranks", "ranking", "rankings", "levels", "leaderboards", "exp", "xp"))
     async def leaderboard(self, ctx, category=None):
         prefix = get_prefix(ctx.guild.id)
 
