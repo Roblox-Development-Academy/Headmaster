@@ -1,6 +1,7 @@
 from typing import Tuple, Optional, Dict, List
 import datetime
 import asyncio
+import re
 
 from discord.ext.commands import MemberConverter
 
@@ -173,6 +174,10 @@ async def add_assignment(*columns):
         await schedule_assignment(columns[0], columns[1], columns[3], columns[-2], columns[-3])
 
 
+def validate_name(name: str):
+    return (1 < len(name) < 32) and re.search(r"^[\w :-]+$", name)
+
+
 @prompt()
 async def __create(stage: Stage, name: str = ''):
     ctx = stage.ctx
@@ -183,17 +188,18 @@ async def __create(stage: Stage, name: str = ''):
 
     if stage.num == 0:
         results['assignments'] = [x[0] for x in get_assignment_names(ctx.author.id)]
+        results['name'] = name
         if len(results['assignments']) >= 10:
             await lang.get('assignment.error.too_many').send(ctx)
             return
         if ctx.channel != dm:
             await lang.get('to_dms').send(ctx)
-        if not name:
+        if not name or not validate_name(name):
             await stage.zap(1)
         else:
             stage.history.append(1)
             results['name'] = name
-            await stage.zap(1 if len(name) > 32 else 2)
+            await stage.zap(2)
 
         # After the wizard is completed
         while True:
@@ -232,8 +238,8 @@ async def __create(stage: Stage, name: str = ''):
                                  results.get('delete_after_date'), results.get('date'), results.get('interval'))
             return
     elif stage.num == 1:
-        if len(results.get('name', '')) > 32:
-            header = "**The name is too long! It cannot be longer than 32 characters!**\n\n"
+        if not validate_name(results['name']):
+            header = lang.get('assignment.create.1').nodes[0].options['invalid_name']
         else:
             header = ''
         while True:
