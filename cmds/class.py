@@ -143,6 +143,10 @@ def get_class_names(user_id: int) -> Tuple[Tuple[str]]:
     ).fetchall()
 
 
+def validate_name(name: str):
+    return (1 < len(name) < 32) and re.search(r"^[\w :-]+$", name)
+
+
 @prompt()
 async def __create(stage: Stage, name: str = None, interest_check: bool = False):
     ctx = stage.ctx
@@ -160,19 +164,19 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             results['title'] = "Create Class"
         results['interest_check'] = interest_check
         results['name'] = name
-        results['header'] = ''
         results['classes'] = [name[0] for name in get_class_names(ctx.author.id)]
-        if not results['name']:
+        if not results['name'] or not validate_name(results['name']):
             await stage.zap(1)
         else:
             await stage.zap(2)
         in_prompt.pop(ctx.author.id, None)
     elif stage.num == 1:  # Name
-        header = ''
+        if results.get('name') and not validate_name(results['name']):
+            header = lang.get('class.create.1').nodes[0].options.get('invalid_name', '')
         while True:
             results['name'] = (await common.prompt(dm, ctx.author, lang.get('class.create.1'),
                                                    header=header, title=results['title'])).content
-            if not (1 < len(results['name']) < 32) or not re.search(r"^[\w :-]+$", results['name']):
+            if not validate_name(results['name']):
                 header = lang.get('class.create.1').nodes[0].options.get('invalid_name', '')
             else:
                 break
