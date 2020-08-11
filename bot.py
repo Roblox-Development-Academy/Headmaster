@@ -93,7 +93,6 @@ async def __on_ready():
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
     await client.change_presence(activity=discord.Game(".help"))
 
-
 __loop = __asyncio.get_event_loop()
 __loop.create_task(client.start(TOKEN))
 
