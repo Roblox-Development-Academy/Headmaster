@@ -171,6 +171,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             await stage.zap(2)
         in_prompt.pop(ctx.author.id, None)
     elif stage.num == 1:  # Name
+        header = ''
         if results.get('name') and not validate_name(results['name']):
             header = lang.get('class.create.1').nodes[0].options.get('invalid_name', '')
         while True:
