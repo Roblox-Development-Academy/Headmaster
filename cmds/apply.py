@@ -7,9 +7,10 @@ from errors import PromptCancelled
 @commands.command()
 async def apply(ctx):
     message = (await lang.get('teacher_application.initiate').send(ctx))[0]
-    reaction, user = await prompt_reaction(message, ctx.author, allowed_emojis=(
+    reaction, _ = await prompt_reaction(message, ctx.author, allowed_emojis=(
         lang.global_placeholders.get('emoji.confirm'), lang.global_placeholders.get('emoji.no')))
     if reaction.emoji == lang.global_placeholders.get('emoji.no'):
+        in_prompt.pop(ctx.author.id)
         raise PromptCancelled("The prompt was cancelled.", message)
     await lang.get('teacher_application.start').send(ctx)
 
@@ -30,7 +31,7 @@ async def apply(ctx):
     in_prompt.pop(ctx.author.id)
     await lang.get('teacher_application.complete').send(user_dm)
 
-    channel = client.get_channel(channels["teacher_application"])
+    channel = teacher_application_channel
 
     await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author),
                                                           user_mention=ctx.author.mention)

@@ -44,8 +44,9 @@ async def run():
             if not match:
                 continue
             now = datetime.utcnow()
-            if (not channel.last_message and now - channel.created_at > timedelta(minutes=30)) or \
-                    (channel.last_message and now - channel.last_message.created_at > timedelta(minutes=30)):
+            last_messages = (await channel.history(limit=1).flatten())
+            if (not last_messages and now - channel.created_at > timedelta(minutes=30)) or \
+                    (last_messages and now - last_messages[0].created_at > timedelta(minutes=30)):
                 await channel.delete()
                 voice_channel: discord.VoiceChannel = discord.utils.get(class_category.voice_channels,
                                                                         name=channel.name)
@@ -96,7 +97,8 @@ async def schedule_class(teacher: discord.User, name: str, message_id: int, date
         student_text_perms = discord.PermissionOverwrite(read_messages=True)
         overwrites_text = {
             rda.default_role: discord.PermissionOverwrite(read_messages=False),
-            teacher: discord.PermissionOverwrite(read_messages=True, mention_everyone=True, manage_channels=True),
+            teacher: discord.PermissionOverwrite(read_messages=True, mention_everyone=True, manage_channels=True,
+                                                 manage_messages=True, manage_permissions=True),
             **{student: student_text_perms for student in students}
         }
         channel = await class_category.create_text_channel(f"classroom-{str(class_index)}", overwrites=overwrites_text)
@@ -105,7 +107,8 @@ async def schedule_class(teacher: discord.User, name: str, message_id: int, date
             overwrites_voice = {
                 rda.default_role: discord.PermissionOverwrite(view_channel=False),
                 teacher: discord.PermissionOverwrite(connect=True, mute_members=True, deafen_members=True,
-                                                     move_members=True, manage_channels=True, priority_speaker=True),
+                                                     move_members=True, manage_channels=True,
+                                                     manage_permissions=True, priority_speaker=True),
                 **{student: student_voice_perms for student in students}
             }
             await class_category.create_voice_channel(f"classroom-{str(class_index)}", overwrites=overwrites_voice)
@@ -140,6 +143,10 @@ def get_class_names(user_id: int) -> Tuple[Tuple[str]]:
     ).fetchall()
 
 
+def validate_name(name: str):
+    return (1 < len(name) < 32) and re.search(r"^[\w :-]+$", name)
+
+
 @prompt()
 async def __create(stage: Stage, name: str = None, interest_check: bool = False):
     ctx = stage.ctx
@@ -157,19 +164,20 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             results['title'] = "Create Class"
         results['interest_check'] = interest_check
         results['name'] = name
-        results['header'] = ''
         results['classes'] = [name[0] for name in get_class_names(ctx.author.id)]
-        if not results['name']:
+        if not results['name'] or not validate_name(results['name']):
             await stage.zap(1)
         else:
             await stage.zap(2)
         in_prompt.pop(ctx.author.id, None)
     elif stage.num == 1:  # Name
         header = ''
+        if results.get('name') and not validate_name(results['name']):
+            header = lang.get('class.create.1').nodes[0].options.get('invalid_name', '')
         while True:
             results['name'] = (await common.prompt(dm, ctx.author, lang.get('class.create.1'),
                                                    header=header, title=results['title'])).content
-            if not (1 < len(results['name']) < 32) or not re.search(r"^[\w :-]+$", results['name']):
+            if not validate_name(results['name']):
                 header = lang.get('class.create.1').nodes[0].options.get('invalid_name', '')
             else:
                 break

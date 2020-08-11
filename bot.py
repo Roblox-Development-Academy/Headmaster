@@ -1,6 +1,7 @@
 import os as __os
 import logging as __logging
 import asyncio as __asyncio
+import warnings as __warnings
 
 import discord
 from discord.ext import commands
@@ -12,6 +13,8 @@ from yaml import load, FullLoader
 
 TOKEN = __os.environ['TOKEN']
 WEB_URL = __os.environ['URL']
+
+__warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 __logging.basicConfig(level=__logging.INFO)
 logger = __logging.getLogger('discord')
@@ -56,17 +59,16 @@ client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=Tru
 rda: discord.Guild
 class_channel: discord.TextChannel
 report_channel: discord.TextChannel
+teacher_application_channel: discord.TextChannel
 class_category: discord.CategoryChannel
 teacher_role: discord.Role
 level_categories: dict
 
-__loop = __asyncio.get_event_loop()
-__loop.create_task(client.start(TOKEN))
-
 
 @client.listen('on_ready')
 async def __on_ready():
-    global rda, class_channel, class_category, teacher_role, level_categories, report_channel
+    global rda, class_channel, class_category, teacher_role, level_categories, report_channel, \
+        teacher_application_channel
     with open("config.yml") as f:
         config = load(f, Loader=FullLoader)
         if __os.environ['DEBUG'] == '1':
@@ -82,13 +84,17 @@ async def __on_ready():
 
         class_channel = rda.get_channel(config[pre_text + 'channels']['class'])
         report_channel = rda.get_channel(config[pre_text + 'channels']['report'])
+        teacher_application_channel = rda.get_channel(config[pre_text + 'channels']['teacher_application'])
 
         class_category = rda.get_channel(config[pre_text + 'categories']['class'])
         teacher_role = rda.get_role(config[pre_text + 'roles']['teacher'])
 
         logger.info("Created globals using {} set".format(status))
-
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
+    await client.change_presence(activity=discord.Game(".help"))
+
+__loop = __asyncio.get_event_loop()
+__loop.create_task(client.start(TOKEN))
 
 in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands
 

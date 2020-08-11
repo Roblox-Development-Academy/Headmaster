@@ -150,11 +150,8 @@ async def prompt_date(channel: discord.TextChannel, user: discord.User,
     wait_msg = asyncio.create_task(prompt(channel, user, prompt_msg, timeout, check=msg_check,
                                           url=f"{WEB_URL}/date-select/?user-id={user.id}", **kwargs))
     for fut in asyncio.as_completed([wait_date, wait_msg]):
-        result = None
         try:
             result = await fut
-            raise errors.CancelProcesses
-        except errors.CancelProcesses:  # Means the date succeeded
             return None if result is None else result[1]
         except errors.PromptError:  # Means the message was first
             events.date_selected.signals.pop(date_fut)
@@ -168,16 +165,12 @@ async def prompt_wait(channel: discord.TextChannel, user: discord.User,
         return m.author == user and m.channel == channel and m.content and \
                m.content.lower() in ('skip', 'back', 'cancel', 'cancel.')
 
-    date_fut = asyncio.get_event_loop().create_future()
     wait_other = asyncio.create_task(coro)
     wait_msg = asyncio.create_task(prompt(channel, user, prompt_msg, timeout, check=msg_check,
                                           url=f"{WEB_URL}/date-select/?user-id={user.id}", **kwargs))
     for fut in asyncio.as_completed([wait_other, wait_msg]):
-        result = None
         try:
             result = await fut
-            raise errors.CancelProcesses
-        except errors.CancelProcesses:  # Means the date succeeded
             return result
         except errors.PromptError:  # Means the message was first
             await on_msg

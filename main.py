@@ -1,5 +1,4 @@
 import asyncio
-import time
 import re
 
 import uvicorn
@@ -129,11 +128,6 @@ async def run():
     client.load_extension('cmds.apply')
     client.load_extension('cmds.homework')
     client.load_extension('cmds.class')
-
-    @client.event
-    async def on_message(msg):
-        await client.process_commands(msg)
-        pass
 
     @client.check
     async def globally_ignore_channels(ctx):

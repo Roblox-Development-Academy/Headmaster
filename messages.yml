@@ -434,10 +434,17 @@ messages:
 
 
               This is a unique, case-sensitive identifier that students can use to submit the assignment. It cannot be
-              longer than 32 character and it cannot be shorter than 1. Using an existing name will replace the
-              previous assignment.%prompt.cancel%
+              longer than 32 characters. Using an existing name will replace the previous assignment.%prompt.cancel%
+            fields:
+              - name: "Allowed Characters"
+                value: |
+                  %s%%s%%bullet% Alphanumeric characters
+                  %s%%s%%bullet% Spaces
+                  %s%%s%%bullet% Dashes
+                  %s%%s%%bullet% Colons
             footer:
               text: "%prompt.respond_5m%"
+          invalid_name: "**The name is invalid. Please follow the instructions below.**\n\n"
       2:
         - embed:
             title: "Create Assignment"
@@ -894,6 +901,12 @@ messages:
           title: "Success"
           color: "%color.success%"
           description: "Category: %category%.\n%amount% exp has been %action% %users%."
+
+  static:
+    info:
+      - embed:
+          title: "Welcome!"
+          color: "%color.info%"
 
   error:
     prompt_timeout:
