@@ -59,6 +59,7 @@ client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=Tru
 rda: discord.Guild
 class_channel: discord.TextChannel
 report_channel: discord.TextChannel
+teacher_application_channel: discord.TextChannel
 class_category: discord.CategoryChannel
 teacher_role: discord.Role
 level_categories: dict
@@ -66,7 +67,8 @@ level_categories: dict
 
 @client.listen('on_ready')
 async def __on_ready():
-    global rda, class_channel, class_category, teacher_role, level_categories, report_channel
+    global rda, class_channel, class_category, teacher_role, level_categories, report_channel, \
+        teacher_application_channel
     with open("config.yml") as f:
         config = load(f, Loader=FullLoader)
         if __os.environ['DEBUG'] == '1':
@@ -82,6 +84,7 @@ async def __on_ready():
 
         class_channel = rda.get_channel(config[pre_text + 'channels']['class'])
         report_channel = rda.get_channel(config[pre_text + 'channels']['report'])
+        teacher_application_channel = rda.get_channel(config[pre_text + 'channels']['teacher_application'])
 
         class_category = rda.get_channel(config[pre_text + 'categories']['class'])
         teacher_role = rda.get_role(config[pre_text + 'roles']['teacher'])
