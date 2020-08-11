@@ -58,7 +58,7 @@ def get_exp_rows():
     ).fetchall()
     for i in range(len(category_rows)):
         category_rows[i] = list(category_rows[i])
-        for index in range(0, len(total_exp) if len(total_exp) < i else i + 1):
+        for index in range(0, len(total_exp) if len(total_exp) <= i + 1 else i + 1):
             if total_exp[index][0] == i + 1:
                 category_rows[i].append(int(total_exp[index][1]))
                 break
@@ -219,6 +219,13 @@ class Level(commands.Cog):
                 DELETE FROM levels
                 """
             )
+        if any(arg.lower().startswith("test_levels") for arg in args):
+            database.update(
+                """
+                DELETE FROM levels
+                WHERE user_id = 697655651127525498
+                """
+            )
         if any(arg.lower() in ('categories', 'all') for arg in args):
             database.update(
                 """
@@ -232,10 +239,9 @@ class Level(commands.Cog):
                 DELETE FROM multipliers
                 """
             )
-        changed = [arg.capitalize for arg in args]
         await ctx.send(embed=Embed(title="Reset Successful",
-                                   description='.\n'.join(changed) + '.',
-                                   colour=lang.global_placeholders.get("color.success")))
+                                   description='.\n'.join([arg.capitalize() for arg in args]) + '.',
+                                   colour=int(lang.global_placeholders.get("color.success"), 16)))
 
     @commands.command()
     @conditions.manager_only()
