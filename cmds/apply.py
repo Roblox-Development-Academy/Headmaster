@@ -31,7 +31,7 @@ async def apply(ctx):
     in_prompt.pop(ctx.author.id)
     await lang.get('teacher_application.complete').send(user_dm)
 
-    channel = client.get_channel(teacher_application_channel)
+    channel = teacher_application_channel
 
     await lang.get('teacher_application.ta_content').send(channel, user=str(ctx.author),
                                                           user_mention=ctx.author.mention)
