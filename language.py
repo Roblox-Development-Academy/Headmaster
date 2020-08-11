@@ -97,7 +97,10 @@ class MessageNode:
     def replace(self, **kwargs):
         if len(kwargs) == 0:
             return self
-        clone = copy.deepcopy(self)
+        if kwargs.get('mutate'):
+            clone = self
+        else:
+            clone = copy.deepcopy(self)
         content = clone.args.get('content')
         if content:
             clone.args['content'] = LangManager.replace(content, **kwargs)
@@ -219,7 +222,7 @@ class LangManager:
             value = placeholders.get(match.group(1))
             span = match.span()
             if value is not None:
-                to_replace = to_replace[:span[0]] + value + to_replace[span[1]:]
+                to_replace = to_replace[:span[0]] + str(value) + to_replace[span[1]:]
                 match = LangManager.matcher.search(to_replace, span[0])
             else:
                 match = LangManager.matcher.search(to_replace, span[1])

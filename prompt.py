@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Any, List
+from typing import Callable, Dict, Any, List, Optional
 
 import errors
 from cogs import errorhandler
@@ -20,8 +20,8 @@ class Stage:
             self.history.append(self.num)
         try:
             return await self.callback(self, *args, **kwargs)
-        except errors.PromptKilled as e:
-            raise e
+        except errors.PromptKilled:
+            raise
         except errors.PromptError as e:
             await self.handler(self.ctx, e)
 
@@ -30,8 +30,8 @@ class Stage:
         self.history.pop(-1)
         await self.zap(last_stage, *args, progress_history=False, **kwargs)
 
-    async def next(self, *args, **kwargs):
-        await self.zap(self.num + 1, *args, **kwargs)
+    async def next(self, increment: Optional[int] = 1, *args, **kwargs):
+        await self.zap(self.num + increment, *args, **kwargs)
 
 
 def prompt(handler=errorhandler.process) -> Callable:

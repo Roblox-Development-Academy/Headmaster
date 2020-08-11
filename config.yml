@@ -1,0 +1,55 @@
+servers:
+  rda: 673600024919408680
+
+test_servers: # Testing.
+  rda: 676175299121250327
+
+channels:
+  teacher_application: 741447717368102982
+  report: 741447824662724736
+  class: 673604720601858069
+
+test_channels: # Testing.
+  teacher_application: 728753615031763005
+  report: 735541300644020225
+  class: 739213440803012608
+
+categories:
+  class: 673604345316638730
+
+test_categories: # Testing.
+  class: 677766311530594305
+
+roles:
+  teacher: 673608309198028811
+
+test_roles: # Testing.
+  teacher: 677766292714815508
+
+level_categories:
+  Scripting:
+    - 673604566629220371
+  Animation:
+    - 673604608949747723
+  Modeling:
+    - 673604661093203981
+  Building:
+    - 673604639513641021
+  GFX:
+    - 675821688541151269
+  SFX:
+    - 711803414794731630
+
+test_level_categories: # Testing.
+  Scripting:
+    - 677766419785711616
+  Animation:
+    - 677766422415278096
+  Modeling:
+    - 677766426064584714
+  Building:
+    - 677766429860429854
+  GFX:
+    - 677766432359972885
+  SFX:
+    - 736312213907701800
