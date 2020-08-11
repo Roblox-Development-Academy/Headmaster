@@ -264,7 +264,7 @@ class Level(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         if reaction.emoji == lang.global_placeholders.get("emoji.solution")\
-                and reaction.message.author.id not in (user.id, client.user.id):
+                and reaction.message.author.id != user.id and reaction.message.author.bot is False:
             category_name = None
             for category in level_categories:
                 if reaction.message.channel.id in level_categories[category]:
@@ -359,7 +359,7 @@ class Level(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
         if reaction.emoji == lang.global_placeholders.get("emoji.solution")\
-                and reaction.message.author.id not in (user.id, client.user.id):
+                and reaction.message.author.id != user.id and reaction.message.author.bot is False:
             category_name = None
             for category in level_categories:
                 if reaction.message.channel.id in level_categories[category]:
