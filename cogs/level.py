@@ -1,7 +1,7 @@
 import database
 import conditions
 
-from discord import User
+from discord import User, Embed
 from datetime import datetime, timezone
 from discord.ext import commands
 from math import floor, ceil, fabs
@@ -58,7 +58,7 @@ def get_exp_rows():
     ).fetchall()
     for i in range(len(category_rows)):
         category_rows[i] = list(category_rows[i])
-        for index in range(0, len(total_exp) if len(total_exp) < i else i):
+        for index in range(0, len(total_exp) if len(total_exp) < i else i + 1):
             if total_exp[index][0] == i + 1:
                 category_rows[i].append(int(total_exp[index][1]))
                 break
@@ -74,6 +74,7 @@ get_exp_rows()
 
 async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False):
     category_id = None
+    category_name = category_name.capitalize() if category_name.upper() not in ('GFX', 'SFX') else category_name.upper()
 
     for row in category_rows:
         if row[2] == category_name:
@@ -93,8 +94,8 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
         """,
         (user_id, category_id, amount * total_multiplier)
     )
-    category_rows[category_id][3] += amount * total_multiplier
-    # recalculate_exp_rate(seed_id) # TODO: Uncomment after.
+    category_rows[category_id - 1][3] += amount * total_multiplier
+    recalculate_exp_rate(seed_id)
 
     # Level-up notifications:
     current_exp = (database.query(
@@ -124,20 +125,20 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
                                                      category_name.upper())
 
 
-# TODO: Fix this again.
+# TODO: Check if this works.
 def recalculate_exp_rate(seed_id: int = None):
     seed(seed_id)
     total_exp = sum([row[3] for row in category_rows])
     for i in range(len(category_rows)):
-        amount = 6 * category_rows[i][1] / total_exp
+        print(category_rows[i])
+        amount = 6 * (1 - category_rows[i][3] / total_exp)
+        print(amount)
 
-        category_rows[i][1] = 11 + amount + uniform(-2, 2)
+        category_rows[i][1] = 5 + amount + uniform(-0.9, 0.9)
 
         if category_rows[i][1] > 19 or category_rows[i][1] < 5:
             category_rows[i][1] = 5 if category_rows[i][1] < 5 else 19
 
-    # TODO: discord.ext.commands.errors.CommandInvokeError: Command raised an exception:
-    #  TypeError: not all arguments converted during string formatting
     while True:
         try:
             database.cursor.executemany(
@@ -147,7 +148,7 @@ def recalculate_exp_rate(seed_id: int = None):
                 ON CONFLICT (id) DO
                 UPDATE SET exp_rate = EXCLUDED.exp_rate
                 """,
-                category_rows
+                [(row[0], row[1]) for row in category_rows]
             )
             database.connection.commit()
             break
@@ -202,14 +203,12 @@ class Level(commands.Cog):
     """
     Average 11 exp.
     Exp rate: Float from 5 to 19.
-
-    TODO: The notifications for levels and exp.
     """
 
     def __init__(self):
         self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
-    '''
+    # '''
     # For testing only:
     @commands.command()
     @conditions.manager_only()
@@ -233,13 +232,17 @@ class Level(commands.Cog):
                 DELETE FROM multipliers
                 """
             )
-    '''
+        changed = [arg.capitalize for arg in args]
+        await ctx.send(embed=Embed(title="Reset Successful",
+                                   description='.\n'.join(changed) + '.',
+                                   colour=lang.global_placeholders.get("color.success")))
+    # '''
 
     @commands.command()
     @conditions.manager_only()
     async def exp_add(self, ctx, users: commands.Greedy[User] = None, category=None, amount=None):
         if category:
-            category = category.capitalize() if category.lower() not in ('gfx', 'sfx') else category.upper()
+            category = category.capitalize() if category.upper() not in ('GFX', 'SFX') else category.upper()
         try:
             amount = int(amount)
         except ValueError:
