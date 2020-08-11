@@ -236,7 +236,6 @@ class Level(commands.Cog):
         await ctx.send(embed=Embed(title="Reset Successful",
                                    description='.\n'.join(changed) + '.',
                                    colour=lang.global_placeholders.get("color.success")))
-    # '''
 
     @commands.command()
     @conditions.manager_only()
