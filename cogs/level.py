@@ -95,7 +95,9 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
         (user_id, category_id, amount * total_multiplier)
     )
     category_rows[category_id - 1][3] += amount * total_multiplier
-    recalculate_exp_rate(seed_id)
+
+    if not any(category[3] < 22 for category in category_rows):
+        recalculate_exp_rate(seed_id)
 
     # Level-up notifications:
     current_exp = (database.query(
