@@ -131,13 +131,15 @@ def recalculate_exp_rate(seed_id: int = None):
     total_exp = sum([row[3] for row in category_rows])
     for i in range(len(category_rows)):
         print(category_rows[i])
-        amount = 6 * (1 - category_rows[i][3] / total_exp)
+        amount = (11 * len(category_rows) - (11 * len(category_rows) * category_rows[i][3])
+                  / total_exp) / (len(category_rows) - 1)
         print(amount)
-
-        category_rows[i][1] = 5 + amount + uniform(-0.9, 0.9)
-
-        if category_rows[i][1] > 19 or category_rows[i][1] < 5:
-            category_rows[i][1] = 5 if category_rows[i][1] < 5 else 19
+        amount = amount + uniform(-0.51, 0.51)
+        print(amount)
+        if not 5 <= amount <= 19:
+            amount = 5 if category_rows[i][1] < 5 else 19
+        print(amount)
+        category_rows[i][1] = amount
 
     while True:
         try:
