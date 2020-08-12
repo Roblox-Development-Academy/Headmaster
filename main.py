@@ -80,7 +80,7 @@ async def run():
             CREATE TABLE IF NOT EXISTS levels (
                 user_id BIGINT NOT NULL,
                 category_id INTEGER NOT NULL,
-                exp BIGINT DEFAULT '0',
+                exp REAL DEFAULT '0',
                 PRIMARY KEY (user_id, category_id),
                 FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
             )

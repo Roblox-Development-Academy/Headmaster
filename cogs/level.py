@@ -251,12 +251,9 @@ class Level(commands.Cog):
         if category:
             category = category.capitalize() if category.upper() not in ('GFX', 'SFX') else category.upper()
         try:
-            amount = int(amount)
+            amount = float(amount)
         except ValueError:
-            try:
-                amount = round(float(amount))
-            except ValueError:
-                amount = None
+            amount = None
 
         if (not users) or (category not in level_categories) or (amount is None):
             await lang.get("exp.help").send(ctx, prefix=get_prefix(rda.id))
