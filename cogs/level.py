@@ -210,7 +210,7 @@ class Level(commands.Cog):
     def __init__(self):
         self.date_format = '%A, %B %d, %Y; %I:%M %p UTC'
 
-    # '''
+    '''
     # For testing only:
     @commands.command()
     @conditions.manager_only()
@@ -244,6 +244,7 @@ class Level(commands.Cog):
         await ctx.send(embed=Embed(title="Reset Successful",
                                    description='.\n'.join([arg.capitalize() for arg in args]) + '.',
                                    colour=int(lang.global_placeholders.get("color.success"), 16)))
+    '''
 
     @commands.command()
     @conditions.manager_only()
