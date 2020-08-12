@@ -19,13 +19,13 @@ async def run():
     def generate_tables():
         statements = (
             f"""
-            CREATE TABLE IF NOT EXISTS guilds(
+            CREATE TABLE IF NOT EXISTS guilds (
                 id BIGINT PRIMARY KEY UNIQUE NOT NULL,
                 prefix TEXT DEFAULT '{lang.global_placeholders.get('default_prefix')}'
             )
             """,
             """
-            CREATE TABLE IF NOT EXISTS ignored_channels(
+            CREATE TABLE IF NOT EXISTS ignored_channels (
                 id BIGINT PRIMARY KEY UNIQUE NOT NULL,
                 guild_id BIGINT NOT NULL
             )
@@ -35,7 +35,7 @@ async def run():
             ON ignored_channels(guild_id)
             """,
             """
-            CREATE TABLE IF NOT EXISTS assignments(
+            CREATE TABLE IF NOT EXISTS assignments (
                 assigner BIGINT NOT NULL,
                 name TEXT NOT NULL,
                 description BIGINT,
@@ -47,7 +47,7 @@ async def run():
             )
             """,
             """
-            CREATE TABLE IF NOT EXISTS submissions(
+            CREATE TABLE IF NOT EXISTS submissions (
                 submitter BIGINT NOT NULL,
                 assigner BIGINT NOT NULL,
                 name TEXT NOT NULL,
@@ -58,7 +58,7 @@ async def run():
             )
             """,
             """
-            CREATE TABLE IF NOT EXISTS classes(
+            CREATE TABLE IF NOT EXISTS classes (
                 teacher BIGINT NOT NULL,
                 name TEXT NOT NULL,
                 message BIGINT,
@@ -80,7 +80,7 @@ async def run():
             CREATE TABLE IF NOT EXISTS levels (
                 user_id BIGINT NOT NULL,
                 category_id INTEGER NOT NULL,
-                exp BIGINT DEFAULT '0',
+                exp REAL DEFAULT '0',
                 PRIMARY KEY (user_id, category_id),
                 FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
             )

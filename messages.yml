@@ -895,7 +895,7 @@ messages:
             Use `%prefix%exp <user(s)> <category name> <amount>` to give someone exp.
             To take away exp, enter a negative amount.
 
-            `<amount>` must be an integer. If a float is entered, it will be rounded to the nearest integer.
+            `<amount>` must be a float.
     success:
       - embed:
           title: "Success"
