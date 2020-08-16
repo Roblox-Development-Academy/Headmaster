@@ -1,4 +1,4 @@
-import database
+from utils import database
 import conditions
 
 from discord import User
@@ -8,7 +8,7 @@ from math import floor, ceil, fabs
 from bot import lang, get_prefix, level_categories, rda, client
 from copy import deepcopy
 from psycopg2 import DatabaseError
-from common import parse_interval, td_format
+from utils.common import parse_interval, td_format
 from random import seed, uniform
 
 

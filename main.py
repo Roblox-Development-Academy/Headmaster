@@ -3,7 +3,6 @@ import re
 
 import uvicorn
 
-from web.app import app
 from bot import *
 
 

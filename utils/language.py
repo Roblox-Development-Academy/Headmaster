@@ -244,7 +244,7 @@ class LangManager:
             LangManager.global_placeholders.clear()
         self.files.update(yaml_files)
 
-        def globally_replace(config):
+        def globally_replace(config: Union[list, dict]):
             for key, value in (enumerate(config) if isinstance(config, list) else config.items()):
                 if isinstance(value, str):
                     config[key] = LangManager.replace(value)

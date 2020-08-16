@@ -1,6 +1,6 @@
 from bot import *
-from common import prompt_reaction, prompt
-from language import MessageNode
+from utils.common import prompt_reaction, prompt
+from utils.language import MessageNode
 from errors import PromptCancelled
 
 

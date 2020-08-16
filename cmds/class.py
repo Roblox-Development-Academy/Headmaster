@@ -7,9 +7,9 @@ from discord.ext import tasks
 
 import conditions
 from bot import *
-from prompt import prompt, Stage
-from language import LangManager, MessageNode
-import common
+from utils.prompt import prompt, Stage
+from utils.language import LangManager, MessageNode
+from utils import common
 import errors
 
 scheduled_classes: Dict[Tuple[int, str], Tuple[asyncio.Task, discord.Message]] = {}

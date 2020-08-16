@@ -6,8 +6,8 @@ import warnings as __warnings
 import discord
 from discord.ext import commands
 
-import database
-from language import LangManager as __LangManager
+from utils import database
+from utils.language import LangManager as __LangManager
 
 from yaml import load, FullLoader
 

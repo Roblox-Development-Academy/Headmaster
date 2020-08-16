@@ -5,12 +5,11 @@ import re
 
 from discord.ext.commands import MemberConverter
 
-import common
 from bot import *
 import errors
-from language import LangManager, MessageNode
-import database
-from prompt import prompt, Stage
+from utils.language import LangManager, MessageNode
+from utils import database, common
+from utils.prompt import prompt, Stage
 
 """
 Assignment has an assigner (tutor), name (identifier), description (message ID), a solution (message ID).
