@@ -68,7 +68,6 @@ async def schedule_class(teacher: discord.User, name: str, message_id: int, date
     reaction = discord.utils.find(lambda r: str(r.emoji) == lang.global_placeholders.get('emoji.enroll'),
                                   message.reactions)
     students = [u for u in (await reaction.users().flatten()) if u != client.user and u != teacher]
-    logger.info(f"{str(len(students))} users have reacted to the message.")
     teacher_invite = ''
     if guild_id:
         guild: discord.Guild = client.get_guild(guild_id)
@@ -297,7 +296,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                                                   prerequisites=results['prerequisites'] or '*No prerequisites*')
         node.nodes[0].args['embed'].timestamp = results.get('date', discord.Embed.Empty)
         if results.get('image'):
-            node.nodes[0].args['embed'].image.url = results['image']
+            node.nodes[0].args['embed'].set_image(url=results['image'])
         response, _ = await common.prompt_reaction(node, ctx.author, dm, allowed_emojis=[confirm_emoji, return_emoji])
         emoji = response.emoji
         if emoji == confirm_emoji:
@@ -313,7 +312,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                     node.nodes[0].args['embed'].insert_field_at(0, name="Prerequisites", inline=False,
                                                                 value=results['prerequisites'])
                 if results.get('image'):
-                    node.nodes[0].args['embed'].image.url = results['image']
+                    node.nodes[0].args['embed'].set_image(url=results['image'])
                 msgs = await node.send(class_channel)
                 await lang.get('class.create.interest_check_completed').send(ctx.author, url=msgs[0].jump_url)
                 return
@@ -334,7 +333,6 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         in_prompt.pop(ctx.author.id)
         class_node = lang.get('class.class_info').replace(name=results['name'],
                                                           description=results['description'].content,
-                                                          image=results.get('image') or discord.Embed.Empty,
                                                           teacher=rda.get_member(ctx.author.id).nick or ctx.author.name,
                                                           avatar=ctx.author.avatar_url,
                                                           teacher_mention=ctx.author.mention)
@@ -345,6 +343,8 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         if results['prerequisites']:
             class_node.nodes[0].args['embed'].add_field(name="Prerequisites", inline=False,
                                                         value=results['prerequisites'])
+        if results.get('image'):
+            class_node.nodes[0].args['embed'].set_image(url=results['image'])
         class_msgs = await class_node.send(class_channel, mutate=True, max_students=results['max_students'])
         node = lang.get('class.create.completed')
         node.nodes[0].args['embed'].timestamp = results['date']
