@@ -4,6 +4,7 @@ import re
 import uvicorn
 
 from bot import *
+from web.app import app
 
 
 async def run():
