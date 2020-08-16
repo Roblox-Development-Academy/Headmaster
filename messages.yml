@@ -56,7 +56,7 @@ messages:
           - name: "General Commands"
             inline: false
             value: |
-              **help** - Shows this message.
+              **help** - Show this message.
               **getprefix** - Show the server command prefix.
               **profile** - View someone's profile.
               **leaderboard** - Show the leaderboard.
