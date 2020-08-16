@@ -13,7 +13,7 @@ logger.addHandler(handler)
 connection = None
 cursor = None
 
-dotenv.load_dotenv("../.env")
+dotenv.load_dotenv("./.env")
 
 
 def connect(url=os.environ['DATABASE_URL'], sslmode='require', connect_timeout=-1, **kwargs):
