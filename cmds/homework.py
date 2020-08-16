@@ -237,7 +237,7 @@ async def __create(stage: Stage, name: str = ''):
                                  results.get('delete_after_date'), results.get('date'), results.get('interval'))
             return
     elif stage.num == 1:
-        if not validate_name(results['name']):
+        if results['name'] and not validate_name(results['name']):
             header = lang.get('assignment.create.1').nodes[0].options['invalid_name']
         else:
             header = ''
