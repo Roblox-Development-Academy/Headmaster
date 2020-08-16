@@ -57,10 +57,10 @@ messages:
             inline: false
             value: |
               **help** - Shows this message.
-              **profile** - View someone's profile.
-              **leaderboard** - Shows the leaderboard.
-              **categories** - Shows the categories for levels.
               **getprefix** - Show the server command prefix.
+              **profile** - View someone's profile.
+              **leaderboard** - Show the leaderboard.
+              **categories** - Show the categories for levels.
               **hw** - Create, submit, and manage assignments.
           - name: "Teacher Commands"
             inline: false

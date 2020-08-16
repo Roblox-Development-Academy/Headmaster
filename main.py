@@ -3,8 +3,8 @@ import re
 
 import uvicorn
 
-from web.app import app
 from bot import *
+from web.app import app
 
 
 async def run():

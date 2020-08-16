@@ -1,7 +1,7 @@
 from datetime import timezone, datetime
 from discord.ext import commands
 from bot import lang, client, report_channel
-from language import MessageNode
+from utils.language import MessageNode
 from discord import Embed
 from discord.errors import HTTPException
 
