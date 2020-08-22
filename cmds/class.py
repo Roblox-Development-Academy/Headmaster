@@ -11,6 +11,7 @@ from utils.prompt import prompt, Stage
 from utils.language import LangManager, MessageNode
 from utils import common
 import errors
+from discord.utils import escape_markdown
 
 scheduled_classes: Dict[Tuple[int, str], Tuple[asyncio.Task, discord.Message]] = {}
 class_index: int = 0
@@ -224,7 +225,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             if img_msg.attachments:
                 results['image'] = img_msg.attachments[0].url  # TODO - Validate URL
             else:
-                results['image'] = img_msg.content
+                results['image'] = escape_markdown(img_msg.content)
         except errors.PromptSkipped:
             pass
         if results['interest_check']:
