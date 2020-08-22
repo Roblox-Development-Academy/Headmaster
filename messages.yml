@@ -408,7 +408,7 @@ messages:
               inline: false
     ta_content:
       - embed:
-          title: "Teacher Application for %user% has Been Successfully Completed"
+          title: "Teacher application for %user% has been successfully completed"
           color: "%color.success%"
           description: "User: %user_mention%"
     complete:
@@ -420,7 +420,7 @@ messages:
             You will be contacted once results are out.
     end:
       - embed:
-          title: "End of Teacher Application for %user%"
+          title: "End of teacher application for %user%"
           color: "%color.success%"
 
   assignment:
