@@ -423,7 +423,7 @@ class Level(commands.Cog):
 
     @commands.command(aliases=("lb", "rank", "ranks", "ranking", "rankings", "levels", "leaderboards", "exp", "xp"))
     async def leaderboard(self, ctx, category=None):
-        prefix = get_prefix(ctx.guild.id)
+        prefix = get_prefix(rda.id)
 
         shown_categories = []
         if category:
