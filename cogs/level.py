@@ -476,7 +476,7 @@ class Level(commands.Cog):
         categories_node = deepcopy(lang.get("levels.categories"))
         for row in rows:
             channel_info = f"Channels:\n<#{'> <#'.join(str(channel) for channel in level_categories[row[0]])}>" \
-                           f"\nExp Rate: {row[1]}"
+                           f"\nExp Rate: {(str(row[1] - 0.51) + ' - ' + str(row[1] + 0.51)) if not any(category[3] < 22 for category in category_rows) else row[1]}"
             categories_node.nodes[0].args['embed'].add_field(name=row[0], value=channel_info)
         await categories_node.send(ctx)
 
