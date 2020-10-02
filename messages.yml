@@ -19,7 +19,7 @@ global_placeholders:
     enroll: "☑" # Blue check mark :ballot_box_with_check:
     return: "↩"
     keycap: "\u20e3"
-    happy: ":slight_smile:"
+    happy: "<:miyanowow:761405559337123840>"
     solution: "\u2705"  # :white_check_mark:
     report: "⚠️"
     profile: "ℹ️"
@@ -27,6 +27,8 @@ global_placeholders:
     previous: "\u25c0"
     rewind: "\u23ea"
     fast_forward: "\u23e9"
+  url:
+    happy: "https://cdn.discordapp.com/emojis/715201541950144582.png?v=1"
   prompt:
     cancel: "\n\nRespond with `cancel` to cancel the setup."
     skip_or_cancel: "\n\nRespond with `skip` to skip this step or `cancel` to cancel the setup."
@@ -61,6 +63,7 @@ messages:
               **profile** - View someone's profile.
               **leaderboard** - Show the leaderboard.
               **categories** - Show the categories for levels.
+              **remind** - Remind others to give your solution exp.
               **hw** - Create, submit, and manage assignments.
           - name: "Teacher Commands"
             inline: false
@@ -80,6 +83,16 @@ messages:
               %emoji.profile% **profile** - View the message author's profile.
               %emoji.report% **report** - Flag a message for inappropriate content.
               %emoji.solution% **solution** - Mark a message as the solution to your problem.
+
+  remind:
+    - embed:
+        title: "Reminder"
+        color: "%color.info%"
+        description: >
+          **If someone's solution solved your problem, remember to react with a %emoji.solution% to give the writer
+          exp!**
+        thumbnail:
+          url: "%url.happy%"
 
   to_dms:
     - embed:
@@ -967,6 +980,11 @@ messages:
           title: "%emoji.error% You cannot use commands in this channel"
           color: "%color.error%"
           description: "This channel is ignored by the bot. Please use another channel to execute commands."
+    cooldown:
+      - embed:
+          title: "%emoji.error% This command is on cooldown"
+          color: "%color.error%"
+          description: "Please wait %seconds_left% more seconds before retrying this command."
     command:
       - embed:
           title: "%emoji.error% Unrecognized Command"
