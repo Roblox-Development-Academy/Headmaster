@@ -4,8 +4,7 @@ import errors
 
 def teacher_only():
     def predicate(ctx):
-        # TODO Is there any way to see if a member has a role on a certain, specific Discord server?
-        # Yes, Jiawei, there is.
+        # See if a member has a role on a certain, specific Discord server
         # member = guild.get_member(user_id)
         # member.roles
         return True
