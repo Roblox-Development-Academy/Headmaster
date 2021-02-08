@@ -5,12 +5,11 @@ import re
 
 from discord.ext.commands import MemberConverter
 
-import common
 from bot import *
 import errors
-from language import LangManager, MessageNode
-import database
-from prompt import prompt, Stage
+from utils.language import LangManager, MessageNode
+from utils import database, common
+from utils.prompt import prompt, Stage
 
 """
 Assignment has an assigner (tutor), name (identifier), description (message ID), a solution (message ID).
@@ -238,7 +237,7 @@ async def __create(stage: Stage, name: str = ''):
                                  results.get('delete_after_date'), results.get('date'), results.get('interval'))
             return
     elif stage.num == 1:
-        if not validate_name(results['name']):
+        if results['name'] and not validate_name(results['name']):
             header = lang.get('assignment.create.1').nodes[0].options['invalid_name']
         else:
             header = ''

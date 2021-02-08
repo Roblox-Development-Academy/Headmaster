@@ -2,7 +2,7 @@ import psycopg2
 
 from bot import *
 from cogs import errorhandler
-from language import LangManager
+from utils.language import LangManager
 from copy import deepcopy
 
 

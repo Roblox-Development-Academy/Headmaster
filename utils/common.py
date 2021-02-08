@@ -7,7 +7,7 @@ import errors
 import events
 from bot import *
 from cogs import errorhandler
-from language import MessageNode, MessageListNode
+from utils.language import MessageNode, MessageListNode
 
 
 async def __do_nothing():

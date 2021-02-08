@@ -10,25 +10,39 @@ class Stage:
         self.callback: Callable = func
         self.handler: Callable = handler
         self.ctx: commands.Context = context
+        self.branch: str = ''
         self.num: int = stage_num
         self.history: List[int] = [stage_num]
         self.results: Dict[str, Any] = {}
+
+    @property
+    def path(self):
+        return self.branch + str(self.num)
+
+    @path.setter
+    def path(self, value: str):
+        i = value.rfind('.')
+        self.branch = value[0:i]
+        self.num = int(value[(i + 1):-1])
 
     async def zap(self, stage_num: int, *args, progress_history: bool = True, **kwargs):
         self.num = stage_num
         if progress_history:
             self.history.append(self.num)
         try:
-            return await self.callback(self, *args, **kwargs)
+            return (await self.callback(self, *args, **kwargs)) or self.num
         except errors.PromptKilled:
             raise
         except errors.PromptError as e:
             await self.handler(self.ctx, e)
 
+    async def to(self, branch: str, stage_num: int = 0, *args, **kwargs):
+        self.branch = branch
+        return await self.zap(stage_num, *args, **kwargs)
+
     async def back(self, *args, **kwargs):
-        last_stage = self.history[-2]
         self.history.pop(-1)
-        await self.zap(last_stage, *args, progress_history=False, **kwargs)
+        await self.zap(self.history[-1], *args, progress_history=False, **kwargs)
 
     async def next(self, increment: Optional[int] = 1, *args, **kwargs):
         await self.zap(self.num + increment, *args, **kwargs)

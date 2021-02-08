@@ -3,8 +3,8 @@ import re
 
 import uvicorn
 
-from web.app import app
 from bot import *
+from web.app import app
 
 
 async def run():
@@ -14,6 +14,7 @@ async def run():
     from cogs.errorhandler import ErrorHandler
     from cogs.level import Level
     from cogs.report import Report
+    from cogs import errorhandler
     import conditions
 
     def generate_tables():
@@ -175,6 +176,27 @@ async def run():
     @client.command(name='command')
     async def command(ctx):
         await lang.get('error.command').send(ctx, prefix=get_prefix(ctx.guild.id))
+
+    @client.command(aliases=('reminder',))
+    @commands.cooldown(1, 60*5, type=commands.BucketType.user)
+    async def remind(ctx):
+        try:
+            await ctx.message.delete()
+        except discord.Forbidden:
+            pass
+        await lang.get('remind').send(ctx)
+
+    @remind.error
+    async def remind_error(ctx: commands.Context, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            try:
+                await ctx.message.delete()
+            except discord.Forbidden:
+                pass
+            await lang.get('error.cooldown').send(ctx.author,
+                                                  seconds_left=round(remind.get_cooldown_retry_after(ctx), 2))
+        else:
+            await errorhandler.process(ctx, error)
 
     @client.command(aliases=('exec',))
     @conditions.manager_only()
