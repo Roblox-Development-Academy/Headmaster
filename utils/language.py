@@ -132,7 +132,10 @@ class MessageNode:
         if len(self.args) == 0:
             return message_list
         if isinstance(to, discord.abc.Messageable):
-            msg = await to.send(**self.replace(**placeholders).args)
+            try:
+                msg = await to.send(**self.replace(**placeholders).args)
+            except discord.Forbidden:
+                pass
 
             reactions = self.options.get('reactions')
             if reactions:
@@ -147,7 +150,10 @@ class MessageNode:
                 return msg
         else:
             for element in to:
-                await self.send(element, message_list=message_list, **placeholders)
+                try:
+                    await self.send(element, message_list=message_list, **placeholders)
+                except discord.Forbidden:
+                    pass
             return message_list
 
     async def edit(self, message, **placeholders):
