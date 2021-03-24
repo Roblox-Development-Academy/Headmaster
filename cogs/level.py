@@ -43,7 +43,7 @@ def calculate_level(exp, is_profile=False):
     level = -1
     while exp_left >= 0:
         level += 1
-        level_exp += 11
+        level_exp = 22 + 11 * floor(level / 3)
 
         remainder = exp_left
         exp_left = exp_left - level_exp
