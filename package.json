@@ -39,6 +39,7 @@
     "@babel/preset-react"
   ],
   "dependencies": {
-    "air-datepicker": "^2.2.3"
+    "air-datepicker": "^2.2.3",
+    "webpack-cli": "^4.5.0"
   }
 }
