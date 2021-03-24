@@ -1,32 +1,49 @@
-from utils import database
-import conditions
-
-from discord import User, Embed
+from discord import User
 from datetime import datetime, timezone
-from discord.ext import commands
 from math import floor, ceil, fabs
-from bot import lang, get_prefix, level_categories, rda, client
 from copy import deepcopy
 from psycopg2 import DatabaseError
-from utils.common import parse_interval, td_format
 from random import seed, uniform
+from typing import Optional
+
+from bot import *
+from utils.common import parse_interval, td_format
+import conditions
+from utils.language import LangManager
+
+profession_names = {
+    "Scripting": "scripter",
+    "Animation:": "animator",
+    "Modeling:": "modeler",
+    "Building": "builder",
+    "GFX": "GFX artist",
+    "Audio Engineering": "Audio Engineer"
+}
+
+
+def get_profession_name(category_name: str) -> Optional[str]:
+    profession = profession_names.get(category_name)
+    if profession:
+        return profession
+    if category_name.endswith("ering"):
+        return category_name[:-3].lower()
+    elif category_name.endswith('ing'):
+        return category_name[:-3].lower() + 'er'
+    elif category_name.isupper():
+        return category_name + ' artist'
+    elif category_name.endswith('ion'):
+        return category_name[:-3].lower() + 'or'
+    return None
 
 
 def calculate_level(exp, is_profile=False):
-    level_exp = 121
+    level_exp = 11
     exp_left = exp
     remainder = exp_left
     level = -1
     while exp_left >= 0:
         level += 1
-        level_exp = 121 * (floor(level / 11) + 1)
-
-        if level >= 51:
-            level_exp += 1331
-            if level >= 121:
-                level_exp += 14641
-                if level >= 142:
-                    level_exp += 161051
+        level_exp += 11
 
         remainder = exp_left
         exp_left = exp_left - level_exp
@@ -72,7 +89,7 @@ def get_exp_rows():
 get_exp_rows()
 
 
-async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False):
+async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False, giver: discord.User = None):
     category_id = None
     category_name = category_name.capitalize() if category_name.upper() not in ('GFX', 'SFX') else category_name.upper()
 
@@ -83,7 +100,7 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
                 amount = - row[1] if amount == 'subtract' else row[1]
             break
 
-    total_multiplier = get_multipliers(user_id) if not multiplier_immune else 1
+    multipliers, total_multiplier = get_multipliers(user_id, True) if not multiplier_immune else ([], 1)
 
     database.update(
         """
@@ -98,33 +115,45 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
 
     if not any(category[3] < 22 for category in category_rows):
         recalculate_exp_rate(seed_id)
+    if amount < 0:
+        return
 
     # Level-up notifications:
+    member: discord.Member = rda.get_member(user_id)
     current_exp = (database.query(
         """
         SELECT exp
         FROM levels
-        WHERE user_id = %s
+        WHERE user_id = %s AND category_id = %s
         """,
-        (user_id,)
+        (user_id, category_id)
     ).fetchone())[0]
-    category = None
-    if calculate_level(current_exp - amount) < calculate_level(current_exp):
-        if category_name.endswith('ing'):
-            category = category_name[:-3].lower() + 'er'
-        elif category_name.isupper():
-            category = category_name + ' artist'
-        elif category_name.endswith('ion'):
-            category = category_name[:-3].lower() + 'or'
-        user = client.get_user(user_id)
-        if user is None:
-            user = await client.fetch_user(user_id)
-        if category:
-            await lang.get("levels.level_up.1").send(user, level=str(calculate_level(current_exp)), category=category)
+    profession = get_profession_name(category_name)
+    level, level_exp, total_level_exp = calculate_level(current_exp, True)
+    user = member or client.get_user(user_id)
+    if user is None:
+        user = await client.fetch_user(user_id)
+    if calculate_level(current_exp - amount) < level:  # Leveled up
+        if member and roles['level_noalert'] in member.roles:
+            return
+        title = f"LEVELED UP TO LEVEL {level}"
+    else:
+        if member and roles['experience_noalert'] in member.roles:
+            return
+        if total_multiplier == 1:
+            title = f"+ {amount} {category_name} EXP"
         else:
-            await lang.get("levels.level_up.2").send(user, level=str(calculate_level(current_exp)),
-                                                     category=category_name.lower() if not category_name.isupper() else
-                                                     category_name.upper())
+            title = f"+ {amount} * {total_multiplier} {category_name} EXP"
+    num_progress = floor((level_exp / total_level_exp) * 8)
+    exp_bar = ":diamond_shape_with_a_dot_inside:" * num_progress + \
+        ":large_orange_diamond:" * (8 - num_progress)
+    str_multipliers = "\n".join([f"%bullet% x {multiplier}: {td_format(end_time - datetime.now(timezone.utc))}"
+                                 for multiplier, end_time in multipliers]) or "*No active multipliers*"
+    str_multipliers = LangManager.replace(str_multipliers)
+    await lang.get('levels.experience_up').send(user, title=title, level=level, experience=amount * total_multiplier,
+                                                exp_bar=exp_bar, current_exp=level_exp, total_level_exp=total_level_exp,
+                                                multipliers=str_multipliers, profession=profession,
+                                                giver=giver.mention if giver else "null")
 
 
 def recalculate_exp_rate(seed_id: int = None):
@@ -184,7 +213,7 @@ def get_multipliers(user_id, raw=False):
             total_multiplier *= multiplier[0]
         else:
             has_expired = True
-            multipliers.remove(multiplier)
+            multipliers.pop(i)
     if has_expired:
         database.update(
             """
@@ -258,7 +287,7 @@ class Level(commands.Cog):
             return
 
         for user in users:
-            await add_exp(user.id, category, amount)
+            await add_exp(user.id, category, amount, giver=ctx.author)
         users_string = users[0].mention
         if len(users) > 1:
             users_string = ', '.join(user.mention for user in users[:-1]) + (',' if len(users) != 2 else '') \
@@ -279,7 +308,8 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            await add_exp(reaction.message.author.id, category_name, 'add', seed_id=reaction.message.id - user.id)
+            await add_exp(reaction.message.author.id, category_name, 'add', seed_id=reaction.message.id - user.id,
+                          giver=user)
 
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
@@ -374,7 +404,8 @@ class Level(commands.Cog):
             if category_name is None:
                 return
 
-            await add_exp(reaction.message.author.id, category_name, 'subtract', seed_id=reaction.message.id - user.id)
+            await add_exp(reaction.message.author.id, category_name, 'subtract', seed_id=reaction.message.id - user.id,
+                          giver=user)
 
     @commands.command()
     async def profile(self, ctx, user: commands.Greedy[User] = None):
@@ -476,7 +507,8 @@ class Level(commands.Cog):
         categories_node = deepcopy(lang.get("levels.categories"))
         for row in rows:
             channel_info = f"Channels:\n<#{'> <#'.join(str(channel) for channel in level_categories[row[0]])}>" \
-                           f"\nExp Rate: {(str(row[1] - 0.51) + ' - ' + str(row[1] + 0.51)) if not any(category[3] < 22 for category in category_rows) else row[1]}"
+                           f"\nExp Rate: " \
+                           f"{(str(row[1] - 0.51) + ' - ' + str(row[1] + 0.51)) if not any(category[3] < 22 for category in category_rows) else row[1]}"
             categories_node.nodes[0].args['embed'].add_field(name=row[0], value=channel_info)
         await categories_node.send(ctx)
 
@@ -495,7 +527,10 @@ class Level(commands.Cog):
                 return
         if (user and multiplier is None) or ((multiplier is not None) and not (0 <= multiplier <= 14641)):
             if multiplier is None:
-                await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
+                if ctx.guild:
+                    await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
+                else:
+                    await lang.get("multiplier.usage").send(ctx, prefix=lang.global_placeholders.get('default_prefix'))
             else:
                 await lang.get("error.multiplier.invalid").send(ctx, multiplier=str(multiplier))
             return
@@ -506,4 +541,7 @@ class Level(commands.Cog):
                                                           self.date_format) if duration else "Never",
                                                       duration=td_format(duration) if duration else "Forever")
         else:
-            await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
+            if ctx.guild:
+                await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))
+            else:
+                await lang.get("multiplier.usage").send(ctx, prefix=lang.global_placeholders.get('default_prefix'))
