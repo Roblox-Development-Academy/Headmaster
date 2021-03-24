@@ -2,6 +2,7 @@ import os as __os
 import logging as __logging
 import asyncio as __asyncio
 import warnings as __warnings
+from typing import Dict as __Dict
 
 import discord
 from discord.ext import commands
@@ -54,20 +55,24 @@ def get_mention_or_prefix(_, message):
     return commands.when_mentioned_or(get_prefix(message.guild.id))(client, message)
 
 
-client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=True, help_command=None)
+__intents = discord.Intents.default()
+__intents.members = True
+client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=True, help_command=None, intents=__intents)
 
+# TODO - Make functions to get discord objects instead, refactor, and get rid of on_ready delay everywhere
 rda: discord.Guild
 class_channel: discord.TextChannel
 report_channel: discord.TextChannel
 teacher_application_channel: discord.TextChannel
 class_category: discord.CategoryChannel
+roles: __Dict[str, discord.Role]
 teacher_role: discord.Role
 level_categories: dict
 
 
 @client.listen('on_ready')
 async def __on_ready():
-    global rda, class_channel, class_category, teacher_role, level_categories, report_channel, \
+    global rda, class_channel, class_category, roles, teacher_role, level_categories, report_channel, \
         teacher_application_channel
     with open("config.yml") as f:
         config = load(f, Loader=FullLoader)
@@ -87,6 +92,7 @@ async def __on_ready():
         teacher_application_channel = rda.get_channel(config[pre_text + 'channels']['teacher_application'])
 
         class_category = rda.get_channel(config[pre_text + 'categories']['class'])
+        roles = {name: rda.get_role(role_id) for name, role_id in config[pre_text + 'roles'].items()}
         teacher_role = rda.get_role(config[pre_text + 'roles']['teacher'])
 
         logger.info("Created globals using {} set".format(status))
