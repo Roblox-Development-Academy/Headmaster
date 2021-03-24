@@ -40,3 +40,8 @@ async def select_datetime_submit(user_id: int = Query(..., alias='user-id'), dat
     except Exception:
         result = None
     await events.date_selected.fire(user_id, result)
+
+
+@app.get('/display-time/')
+async def display_time(request: Request, time: int):
+    return render_template('display_date.html', request, time=time)

@@ -332,18 +332,21 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         await stage.zap(100)
     elif stage.num == 100:
         in_prompt.pop(ctx.author.id)
+        int_date = int(results['date'].timestamp())
         class_node = lang.get('class.class_info').replace(name=results['name'],
                                                           description=results['description'].content,
                                                           teacher=rda.get_member(ctx.author.id).nick or ctx.author.name,
                                                           avatar=ctx.author.avatar_url,
-                                                          teacher_mention=ctx.author.mention)
+                                                          teacher_mention=ctx.author.mention,
+                                                          url_display_time=f"{WEB_URL}/display-time/?time={int_date}",
+                                                          new_class_ping=roles['newclass_alert'].mention)
         class_node.nodes[0].args['embed'].timestamp = results['date']
         if results['max_students']:
-            class_node.nodes[0].args['embed'].add_field(name="Maximum Students", inline=False,
-                                                        value=class_node.nodes[0].options.get('max_students'))
+            class_node.nodes[0].args['embed'].insert_field_at(1, name="Maximum Students", inline=False,
+                                                              value=class_node.nodes[0].options.get('max_students'))
         if results['prerequisites']:
-            class_node.nodes[0].args['embed'].add_field(name="Prerequisites", inline=False,
-                                                        value=results['prerequisites'])
+            class_node.nodes[0].args['embed'].insert_field_at(2, name="Prerequisites", inline=False,
+                                                              value=results['prerequisites'])
         if results.get('image'):
             class_node.nodes[0].args['embed'].set_image(url=results['image'])
         class_msgs = await class_node.send(class_channel, mutate=True, max_students=results['max_students'])
