@@ -61,6 +61,7 @@ client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=Tru
 
 # TODO - Make functions to get discord objects instead, refactor, and get rid of on_ready delay everywhere
 rda: discord.Guild
+channels: __Dict[str, discord.TextChannel]
 class_channel: discord.TextChannel
 report_channel: discord.TextChannel
 teacher_application_channel: discord.TextChannel
@@ -72,7 +73,7 @@ level_categories: dict
 
 @client.listen('on_ready')
 async def __on_ready():
-    global rda, class_channel, class_category, roles, teacher_role, level_categories, report_channel, \
+    global rda, channels, class_channel, class_category, roles, teacher_role, level_categories, report_channel, \
         teacher_application_channel
     with open("config.yml") as f:
         config = load(f, Loader=FullLoader)
@@ -87,6 +88,7 @@ async def __on_ready():
 
         level_categories = config[pre_text + 'level_categories']
 
+        channels = {name: rda.get_channel(channel_id) for name, channel_id in config[pre_text + "channels"].items()}
         class_channel = rda.get_channel(config[pre_text + 'channels']['class'])
         report_channel = rda.get_channel(config[pre_text + 'channels']['report'])
         teacher_application_channel = rda.get_channel(config[pre_text + 'channels']['teacher_application'])
