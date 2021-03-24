@@ -438,7 +438,7 @@ class Level(commands.Cog):
             f"{lang.global_placeholders.get('s')}**Total Exp:** {exp}.\n{get_exp_bar(level_exp, total_level_exp)} " +
             f"{level_exp}/{total_level_exp}"
             for category, exp, rank, level, level_exp, total_level_exp
-            in map(lambda rank: (*rank, *calculate_level(rank[1], True)), ranks)]
+            in map(lambda info: (*info, *calculate_level(info[1], True)), ranks)]
         multiplier_strings = "None." if not multipliers else [
             f"**Multiplier: {multiplier[0]}x**\n" +
             f"{td_format(multiplier[1] - datetime.now(timezone.utc)) if multiplier[1] else 'Permanent.'} "
