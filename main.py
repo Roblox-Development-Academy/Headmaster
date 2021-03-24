@@ -11,6 +11,7 @@ from web.app import app
 async def run():
     await client.wait_until_ready()
     await asyncio.sleep(1)
+    import bot
     from cogs.admin import Admin
     from cogs.errorhandler import ErrorHandler
     from cogs.level import Level
@@ -219,7 +220,9 @@ async def run():
     @client.command()
     @conditions.manager_only()
     async def setup(ctx: commands.Context, info_channel: discord.TextChannel):
-        messages = [(await node.send(info_channel)) for node in lang.get('info_channel').nodes[:-1]]
+        messages = [(await node.send(info_channel, classes_channel=bot.channels['class'].mention,
+                                     commands_channel=bot.channels['bot'].mention, mutate=True))
+                    for node in lang.get('info_channel').nodes[:-1]]
         links = {"link" + str(i): messages[msg_i].jump_url for i, msg_i in zip(range(7), (1, 2, 4, 6, 8, 10, 12))}
         await lang.get('info_channel').nodes[-1].send(info_channel, **links)
         await ReactionRoles.add_msg('profession', messages[11])
