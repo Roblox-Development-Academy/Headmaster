@@ -36,7 +36,7 @@ def parse_interval(time: str, minimum: timedelta = timedelta(seconds=0), maximum
     raise OverflowError
 
 
-def td_format(td_object: timedelta):
+def td_format(td_object: timedelta) -> str:
     seconds = int(td_object.total_seconds())
     periods = {
         'day': 60*60*24,
