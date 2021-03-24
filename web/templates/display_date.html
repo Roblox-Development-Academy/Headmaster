@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+
+<h3 id="date_display" style="color:white"></h3>
+
+<script type="text/javascript">
+    document.querySelector("#date_display").innerHTML = new Date({{ time }}000);
+</script>
+{% endblock %}
