@@ -19,7 +19,7 @@ global_placeholders:
     enroll: "☑" # Blue check mark :ballot_box_with_check:
     return: "↩"
     keycap: "\u20e3"
-    happy: "<:miyanowow:824030834818154526>"
+    happy: "<:miyanowow:715201541950144582>"
     solution: "\u2705"  # :white_check_mark:
     report: "⚠️"
     profile: "ℹ️"
