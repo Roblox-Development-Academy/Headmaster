@@ -19,7 +19,7 @@ global_placeholders:
     enroll: "☑" # Blue check mark :ballot_box_with_check:
     return: "↩"
     keycap: "\u20e3"
-    happy: "<:miyanowow:761405559337123840>"
+    happy: "<:miyanowow:824030834818154526>"
     solution: "\u2705"  # :white_check_mark:
     report: "⚠️"
     profile: "ℹ️"
@@ -27,6 +27,8 @@ global_placeholders:
     previous: "\u25c0"
     rewind: "\u23ea"
     fast_forward: "\u23e9"
+    alerts_on: "🔔"
+    alerts_off: "🔕"
   url:
     happy: "https://cdn.discordapp.com/emojis/715201541950144582.png?v=1"
   prompt:
@@ -83,6 +85,113 @@ messages:
               %emoji.profile% **profile** - View the message author's profile.
               %emoji.report% **report** - Flag a message for inappropriate content.
               %emoji.solution% **solution** - Mark a message as the solution to your problem.
+
+  info_channel:
+    - file: "web/static/info_discord/RDA Banner.png"
+    - content: >
+        **Welcome!** Roblox Development Academy is a school and community for game developers at any point in their
+        journey. It's a school for any aspect of development, from scripting to art to audio engineering.
+        You can consider us your beginning, the next step in your learning, or another home you can return to any time
+        you need support, shelter, or companionship. You can even stay a while and help teach the next generation of
+        developers. No matter your dreams, goals, and aspirations, RDA is here for you! %emoji.happy%
+    - file: "web/static/info_discord/RDA Classes.png"
+    - content: >
+        Our custom bot, Headmaster (me :D), provides a system for teachers to schedule and host classes. You may see
+        the scheduled classes and their times in %classes_channel%.
+
+
+        If you are an experienced developer, we invite you to teach here at RDA and share your knowledge with students
+        of your own! You can use the `.apply` command in the %commands_channel% to apply for the teacher role. Teachers
+        can use the `.class` command to schedule a class. Headmaster (don't mind me talking about myself in third person)
+        provides a text channel/optional voice channel or a one-click setup classroom server template to open your own
+        classroom Discord server. `.help` offers a full list of all Headmaster's commands.
+    - file: "web/static/info_discord/RDA Assignments.png"
+    - content: >
+        Headmaster also provides an assignments system where anyone can create their own assignment for anyone to
+        submit. You can also schedule an assignment solution to be sent to all submitters immediately after submitting,
+        at a certain date, or a specified time after submission.
+
+
+        Use the `.hw` command to create or submit an assignment. `.help` offers a full list of all Headmaster's
+        commands.
+    - file: "web/static/info_discord/RDA Levels.png"
+    - content: >
+        Headmaster has a levels and leaderboards system based around helping others with their development. If someone
+        finds the solution to your problem, you can react to their message with the %emoji.solution% emoji to give
+        them level experience. Please only do this once per problem.
+
+
+        You can view your own or others' level and rank in each of the development categories with `.profile`, view the
+        entire leaderboard with `.leaderboard`, and have me politely remind others to mark solutions with `.remind`.
+        `.help` offers a full list of all Headmaster's commands.
+    - file: "web/static/info_discord/RDA Rules.png"
+    - content: >
+        > __**Tact.**__ Members of RDA do not discriminate against once another. We avoid hurting each other with our
+        words. We avoid NSFW content and excessive profanity. We avoid harassing others and causing disruptions such
+        as through spamming. We avoid needlessly offending each other. We know to recognize our differences without
+        conflict.
+
+
+        > __**Compassion.**__ Members of RDA are supportive of one another and contribute to the community. When we
+        offer critique, we do not criticize to tear down others, but we offer constructive, thoughtful criticism.
+
+
+        > __**Integrity.**__ Members of RDA do not claim others' work as our own and we offer due credit to those who
+        contribute.
+
+
+        These are our principles. Please abide by them while you are in RDA. Thank you.
+    - file: "web/static/info_discord/RDA Roles.png"
+    - content: |
+        > __**Choose your role**__
+        > *React with the corresponding emoji for the role that you want*
+
+        > __List of Roles__
+        >     - :one: Scripter
+        >     - :two: Animator
+        >     - :three: Modeler
+        >     - :four: Builder
+        >     - :five: UI Designer
+        >     - :six: GFX Artist (graphics)
+        >     - :seven: Audio Engineer
+
+        > React below.
+      reactions:
+        - "1%emoji.keycap%"
+        - "2%emoji.keycap%"
+        - "3%emoji.keycap%"
+        - "4%emoji.keycap%"
+        - "5%emoji.keycap%"
+        - "6%emoji.keycap%"
+        - "7%emoji.keycap%"
+    - file: "web/static/info_discord/RDA Settings.png"
+    - content: >
+        > Opt out of a DM notification when someone rewards you experience in RDA development help.
+      reactions:
+        - "%emoji.alerts_off%"
+    - content: >
+        > Opt out of a DM notification when you level up in RDA development help.
+      reactions:
+        - "%emoji.alerts_off%"
+    - content: > # Disables read access to the level-ups channel
+        > Opt out of a ping notification when you level up on the MEE6 activity leaderboard.
+      reactions:
+        - "%emoji.alerts_off%"
+    - content: >
+        > Get a ping notification when a teacher schedules a new class in the classes channel.
+      reactions:
+        - "%emoji.alerts_on%"
+    - embed:
+        title: "Contents"
+        color: "%color.info%"
+        description: |
+          [Welcome](%link0%)
+          [Classes](%link1%)
+          [Assignments](%link2%)
+          [Levels, Leaderboards, and Development Help](%link3%)
+          [Rules](%link4%)
+          [Choose Roles](%link5%)
+          [Notification Settings](%link6%)
 
   remind:
     - embed:
@@ -142,10 +251,14 @@ messages:
           - "%emoji.interest%"
 
     class_info:
-      - embed:
+      - content: "%new_class_ping%"
+        allowed_mentions:
+          roles: true
+        embed:
           title: "Class | %name%"
           color: "%color.info%"
-          description: "%description%"
+          description: |
+            %description%
           author:
             name: "%teacher%"
             icon_url: "%avatar%"
@@ -153,6 +266,9 @@ messages:
             - name: "Teacher"
               inline: false
               value: "%teacher_mention%"
+            - name: "Starting Time"
+              inline: false
+              value: "Click [here](%url_display_time%) to see the starting time."
           footer:
             text: "Click below to enroll"
         reactions:
@@ -305,7 +421,7 @@ messages:
 
 
               *Please consider option :one:. You have more categories for organization, ability to add your own bots,
-              and full access to Headmaster and ability to customize him. Once Headmaster joins enough servers, he will
+              full access to Headmaster and ability to customize him. Once Headmaster joins enough servers, he will
               be able to bypass rate limits, which means more and more speed and power!*%prompt.react%
             footer:
               text: "%prompt.respond_5m%"
@@ -408,7 +524,7 @@ messages:
           description: |
             Please send any proof you have of your expertise, such as portfolios, links, pictures, or files.
 
-            I will react with %emoji.gotcha% to show that I have received that message.
+            You may send multiple messages. I will react with %emoji.gotcha% to show that I have received each message.
             If you don't respond within 5 minutes, the application will be canceled.
           fields:
             - name: "Done"
@@ -587,7 +703,7 @@ messages:
             description: |
               **Assignment `%name%` successfully created!**
 
-              Use the `hw submit` command to submit the assignment.
+              Students may use the `hw submit` command to submit the assignment.
             fields:
               - name: "Examples"
                 value: |
@@ -678,8 +794,9 @@ messages:
         - embed:
             title: "%emoji.error% Too Many Assignments!"
             color: "%color.error%"
-            description: |
-              You have reached the max limit for assignments. You may use the `hw remove` command to delete assignments.
+            description: >
+              You have reached the maximum limit for assignments. You may use the `hw remove` command to delete
+              assignments.
 
   ignore:
     - embed:
@@ -777,6 +894,21 @@ messages:
             color: "%color.level%"
             description: |
               Congratulations, you have advanced to level %level% in %category% in RDA!
+    experience_up:
+      - embed:
+          title: "%title%"
+          color: "%color.info%"
+          description: |
+            %giver% awarded you %experience% EXP for helping them! Thank you for helping others on RDA!
+          fields:
+            - name: "Progress"
+              value: |
+                __**Level %level% %profession%**__
+                %exp_bar% **%current_exp%/%total_level_exp%**
+            - name: "Active Multipliers"
+              value: "%multipliers%"
+          footer:
+            text: "You can view your statistics using the .profile command"
 
   profile:
     - embed:
@@ -900,12 +1032,12 @@ messages:
   exp:
     help:
       - embed:
-          title: "Exp"
+          title: "exp_add"
           color: "%color.info%"
           description: |
             This command is used to give or remove exp from someone.
 
-            Use `%prefix%exp <user(s)> <category name> <amount>` to give someone exp.
+            Use `%prefix%exp_add <user(s)> <category name> <amount>` to give someone exp.
             To take away exp, enter a negative amount.
 
             `<amount>` must be a float.
@@ -951,7 +1083,7 @@ messages:
           color: "%color.error%"
           description: "Please react with a valid emoji."
     in_prompt:
-      - delete_after: 3
+      - delete_after: 5
         embed:
           title: "%emoji.error% You are currently in a prompt"
           color: "%color.error%"

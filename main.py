@@ -1,5 +1,6 @@
 import asyncio
 import re
+from typing import List
 
 import uvicorn
 
@@ -14,6 +15,7 @@ async def run():
     from cogs.errorhandler import ErrorHandler
     from cogs.level import Level
     from cogs.report import Report
+    from cogs.reaction_roles import ReactionRoles
     from cogs import errorhandler
     import conditions
 
@@ -111,7 +113,7 @@ async def run():
                 ('Modeling'),
                 ('Building'),
                 ('GFX'),
-                ('SFX')
+                ('Audio Engineering')
             ON CONFLICT (name) DO NOTHING
             """,
         )
@@ -126,6 +128,7 @@ async def run():
     client.add_cog(Admin())
     client.add_cog(Level())
     client.add_cog(Report())
+    client.add_cog(ReactionRoles())
     client.load_extension('cmds.apply')
     client.load_extension('cmds.homework')
     client.load_extension('cmds.class')
@@ -212,6 +215,17 @@ async def run():
             await ctx.message.add_reaction(lang.global_placeholders['emoji.gotcha'])
         else:
             await ctx.message.add_reaction(lang.global_placeholders['emoji.error'])
+
+    @client.command()
+    @conditions.manager_only()
+    async def setup(ctx: commands.Context, info_channel: discord.TextChannel):
+        messages: List[discord.Message] = await lang.get('info_channel').send(info_channel)
+        links = {"link" + str(i): messages[msg_i].jump_url for i, msg_i in zip(range(7), (1, 2, 4, 6, 8, 10, 12))}
+        await lang.get('info_channel').nodes[-1].edit(messages[-1], **links)
+        await ReactionRoles.add_msg('profession', messages[11])
+        for i in range(13, 17):
+            await ReactionRoles.add_msg('settings', messages[i], i - 13)
+        await ctx.message.add_reaction(lang.global_placeholders['emoji.gotcha'])
 
 loop = asyncio.get_event_loop()
 loop.create_task(run())
