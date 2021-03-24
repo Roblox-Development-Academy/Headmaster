@@ -1,5 +1,5 @@
 pydantic
-fastapi>=0.61.0,<0.62.0
+fastapi==0.63.0
 jinja2
 uvicorn
 gunicorn
