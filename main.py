@@ -1,9 +1,9 @@
 import asyncio
 import re
-from typing import List
 
 import uvicorn
 
+import bot
 from bot import *
 from web.app import app
 
@@ -11,7 +11,6 @@ from web.app import app
 async def run():
     await client.wait_until_ready()
     await asyncio.sleep(1)
-    import bot
     from cogs.admin import Admin
     from cogs.errorhandler import ErrorHandler
     from cogs.level import Level
@@ -210,12 +209,14 @@ async def run():
         code = matcher.search(content)
         if code:
             try:
-                exec(code.group(1), globals(), locals())
+                exec(f"async def __ex(ctx, {','.join(globals().keys())}):\n  " + '\n  '.join(code.group(1).split('\n')))
+                result = await locals()['__ex'](ctx, **globals())
+                await ctx.message.add_reaction(lang.global_placeholders['emoji.gotcha'])
             except Exception as e:
                 await ctx.send(str(e))
-            await ctx.message.add_reaction(lang.global_placeholders['emoji.gotcha'])
+                await ctx.message.add_reaction(lang.global_placeholders['emoji.error'])
         else:
-            await ctx.message.add_reaction(lang.global_placeholders['emoji.error'])
+            await ctx.message.add_reaction(lang.global_placeholders['emoji.no'])
 
     @client.command()
     @conditions.manager_only()
