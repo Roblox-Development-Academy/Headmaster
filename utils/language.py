@@ -135,7 +135,7 @@ class MessageNode:
             try:
                 msg = await to.send(**self.replace(**placeholders).args)
             except discord.Forbidden:
-                pass
+                return
 
             reactions = self.options.get('reactions')
             if reactions:
