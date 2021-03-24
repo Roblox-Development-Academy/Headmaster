@@ -36,6 +36,13 @@ def get_profession_name(category_name: str) -> Optional[str]:
     return None
 
 
+def get_exp_bar(level_exp, total_level_exp, num_squares: int = 8) -> str:
+    num_progress = floor((level_exp / total_level_exp) * num_squares)
+    exp_bar = "💠" * num_progress + \
+              "🔶" * (num_squares - num_progress)
+    return exp_bar
+
+
 def calculate_level(exp, is_profile=False):
     level_exp = 11
     exp_left = exp
@@ -144,9 +151,7 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
             title = f"+ {amount} {category_name} EXP"
         else:
             title = f"+ {amount} * {total_multiplier} {category_name} EXP"
-    num_progress = floor((level_exp / total_level_exp) * 8)
-    exp_bar = ":diamond_shape_with_a_dot_inside:" * num_progress + \
-        ":large_orange_diamond:" * (8 - num_progress)
+    exp_bar = get_exp_bar(level_exp, total_level_exp)
     str_multipliers = "\n".join([f"%bullet% x {multiplier}: {td_format(end_time - datetime.now(timezone.utc))}"
                                  for multiplier, end_time in multipliers]) or "*No active multipliers*"
     str_multipliers = LangManager.replace(str_multipliers)
@@ -429,13 +434,14 @@ class Level(commands.Cog):
         multipliers, total_multiplier = get_multipliers(member.id, raw=True)
 
         rank_strings = [
-            f"`{rank[0]}` Rank: {rank[2]}.\n**Level:** {calculate_level(rank[1])}." +
-            f"{lang.global_placeholders.get('s')}**Total Exp:** {rank[1]}.\nExp Left Until Next Level: " +
-            f"{calculate_level(rank[1], True)[2] - calculate_level(rank[1], True)[1]}."
-            for rank in ranks]
+            f"`{category}` Rank: {rank}.\n**Level:** {level}." +
+            f"{lang.global_placeholders.get('s')}**Total Exp:** {exp}.\n{get_exp_bar(level_exp, total_level_exp)} " +
+            f"{level_exp}/{total_level_exp}"
+            for category, exp, rank, level, level_exp, total_level_exp
+            in map(lambda rank: (*rank, *calculate_level(rank[1], True)), ranks)]
         multiplier_strings = "None." if not multipliers else [
-            f"**Multiplier: {multiplier[0]}x**\nExpiration Date: " +
-            f"{multiplier[1].strftime(self.date_format) + '.' if multiplier[1] else 'Never.'} "
+            f"**Multiplier: {multiplier[0]}x**\n" +
+            f"{td_format(multiplier[1] - datetime.now(timezone.utc)) if multiplier[1] else 'Permanent.'} "
             for multiplier in multipliers]
 
         await lang.get("profile").send(ctx, user_name=str(member), user_id=str(member.id),
