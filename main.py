@@ -219,9 +219,9 @@ async def run():
     @client.command()
     @conditions.manager_only()
     async def setup(ctx: commands.Context, info_channel: discord.TextChannel):
-        messages: List[discord.Message] = await lang.get('info_channel').send(info_channel)
+        messages = [(await node.send(info_channel)) for node in lang.get('info_channel').nodes[:-1]]
         links = {"link" + str(i): messages[msg_i].jump_url for i, msg_i in zip(range(7), (1, 2, 4, 6, 8, 10, 12))}
-        await lang.get('info_channel').nodes[-1].edit(messages[-1], **links)
+        await lang.get('info_channel').nodes[-1].send(info_channel, **links)
         await ReactionRoles.add_msg('profession', messages[11])
         for i in range(13, 17):
             await ReactionRoles.add_msg('settings', messages[i], i - 13)
