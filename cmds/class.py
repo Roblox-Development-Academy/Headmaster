@@ -389,7 +389,7 @@ async def class_(ctx, sub: str = None, *, name: str = ''):
     node = lang.get('class.main')
     if sub:
         sub = sub.lower()
-        if sub in ('schedule', 'create', 'start', 'make', 'begin', 'initiate'):
+        if sub in ('new', 'schedule', 'create', 'start', 'make', 'begin', 'initiate'):
             await __create(ctx, name)
             return
         elif sub == "check":
