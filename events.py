@@ -4,5 +4,5 @@ from utils.events import Event
 
 date_selected: Event = Event()
 reaction_roles: Dict[str, Event] = {
-    'staff_application': Event()
+    'staff_applicant': Event()
 }
