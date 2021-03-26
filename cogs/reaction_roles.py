@@ -5,6 +5,7 @@ import os
 import yaml
 
 import conditions
+import events
 from bot import *
 from utils.language import LangManager
 
@@ -72,6 +73,14 @@ class ReactionRoles(commands.Cog):
                 itertools.chain.from_iterable([profile_roles.values() for profile_roles in profile_msgs]))
             if f"{profile}_header" in roles.keys() and not any([role in existing_roles for role in profile_roles]):
                 await member.remove_roles(roles[f"{profile}_header"], reason=f"Reaction Roles no {profile} roles left")
+        try:
+            await events.reaction_roles[profile].fire(add_role)
+        except KeyError:
+            pass
+        try:
+            await events.reaction_roles[f"{profile}.{profile_num}"].fire(add_role)
+        except KeyError:
+            pass
 
     @staticmethod
     async def add_msg(template: str, msg: discord.Message, num_template: int = 0):
