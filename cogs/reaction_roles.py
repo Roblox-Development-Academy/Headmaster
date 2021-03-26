@@ -74,11 +74,11 @@ class ReactionRoles(commands.Cog):
             if f"{profile}_header" in roles.keys() and not any([role in existing_roles for role in profile_roles]):
                 await member.remove_roles(roles[f"{profile}_header"], reason=f"Reaction Roles no {profile} roles left")
         try:
-            await events.reaction_roles[profile].fire(add_role)
+            await events.reaction_roles[profile].fire(member, add_role, role, profile_num, payload)
         except KeyError:
             pass
         try:
-            await events.reaction_roles[f"{profile}.{profile_num}"].fire(add_role)
+            await events.reaction_roles[f"{profile}.{profile_num}"].fire(member, add_role, role, payload)
         except KeyError:
             pass
 
