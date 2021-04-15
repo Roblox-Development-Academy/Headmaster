@@ -1,6 +1,6 @@
+import asyncio
 from typing import Dict, Tuple, List, Union, Optional
 import itertools
-import os
 
 import yaml
 
@@ -23,21 +23,33 @@ class ReactionRoles(commands.Cog):
             ReactionRoles.profiles[profile] = \
                 [{LangManager.replace(emoji): (roles[value] if isinstance(value, str) else rda.get_role(value))
                  for emoji, value in options.items()} for options in msg_list]
-        with open('reaction_roles_messages.yml', encoding='utf-8', mode='r') as f:
-            ReactionRoles.messages_config = yaml.load(f, Loader=yaml.FullLoader)
-        if os.environ['DEBUG'] == '1':
-            pre_text = "test_"
-        else:
-            pre_text = ""
-        for msg_id, value in ReactionRoles.messages_config[pre_text + 'messages'].items():
-            profile = value
-            profile_num: int = 0
-            try:
-                profile, profile_num = tuple(value.split('.'))
-                profile_num = int(profile_num)
-            except ValueError:
-                pass
-            ReactionRoles.messages[msg_id] = (profile, profile_num)
+        messages = database.query(
+            """
+            SELECT message_id, channel_id, profile, profile_num
+            FROM reaction_roles_messages
+            """
+        ).fetchall()
+
+        async def populate_messages():
+            messages_to_remove: List[str] = []
+            for message_id, channel_id, profile_name, profile_num in messages:
+                channel = client.get_channel(channel_id)
+                if not channel:
+                    continue
+                try:
+                    await channel.fetch_message(message_id)
+                except discord.NotFound:
+                    messages_to_remove.append(str(message_id))
+                    continue
+                ReactionRoles.messages[message_id] = (profile_name, profile_num)
+            if messages_to_remove:
+                database.update(
+                    f"""
+                    DELETE FROM reaction_roles_messages
+                    WHERE message_id IN ({",".join(messages_to_remove)})
+                    """
+                )
+        asyncio.create_task(populate_messages())
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -64,8 +76,8 @@ class ReactionRoles(commands.Cog):
         if add_role:
             if f"{profile}_header" in roles.keys():
                 await member.add_roles(role, roles[f"{profile}_header"], reason="Reaction Role " + profile)
-                return
-            await member.add_roles(role, reason="Reaction Role " + profile)
+            else:
+                await member.add_roles(role, reason="Reaction Role " + profile)
         else:
             await member.remove_roles(role, reason="Reaction Role " + profile)
             existing_roles = member.roles
@@ -84,13 +96,14 @@ class ReactionRoles(commands.Cog):
 
     @staticmethod
     async def add_msg(template: str, msg: discord.Message, num_template: int = 0):
-        if os.environ['DEBUG'] == '1':
-            pre_text = "test_"
-        else:
-            pre_text = ""
-        ReactionRoles.messages_config[pre_text + 'messages'][msg.id] = f"{template}.{num_template}"
-        with open('reaction_roles_messages.yml', encoding='utf-8', mode='w') as f:
-            yaml.dump(ReactionRoles.messages_config, f, default_flow_style=False)  # Removes comments :/
+        database.update(
+            """
+            INSERT INTO reaction_roles_messages (message_id, channel_id, profile, profile_num)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (message_id) DO UPDATE SET profile = EXCLUDED.profile, profile_num = EXCLUDED.profile_num
+            """,
+            (msg.id, msg.channel.id, template, num_template)
+        )
         ReactionRoles.messages[msg.id] = (template, num_template)
         for emoji in ReactionRoles.profiles[template][num_template].keys():
             if isinstance(emoji, int):
@@ -99,7 +112,7 @@ class ReactionRoles(commands.Cog):
 
     @commands.command(aliases=['rr', 'reactionroles'])
     @conditions.manager_only()
-    async def reaction_roles(self, ctx, sub: Optional[str], template: str, *, msg: discord.Message = None,
+    async def reaction_roles(self, _, sub: Optional[str], template: str, *, msg: discord.Message = None,
                              num_template: int = 0):
         if sub == "add":
             await ReactionRoles.add_msg(template, msg, num_template)
