@@ -107,7 +107,7 @@ async def schedule_class(teacher: discord.User, name: str, message_id: int, date
             overwrites_voice = {
                 rda.default_role: discord.PermissionOverwrite(view_channel=False),
                 teacher: discord.PermissionOverwrite(connect=True, mute_members=True, deafen_members=True,
-                                                     move_members=True, manage_channels=True,
+                                                     move_members=True, manage_channels=True, view_channel=True,
                                                      manage_permissions=True, priority_speaker=True),
                 **{student: student_voice_perms for student in students}
             }
