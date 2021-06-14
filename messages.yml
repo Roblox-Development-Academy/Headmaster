@@ -1,4 +1,4 @@
-# Placeholders that can be used in any message; you can define your own but these don't change
+# Placeholders that can be used in any message; you can define your own but these don't change.
 global_placeholders:
   default_prefix: '.'
   classroom_template: 'https://discord.new/t7uGRXX9HwpF'
@@ -15,8 +15,8 @@ global_placeholders:
     error: "\U0001f63f"  # :crying_cat_face:
     date: "\U0001f4c6"  # :calendar:
     time: "\u23f2"  # :timer:
-    interest: "🤔"  # Thinking emoji
-    enroll: "☑" # Blue check mark :ballot_box_with_check:
+    interest: "🤔"  # Thinking emoji.
+    enroll: "☑"  # Blue check mark. :ballot_box_with_check:
     return: "↩"
     keycap: "\u20e3"
     happy: "<:miyanowow:715201541950144582>"
@@ -40,10 +40,10 @@ global_placeholders:
     react: "\n\nRespond by selecting one of the options below."
     respond_5m: "Please respond within 5 minutes."
     respond: "Please respond within %time_display%."
-  s: "\u2800" # Blank space; invisible unicode character
+  s: "\u2800"  # Blank space; invisible unicode character.
   bullet: "•"
 
-# Messages the bot will be sending
+# Messages the bot will be sending.
 messages:
   help:
     - embed:
@@ -144,7 +144,7 @@ messages:
     - file: "web/static/info_discord/RDA Roles.png"
     - content: |
         > __**Choose your role**__
-        > *React with the corresponding emoji for the role that you want*
+        > *React with the corresponding emoji for the role that you want.*
 
         > __List of Roles__
         >     - :one: Scripter
@@ -173,7 +173,7 @@ messages:
         > Opt out of a DM notification when you level up in RDA development help.
       reactions:
         - "%emoji.alerts_off%"
-    - content: > # Disables read access to the level-ups channel
+    - content: >  # Disables read access to the level-ups channel.
         > Opt out of a ping notification when you level up on the MEE6 activity leaderboard.
       reactions:
         - "%emoji.alerts_off%"
@@ -301,10 +301,10 @@ messages:
 
 
             Thank you for your commitment to teaching. Take care of your students. We'll be cheering for you from the
-            sidelines %emoji.happy%
+            sidelines. %emoji.happy%
           fields:
             - name: "Students"
-              value: "%num_students% students enrolled on the [class information post](%class_info%)"
+              value: "%num_students% students enrolled on the [class information post](%class_info%)."
 
     create:
       1:
@@ -443,7 +443,7 @@ messages:
                 inline: false
                 value: "%classroom%"
             footer:
-              text: "Click below to confirm the class details"
+              text: "Click below to confirm the class details."
           reactions:
             - "%emoji.confirm%"
             - "%emoji.return%"
@@ -594,7 +594,7 @@ messages:
             title: "Create Assignment"
             color: "%color.wizard%"
             description: >
-              __**The assignment description has been linked to [this message](%url%)**__
+              __**The assignment description has been linked to [this message](%url%).**__
 
 
               **Write the solution to the assignment.**
@@ -609,17 +609,17 @@ messages:
             title: "Create Assignment"
             color: "%color.wizard%"
             description: >
-              __**The assignment solution has been linked to [this message](%url%)**__
+              __**The assignment solution has been linked to [this message](%url%).**__
 
 
               **When do you want the answer to be shown to submitters?**
 
 
-              %s%%s%:one: Immediately after submission
+              %s%%s%:one: Immediately after submission.
 
-              %s%%s%:two: After a specified time interval has passed after submission
+              %s%%s%:two: After a specified time interval has passed after submission.
 
-              %s%%s%:three: At a specified date and time
+              %s%%s%:three: At a specified date and time.
 
 
               The solution will only be shown to those who have submitted the assignment. You will be able to
@@ -719,7 +719,7 @@ messages:
 
               Enter the name or user id of the assignment creator.
 
-              *You can get the id by enabling developer mode and right clicking the profile picture and selecting 'Copy ID'*%prompt.cancel%
+              *You can get the id by enabling developer mode and right clicking the profile picture and selecting 'Copy ID'.*%prompt.cancel%
             footer:
               text: "%prompt.respond_5m%"
       2:
@@ -737,7 +737,7 @@ messages:
         - embed:
             title: "%sub% Assignment"
             description: |
-              Assignment `%name%` created by %assigner%%instructions%
+              Assignment `%name%` created by %assigner%.%instructions%
           submit_instructions: |
 
             **Respond with your assignment submission.**
@@ -779,10 +779,10 @@ messages:
           fields:
             - name: "Commands"
               value: |
-                **hw create** - Create an assignment
-                **hw remove** - Remove one of your assignments
-                **hw submit** - Submit a solution to an assignment
-                **hw view** <assigner> - View an assigner's assignments
+                **hw create** - Create an assignment.
+                **hw remove** - Remove one of your assignments.
+                **hw submit** - Submit a solution to an assignment.
+                **hw view** <assigner> - View an assigner's assignments.
               inline: false
             - name: "Your Assignments"
               value: "%assignments%"
@@ -908,7 +908,7 @@ messages:
             - name: "Active Multipliers"
               value: "%multipliers%"
           footer:
-            text: "You can view your statistics using the .profile command"
+            text: "You can view your statistics using the .profile command."
 
   profile:
     - embed:
