@@ -1,11 +1,15 @@
-"""
-For some reason, I decided to write this entire file on my phone ._.
-"""
 import asyncio
 import functools
 import inspect
-from typing import Callable, Dict, Any, Iterable
+from typing import Callable, Dict, Any, Iterable, Tuple, Union
 from datetime import timedelta, datetime
+
+
+"""
+Possible improvements:
+- accept and implement *args and **kwargs in param check function to match original function
+- debounce by return value option, not just parameters
+"""
 
 
 class DebounceException(Exception):
@@ -17,26 +21,39 @@ class DebounceException(Exception):
 
 
 class Debounce:
-    def __init__(self, debounce: timedelta = timedelta(minutes=3), failed_value=..., params: Iterable[str] = tuple()):
+    def __init__(self, debounce: timedelta = timedelta(minutes=3), failed_value=...,
+                 params: Iterable[Union[str, Tuple[str], Callable]] = tuple()):
+        # TODO - Add an on_debounce callback to be called and returned on debounce
         self.debounce: timedelta = debounce
         self.failed_value: Any = failed_value
         self.last_called: datetime = datetime.fromtimestamp(0)
-        self.params: Dict[str, Dict[Any, datetime]] = {}
+        self.params: Dict[Union[str, Tuple[str], Callable], Dict[Any, datetime]] = {}
+        self.param_check_parameters: Dict[Callable, Iterable[str]] = {}  # lambda param_check parameter names
         # Btw, if you store the end times instead of the last called times, you can have param-specific debounces
-        for arg in params:
-            self.params[arg] = {}
+        for param_check in params:
+            self.params[param_check] = {}
+            if isinstance(param_check, Callable):
+                self.param_check_parameters[param_check] = inspect.signature(param_check).parameters.keys()
 
     def __call__(self, func: Callable):
         sig = inspect.signature(func)
 
         @functools.wraps(func)
         def new_func(*args, **kwargs):
-            for param, values in self.params.items():
+            for param, prior_values in self.params.items():
                 bound_args = sig.bind(*args, **kwargs)
                 bound_args.apply_defaults()
-                value = bound_args.arguments[param]
-                if value:
-                    last_called = values.get(value)
+                if isinstance(param, str):
+                    current_values = bound_args.arguments[param]
+                elif isinstance(param, Iterable):
+                    current_values = tuple([bound_args.arguments[p] for p in param])
+                elif isinstance(param, Callable):
+                    current_values = param(**{param_name: bound_args.arguments[param_name]
+                                              for param_name in self.param_check_parameters[param]})
+                else:
+                    raise TypeError("Can only use strings, collections of strings, or functions for parameter checks")
+                if current_values:
+                    last_called = prior_values.get(current_values)
                     if last_called is not None:
                         # Debounce failed
                         if self.failed_value is ...:
@@ -44,11 +61,11 @@ class Debounce:
                         else:
                             return self.failed_value
                     else:
-                        values[value] = datetime.utcnow()
+                        prior_values[current_values] = datetime.utcnow()
 
                         async def reset_debounce():
                             await asyncio.sleep(self.debounce.total_seconds())
-                            del values[value]
+                            prior_values.pop(current_values, "")
 
                         asyncio.create_task(reset_debounce())
             if not self.params:
