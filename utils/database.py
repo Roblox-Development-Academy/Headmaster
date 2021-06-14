@@ -36,6 +36,8 @@ def update(*args):
         cursor.execute(*args)
         connection.commit()
         return cursor
+    except (psycopg2.errors.SyntaxError, psycopg2.errors.UndefinedTable) as e:
+        raise e
     except psycopg2.DatabaseError:
         connect()
         logger.debug("The update has failed! A new connection has been created.")
@@ -49,6 +51,8 @@ def query(*args):
     try:
         cursor.execute(*args)
         return cursor
+    except (psycopg2.errors.SyntaxError, psycopg2.errors.UndefinedTable) as e:
+        raise e
     except psycopg2.DatabaseError:
         connect()
         logger.debug("The query has failed! A new connection has been created.")
