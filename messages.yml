@@ -410,11 +410,11 @@ messages:
               **Where do you want the class to be held?**
 
 
-              %s%%s%:one: A new server from a server template with the classroom already set up.
+              %s%%s%:one: A new server from a server template with the classroom already set up
 
-              %s%%s%:two: A new text channel in this server you will be able to control.
+              %s%%s%:two: A new text channel in this server you will be able to control
 
-              %s%%s%:three: A new text channel and voice channel in this server you will be able to control.
+              %s%%s%:three: A new text channel and voice channel in this server you will be able to control
 
 
               *Channels on RDA will be deleted after 30 minutes of inactivity.*
@@ -500,10 +500,10 @@ messages:
           fields:
             - name: "Requirements"
               value: |
-                %s%%s%- Mature.
-                %s%%s%- Responsible.
-                %s%%s%- Active.
-                %s%%s%- Knowledgeable about the subject you're teaching.
+                %s%%s%- Mature
+                %s%%s%- Responsible
+                %s%%s%- Active
+                %s%%s%- Knowledgeable about the subject you're teaching
           footer:
             text: "%prompt.respond_5m%"
         reactions:
@@ -615,11 +615,11 @@ messages:
               **When do you want the answer to be shown to submitters?**
 
 
-              %s%%s%:one: Immediately after submission.
+              %s%%s%:one: Immediately after submission
 
-              %s%%s%:two: After a specified time interval has passed after submission.
+              %s%%s%:two: After a specified time interval has passed after submission
 
-              %s%%s%:three: At a specified date and time.
+              %s%%s%:three: At a specified date and time
 
 
               The solution will only be shown to those who have submitted the assignment. You will be able to
@@ -737,7 +737,7 @@ messages:
         - embed:
             title: "%sub% Assignment"
             description: |
-              Assignment `%name%` created by %assigner%.%instructions%
+              Assignment `%name%` created by %assigner%%instructions%
           submit_instructions: |
 
             **Respond with your assignment submission.**
