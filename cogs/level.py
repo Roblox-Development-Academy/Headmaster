@@ -413,20 +413,23 @@ class Level(commands.Cog):
                           giver=user)
 
     @commands.command()
-    async def profile(self, ctx, user: commands.Greedy[User] = None):
-        member = rda.get_member(user[0].id if user else ctx.author.id)
+    async def profile(self, ctx, *, member: Optional[discord.Member] = None):
         if member is None:
             member = rda.get_member(ctx.author.id)
 
         ranks = database.query(
             """
-            SELECT categories.name, levels.exp,
-            RANK () OVER (
-                PARTITION BY levels.category_id
-                ORDER BY levels.exp DESC
-            ) rank
-            FROM levels JOIN categories
-            ON levels.category_id = categories.id AND levels.user_id = %s
+            SELECT category, exp, rank
+                FROM (
+                    SELECT levels.user_id, categories.name AS category, exp,
+                        RANK () OVER (
+                        PARTITION BY levels.category_id
+                        ORDER BY levels.exp DESC
+                    ) AS rank
+                    FROM levels JOIN categories
+                    ON levels.category_id = categories.id
+                ) leaderboard
+            WHERE user_id = %s
             """,
             (member.id,)
         ).fetchall()

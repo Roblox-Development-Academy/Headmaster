@@ -1,5 +1,6 @@
 import asyncio
 import re
+import traceback
 
 import uvicorn
 
@@ -205,15 +206,16 @@ async def run():
     @conditions.manager_only()
     async def execute(ctx: commands.Context):
         content = ctx.message.content
-        matcher = re.compile(r'```\w+$(.+)```', re.MULTILINE | re.DOTALL)
+        matcher = re.compile(r'(-s)?\s*```\w+$(.+)```', re.MULTILINE | re.DOTALL)
         code = matcher.search(content)
         if code:
             try:
-                exec(f"async def __ex(ctx, {','.join(globals().keys())}):\n  " + '\n  '.join(code.group(1).split('\n')))
-                result = await locals()['__ex'](ctx, **globals())
+                exec(f"async def __ex(ctx):\n  " + '\n  '.join(code.group(2).split('\n')),
+                     {**globals(), **locals()}, locals())
+                result = await locals()['__ex'](ctx)
                 await ctx.message.add_reaction(lang.global_placeholders['emoji.gotcha'])
             except Exception as e:
-                await ctx.send(str(e))
+                await ctx.send(f"```{traceback.format_exc()}```" if code.group(1) else str(e))
                 await ctx.message.add_reaction(lang.global_placeholders['emoji.error'])
         else:
             await ctx.message.add_reaction(lang.global_placeholders['emoji.no'])

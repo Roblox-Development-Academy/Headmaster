@@ -445,7 +445,7 @@ async def homework(ctx, sub=None, assigner: Optional[discord.User] = None, *, na
     color = '%color.info%'
     if sub is not None:
         sub = sub.lower()
-        if sub in ("assign", "create", "start", "initiate", "make"):
+        if sub in ("new", "assign", "create", "start", "initiate", "make"):
             await __create(ctx, name)
             return
         elif sub in ("remove", "delete", "unassign", "cancel") and name is not None:

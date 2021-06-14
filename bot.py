@@ -57,7 +57,8 @@ def get_mention_or_prefix(_, message):
 
 __intents = discord.Intents.default()
 __intents.members = True
-client = commands.Bot(command_prefix=get_mention_or_prefix, case_insensitive=True, help_command=None, intents=__intents)
+client = commands.Bot(command_prefix=(get_mention_or_prefix if __os.environ["DEBUG"] == "0" else "-"),
+                      case_insensitive=True, help_command=None, intents=__intents)
 
 # TODO - Make functions to get discord objects instead, refactor, and get rid of on_ready delay everywhere
 rda: discord.Guild
