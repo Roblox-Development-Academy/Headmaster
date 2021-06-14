@@ -2,7 +2,7 @@ from typing import Callable, Dict, Any, List, Optional
 
 import errors
 from cogs import errorhandler
-from bot import commands
+from bot import commands, in_prompt
 
 
 class Stage:
@@ -57,5 +57,7 @@ def prompt(handler=errorhandler.process) -> Callable:
                 raise e
             except errors.PromptError as e:
                 await handler(ctx, e)
+            finally:
+                in_prompt.pop(ctx.author.id, None)
         return new_func
     return decorator
