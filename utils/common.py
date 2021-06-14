@@ -79,8 +79,9 @@ async def prompt_reaction(msg: Union[discord.Message, MessageNode, MessageListNo
                 except discord.errors.Forbidden:
                     await lang.get('error.invalid_reaction').send(msg.channel)
     except asyncio.TimeoutError:
-        in_prompt.pop(user.id, None)
         raise errors.PromptTimeout("The prompt has timed out", msg)
+    finally:
+        in_prompt.pop(user.id, None)
     return response, responder
 
 
@@ -126,11 +127,11 @@ async def prompt(channel: discord.TextChannel, user: discord.User,
             else:
                 break
     except asyncio.TimeoutError:
-        in_prompt.pop(user.id, None)
         raise errors.PromptTimeout("The prompt has timed out.", prompt_msg)
+    finally:
+        in_prompt.pop(user.id, None)
 
     if msg.content.lower() in ('cancel', 'cancel.'):
-        in_prompt.pop(user.id, None)
         raise errors.PromptCancelled("The prompt was cancelled.", prompt_msg)
     return msg
 
@@ -156,6 +157,8 @@ async def prompt_date(channel: discord.TextChannel, user: discord.User,
         except errors.PromptError:  # Means the message was first
             events.date_selected.signals.pop(date_fut)
             raise
+        finally:
+            in_prompt.pop(user.id, None)
 
 
 async def prompt_wait(channel: discord.TextChannel, user: discord.User,
@@ -175,3 +178,5 @@ async def prompt_wait(channel: discord.TextChannel, user: discord.User,
         except errors.PromptError:  # Means the message was first
             await on_msg
             raise
+        finally:
+            in_prompt.pop(user.id, None)
