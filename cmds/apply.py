@@ -28,7 +28,6 @@ async def apply(ctx):
         messages.append(message.id)
 
         await message.add_reaction(gotcha_emote)
-    in_prompt.pop(ctx.author.id)
     await lang.get('teacher_application.complete').send(user_dm)
 
     channel = teacher_application_channel
