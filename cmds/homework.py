@@ -231,7 +231,6 @@ async def __create(stage: Stage, name: str = ''):
             if response.emoji == return_emoji:
                 await back
                 continue
-            in_prompt.pop(ctx.author.id)
             await lang.get('assignment.create.completed').send(dm, name=results['name'], assigner=ctx.author.mention)
             await add_assignment(ctx.author.id, results['name'], results['description_id'], results.get('solution_id'),
                                  results.get('delete_after_date'), results.get('date'), results.get('interval'))
@@ -412,7 +411,6 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
             await (await MessageNode.from_message(description)).send(channel)
         if is_submitting:
             submission = await common.prompt(channel, ctx.author, msgs[0], timeout=900, back=stage.back())
-            in_prompt.pop(ctx.author.id)
             await lang.get('assignment.submit.complete').send(ctx.author, assigner=stage.results['assigner'].mention)
             await lang.get('assignment.submit.submission').send(stage.results['assigner'], name=stage.results['name'],
                                                                 submitter=ctx.author.mention)
@@ -434,8 +432,6 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
                 if stage.results['info'][2] is not None:  # If interval
                     await schedule_submission(ctx.author, stage.results['assigner'], stage.results['name'],
                                               stage.results['info'][2], datetime.datetime.now(datetime.timezone.utc))
-        else:
-            in_prompt.pop(ctx.author.id, None)
 
 
 @commands.command(aliases=['hw', 'assignment', 'assignments'])

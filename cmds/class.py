@@ -169,7 +169,6 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             await stage.zap(1)
         else:
             await stage.zap(2)
-        in_prompt.pop(ctx.author.id, None)
     elif stage.num == 1:  # Name
         header = ''
         if results.get('name') and not validate_name(results['name']):
@@ -302,7 +301,6 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         emoji = response.emoji
         if emoji == confirm_emoji:
             if results['interest_check']:
-                in_prompt.pop(ctx.author.id)
                 teacher = ctx.author
                 node = lang.get('class.interest_check').replace(name=results['name'],
                                                                 description=results['description'].content,
@@ -331,7 +329,6 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         results['guild'] = guild.id
         await stage.zap(100)
     elif stage.num == 100:
-        in_prompt.pop(ctx.author.id)
         int_date = int(results['date'].timestamp())
         class_node = lang.get('class.class_info').replace(name=results['name'],
                                                           description=results['description'].content,
