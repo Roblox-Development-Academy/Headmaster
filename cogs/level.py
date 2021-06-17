@@ -364,27 +364,29 @@ class Level(commands.Cog):
                         return
                     page = ceil(total_ranks / ranks_per_page)
 
-                rank_index = (page - 1) * ranks_per_page
-
                 ranks = database.query(
                     """
-                    SELECT user_id, exp
-                    FROM levels JOIN categories
-                    ON category_id = categories.id AND categories.name = %s
-                    ORDER BY exp DESC
+                    SELECT user_id, exp, rank
+                    FROM (
+                        SELECT levels.user_id, exp,
+                            RANK () OVER (
+                            ORDER BY exp DESC
+                            ) rank
+                        FROM levels JOIN categories
+                        ON category_id = categories.id AND categories.name = %s
+                    ) leaderboard
                     LIMIT %s OFFSET %s
                     """,
-                    (category, ranks_per_page, rank_index)
+                    (category, ranks_per_page, (page - 1) * ranks_per_page)
                 ).fetchall()
 
                 if ranks:
                     has_ranks = True
                     for row in ranks:
-                        rank_index += 1
                         mention = f"{'__' if row[0] == user.id else ''}<@{row[0]}>{'__' if row[0] == user.id else ''}"
                         exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(
                             shown_categories) == 1 else ''
-                        rank_strings.append(f"**{rank_index})** {mention} Level {calculate_level(row[1])}.{exp}")
+                        rank_strings.append(f"**{row[2]})** {mention} Level {calculate_level(row[1])}.{exp}")
                         leaderboard.set_field_at(i, name=category,
                                                  value='\n\n'.join(rank_strings))
                 else:
@@ -481,7 +483,10 @@ class Level(commands.Cog):
         for category in shown_categories:
             ranks = database.query(
                 """
-                SELECT user_id, exp
+                SELECT user_id, exp,
+                    RANK () OVER (
+                    ORDER BY levels.exp DESC
+                    ) rank
                 FROM levels JOIN categories
                 ON category_id = categories.id AND categories.name = %s
                 ORDER BY exp DESC
@@ -491,13 +496,11 @@ class Level(commands.Cog):
             ).fetchall()
 
             rank_strings[category] = []
-            i = 0
             for row in ranks:
-                i += 1
                 mention = f"{'__' if row[0] == ctx.author.id else ''}<@{row[0]}>" \
                           f"{'__' if row[0] == ctx.author.id else ''}"
                 exp = f"{lang.global_placeholders.get('s')}**Exp:** {row[1]}." if len(shown_categories) == 1 else ''
-                rank_strings[category].append(f"**{i})** {mention} Level {calculate_level(row[1])}.{exp}")
+                rank_strings[category].append(f"**{row[2]})** {mention} Level {calculate_level(row[1])}.{exp}")
 
             lb_node.nodes[0].args['embed'].add_field(name=category,
                                                      value='\n\n'.join(rank_strings[category]) if rank_strings[category]
