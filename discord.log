@@ -1,7 +1,7 @@
-2021-03-24 00:42:13,090:WARNING:discord.client: PyNaCl is not installed, voice will NOT be supported
-2021-03-24 00:42:13,434:INFO:discord.client: logging in using static token
-2021-03-24 00:42:13,635:INFO:discord.gateway: Shard ID None has sent the IDENTIFY payload.
-2021-03-24 00:42:13,716:INFO:discord.gateway: Shard ID None has connected to Gateway: ["gateway-prd-main-dj3z",{"micros":56739,"calls":["discord-sessions-prd-2-95",{"micros":53647,"calls":["start_session",{"micros":22022,"calls":["api-prd-main-bndt",{"micros":19989,"calls":["get_user",{"micros":1815},"add_authorized_ip",{"micros":1353},"get_guilds",{"micros":3081},"coros_wait",{"micros":0}]}]},"guilds_connect",{"micros":4,"calls":[]},"presence_connect",{"micros":3402,"calls":[]}]}]}] (Session ID: 85d165ba944b05014a031aa14212076c).
-2021-03-24 00:42:15,752:INFO:discord: Created globals using production set
-2021-03-24 00:42:15,752:INFO:discord: Logged in as Headmaster#8983. I am in 5 guilds.
-2021-03-24 00:42:18,084:INFO:discord: Scheduling assignments and submissions.
+2021-06-16 20:11:40,897:WARNING:discord.client: PyNaCl is not installed, voice will NOT be supported
+2021-06-16 20:11:41,220:INFO:discord.client: logging in using static token
+2021-06-16 20:11:41,852:INFO:discord.gateway: Shard ID None has sent the IDENTIFY payload.
+2021-06-16 20:11:41,966:INFO:discord.gateway: Shard ID None has connected to Gateway: ["gateway-prd-main-hqdn",{"micros":45417,"calls":["discord-sessions-blue-prd-2-112",{"micros":43749,"calls":["start_session",{"micros":32896,"calls":["api-prd-main-vpg6",{"micros":28580,"calls":["get_user",{"micros":2699},"add_authorized_ip",{"micros":1369},"get_guilds",{"micros":6007},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":1,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 823a57fbee6bec7971a268a1fe865500).
+2021-06-16 20:11:44,019:INFO:discord: Created globals using DEBUG set
+2021-06-16 20:11:44,020:INFO:discord: Logged in as HELLO WAKE UP IT'S CLASS TIME#5303. I am in 2 guilds.
+2021-06-16 20:11:47,507:INFO:discord: Scheduling assignments and submissions.
