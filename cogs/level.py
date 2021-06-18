@@ -318,7 +318,7 @@ class Level(commands.Cog):
 
         elif reaction.emoji == lang.global_placeholders.get("emoji.profile"):
             await reaction.remove(user)
-            await self.profile(user, (reaction.message.author,))
+            await self.profile(user, member=reaction.message.author)
         elif reaction.emoji in (
                 lang.global_placeholders.get("emoji.next"), lang.global_placeholders.get("emoji.previous"),
                 lang.global_placeholders.get("emoji.rewind"), lang.global_placeholders.get("emoji.fast_forward")) \
