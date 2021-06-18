@@ -422,15 +422,15 @@ class Level(commands.Cog):
         ranks = database.query(
             """
             SELECT category, exp, rank
-                FROM (
-                    SELECT levels.user_id, categories.name AS category, exp,
-                        RANK () OVER (
-                        PARTITION BY levels.category_id
-                        ORDER BY levels.exp DESC
-                    ) AS rank
-                    FROM levels JOIN categories
-                    ON levels.category_id = categories.id
-                ) leaderboard
+            FROM (
+                SELECT levels.user_id, categories.name AS category, exp,
+                    RANK () OVER (
+                    PARTITION BY levels.category_id
+                    ORDER BY levels.exp DESC
+                    ) rank
+                FROM levels JOIN categories
+                ON levels.category_id = categories.id
+            ) leaderboard
             WHERE user_id = %s
             """,
             (member.id,)
