@@ -324,9 +324,7 @@ messages:
               - name: "Allowed Characters"
                 value: |
                   %s%%s%%bullet% Alphanumeric characters
-                  %s%%s%%bullet% Spaces
-                  %s%%s%%bullet% Dashes
-                  %s%%s%%bullet% Colons
+                  %s%%s%%bullet% `#` `%` `&` `!` `$` `(` `)` `+` `,` `.` `/` `:` `-`
             footer:
               text: "%prompt.respond_5m%"
           invalid_name: "**The class name is invalid. Please follow the instructions below.**\n\n"
