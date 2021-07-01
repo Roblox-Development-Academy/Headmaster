@@ -1105,6 +1105,7 @@ messages:
         - delete_after: 5
           embed:
             title: "%emoji.error% You exceeded the maximum time interval"
+            color: "%color.error%"
             description: "Please do not use a time interval that's longer than %range_display%."
     ignored_channel:
       - delete_after: 3
