@@ -1,5 +1,5 @@
 from utils.map import Map
-from utils.events import Event
+from utils.event import Event
 
 date_selected: Event = Event()
 
