@@ -144,7 +144,7 @@ def get_class_names(user_id: int) -> Tuple[Tuple[str]]:
 
 
 def validate_name(name: str):
-    return (1 < len(name) < 32) and re.search(r"^[\w :-]+$", name)
+    return (1 < len(name) < 64) and re.search(r"^[\w '+:-]+$", name)
 
 
 @prompt()

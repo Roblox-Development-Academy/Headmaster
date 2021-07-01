@@ -563,7 +563,7 @@ messages:
 
 
               This is a unique, case-sensitive identifier that students can use to submit the assignment. It cannot be
-              longer than 32 characters. Using an existing name will replace the previous assignment.%prompt.cancel%
+              longer than 64 characters. Using an existing name will replace the previous assignment.%prompt.cancel%
             fields:
               - name: "Allowed Characters"
                 value: |
