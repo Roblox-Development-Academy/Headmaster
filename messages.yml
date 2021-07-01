@@ -293,7 +293,7 @@ messages:
       - embed:
           title: "Your class is starting!"
           color: "%color.info%"
-          description: |
+          description: >
             **Your class, `%name%`, is starting now!**
 
 
