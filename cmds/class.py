@@ -213,31 +213,38 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         await stage.next()
     elif stage.num == 4:  # Optional image for class info
         node = lang.get('class.create.4')
-        if results['prerequisites']:
+        if results.get("invalid_image"):
+            header = node.nodes[0].options.get('invalid_image_url')
+        elif results['prerequisites']:
             header = LangManager.replace(node.nodes[0].options.get('prerequisites_is'),
                                          prerequisites=results['prerequisites_url'])
         else:
             header = node.nodes[0].options.get('no_prerequisites')
+
+        async def back():
+            results['invalid_image'] = None
+            await stage.back()
         try:
-            img_msg = await common.prompt(dm, ctx.author, lang.get('class.create.4'), back=stage.back(), can_skip=True,
+            img_msg = await common.prompt(dm, ctx.author, lang.get('class.create.4'), back=back(), can_skip=True,
                                           header=header)
             if img_msg.attachments:
                 results['image'] = img_msg.attachments[0].url  # TODO - Validate URL
             else:
-                results['image'] = escape_markdown(img_msg.content)
+                results['image'] = escape_markdown(img_msg.content.rstrip())
         except errors.PromptSkipped:
+            results['image'] = None  # In case they go back to remove the image
             pass
         if results['interest_check']:
             await stage.zap(8)
             return
         await stage.next()
     elif stage.num == 5:  # Maximum students
-        node = lang.get('class.create.5')
+        results['invalid_image'] = None
         img = results.get('image')
-        if img:
-            header = node.nodes[0].options.get('image_is')
-        else:
-            header = node.nodes[0].options.get('no_image')
+        node = lang.get('class.create.5').replace(image=img)
+        header = node.nodes[0].options.get('image_is' if img else 'no_image')
+        if not img:
+            node.nodes[0].args['embed'].set_thumbnail(url=discord.Embed.Empty)
         while True:
             try:
                 response = await common.prompt(dm, ctx.author, node, back=stage.back(), can_skip=True, header=header,
@@ -249,6 +256,12 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                 break
             except (ValueError, AssertionError):
                 header = node.nodes[0].options.get('invalid_int')
+            except discord.HTTPException:  # invalid image url
+                results['invalid_image'] = True
+                stage.history.pop(-1)  # Remove this stage 5
+                stage.history.pop(-1)  # Remove the previous stage 4 with the failed image
+                await stage.zap(stage.num - 1)
+                return
             else:
                 break
         await stage.next()
@@ -297,7 +310,14 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         node.nodes[0].args['embed'].timestamp = results.get('date', discord.Embed.Empty)
         if results.get('image'):
             node.nodes[0].args['embed'].set_image(url=results['image'])
-        response, _ = await common.prompt_reaction(node, ctx.author, dm, allowed_emojis=[confirm_emoji, return_emoji])
+        try:
+            response, _ = await common.prompt_reaction(node, ctx.author, dm, allowed_emojis=[confirm_emoji, return_emoji])
+        except discord.HTTPException:  # If it's an interest check, it goes directly to stage 8 with the image
+            results['invalid_image'] = True
+            stage.history.pop(-1)  # Remove this stage 8
+            stage.history.pop(-1)  # Remove the previous stage 4
+            await stage.zap(4)  # Go back to the image setting stage
+            return
         emoji = response.emoji
         if emoji == confirm_emoji:
             if results['interest_check']:
