@@ -22,7 +22,10 @@ class MessageNode:
                 else:
                     kwargs['embed'].timestamp = value
             else:
-                self.options[key] = value
+                if isinstance(value, dict):
+                    _compress_dict(value, self.options, key)
+                else:
+                    self.options[key] = value
 
     @classmethod
     async def from_message(cls, message: discord.Message):
@@ -199,22 +202,22 @@ class MessageListNode:
         return results
 
 
+def _compress_dict(config: dict, final_dict: dict = None, index: str = ''):
+    if final_dict is None:
+        final_dict = {}
+    for key, value in config.items():
+        if isinstance(value, dict):
+            _compress_dict(value, final_dict, index + "." + key if index != '' else key)
+        else:
+            final_dict[index + '.' + key if index != '' else key] = str(value)
+    return final_dict
+
+
 class LangManager:
     empty = MessageListNode()
     matcher = re.compile(r'%([\w._]+)%')
     global_placeholders = {}
     bot = None
-
-    @staticmethod
-    def __index_strings(config: dict, final_dict: dict = None, index: str = ''):
-        if final_dict is None:
-            final_dict = {}
-        for key, value in config.items():
-            if isinstance(value, dict):
-                LangManager.__index_strings(value, final_dict, index + "." + key if index != '' else key)
-            else:
-                final_dict[index + '.' + key if index != '' else key] = str(value)
-        return final_dict
 
     @staticmethod
     def replace(to_replace: str, **placeholders):
@@ -273,7 +276,7 @@ class LangManager:
                 config_dict = yaml.load(f, Loader=yaml.FullLoader)
                 global_placeholders = config_dict.get('global_placeholders')
                 if global_placeholders:
-                    LangManager.__index_strings(global_placeholders, LangManager.global_placeholders)
+                    _compress_dict(global_placeholders, LangManager.global_placeholders)
                 index_messages(config_dict['messages'])
 
     def get(self, index: str):

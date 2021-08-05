@@ -165,31 +165,82 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         results['interest_check'] = interest_check
         results['name'] = name
         results['classes'] = [name[0] for name in get_class_names(ctx.author.id)]
-        if not results['name'] or not validate_name(results['name']):
+        if not results['name']:
+            await stage.zap(0.5)
             await stage.zap(1)
-        else:
-            await stage.zap(2)
-    elif stage.num == 1:  # Name
+        elif not validate_name(results['name']):
+            await stage.zap(1)
+            await stage.zap(0.5)
+        else:  # A proper name was provided on command execution
+            await stage.zap(0.5)
+        await stage.zap(2)
+    elif stage.num == 0.5:  # Class tag
+        if results['interest_check']:
+            stage.history.pop(-1)
+            results['tag'] = ''
+            return
         header = ''
+        if results['name']:
+            header = lang.get('class.create.1').nodes[0].options.get(
+                'next_header.' + ('name_is' if results['name'] not in results['classes'] else 'name_taken'), '')
+        node = lang.get('class.create.0,5').replace(title=results['title'], header=header, name=results.get('name', ''))
+        if results.get('name'):
+            node.nodes[0].options['reactions'].append("↩")
+        response, _ = await common.prompt_reaction(node, ctx.author, dm,
+                                                   allowed_emojis=node.nodes[0].options['reactions'])
+        emoji = response.emoji
+        if emoji == '1\u20e3':
+            results['tag'] = "Class"
+        elif emoji == '2\u20e3':
+            results['tag'] = "WMW"
+        elif emoji == '3\u20e3':
+            results['tag'] = "AMA"
+        elif emoji == '4\u20e3':
+            results['tag'] = "WMW/AMA"
+        else:
+            results[('', 0)] = {
+                'next_header': ''
+            }
+            await stage.zap(1, progress_history=False)
+            await stage.zap(0.5, progress_history=False)
+            return
+        results[stage.path] = {
+            'next_header': lang.get('class.create.0,5').nodes[0].options.get('next_header')
+        }
+    elif stage.num == 1:  # Name
+        node = lang.get('class.create.1')
         if results.get('name') and not validate_name(results['name']):
-            header = lang.get('class.create.1').nodes[0].options.get('invalid_name', '')
+            header = node.nodes[0].options.get('invalid_name', '')
+        elif results['interest_check']:
+            header = ''
+        else:
+            header = results[stage.history[-2]]['next_header']
         while True:
-            results['name'] = (await common.prompt(dm, ctx.author, lang.get('class.create.1'),
-                                                   header=header, title=results['title'])).content
+            results['name'] = (await common.prompt(dm, ctx.author, node, header=header,
+                                                   title=results['title'], tag=results.get('tag', ''))).content
             if not validate_name(results['name']):
                 header = lang.get('class.create.1').nodes[0].options.get('invalid_name', '')
             else:
                 break
-        await stage.next()
+        results[stage.path] = {
+            'next_header': node.nodes[0].options.get(
+                'next_header.' + ('name_is' if results['name'] not in results['classes'] else 'name_taken'), '')
+        }
     elif stage.num == 2:  # Description
         node = lang.get('class.create.2')
-        if results['name'] in results['classes']:
-            header = node.nodes[0].options.get('name_taken')
+        if results['interest_check']:  # In case the name was provided in command execution
+            header = lang.get('class.create.1').nodes[0].options.get(
+                'next_header.' + ('name_is' if results['name'] not in results['classes'] else 'name_taken'), '')
         else:
-            header = node.nodes[0].options.get('name_is')
-        description = await common.prompt(dm, ctx.author, node, timeout=900, back=stage.zap(1),
+            header = results[stage.history[-2]]['next_header']
+
+        async def interest_check_back():
+            await stage.zap(1, progress_history=False)
+            await stage.zap(2, progress_history=False)
+        description = await common.prompt(dm, ctx.author, node, timeout=900, back=stage.back(return_to_stage=True)
+                                          if not results['interest_check'] else interest_check_back(),
                                           time_display="15 minutes", header=header, name=results['name'],
-                                          title=results['title'])
+                                          tag=results['tag'], title=results['title'])
         results['description'] = description
         await stage.next()
     elif stage.num == 3:  # Prerequisites
@@ -197,7 +248,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         while True:
             try:
                 prerequisites = await common.prompt(dm, ctx.author, lang.get('class.create.3'), timeout=900,
-                                                    back=stage.zap(2), can_skip=True, time_display="15 minutes",
+                                                    back=stage.back(), can_skip=True, time_display="15 minutes",
                                                     description=results['description'].jump_url, header=header,
                                                     title=results['title'])
             except errors.PromptSkipped:
@@ -224,11 +275,12 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         async def back():
             results['invalid_image'] = None
             await stage.back()
+
         try:
             img_msg = await common.prompt(dm, ctx.author, lang.get('class.create.4'), back=back(), can_skip=True,
                                           header=header)
             if img_msg.attachments:
-                results['image'] = img_msg.attachments[0].url  # TODO - Validate URL
+                results['image'] = img_msg.attachments[0].url
             else:
                 results['image'] = escape_markdown(img_msg.content.rstrip())
         except errors.PromptSkipped:
@@ -311,7 +363,8 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         if results.get('image'):
             node.nodes[0].args['embed'].set_image(url=results['image'])
         try:
-            response, _ = await common.prompt_reaction(node, ctx.author, dm, allowed_emojis=[confirm_emoji, return_emoji])
+            response, _ = await common.prompt_reaction(node, ctx.author, dm,
+                                                       allowed_emojis=[confirm_emoji, return_emoji])
         except discord.HTTPException:  # If it's an interest check, it goes directly to stage 8 with the image
             results['invalid_image'] = True
             stage.history.pop(-1)  # Remove this stage 8
@@ -351,21 +404,28 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
     elif stage.num == 100:
         int_date = int(results['date'].timestamp())
         class_node = lang.get('class.class_info').replace(name=results['name'],
+                                                          tag=results['tag'],
                                                           description=results['description'].content,
                                                           teacher=rda.get_member(ctx.author.id).nick or ctx.author.name,
                                                           avatar=ctx.author.avatar_url,
                                                           teacher_mention=ctx.author.mention,
                                                           url_display_time=f"{WEB_URL}/display-time/?time={int_date}",
                                                           new_class_ping=roles['newclass_alert'].mention)
-        class_node.nodes[0].args['embed'].timestamp = results['date']
+        options = class_node.nodes[0].options
+        embed = class_node.nodes[0].args['embed']
+        embed.timestamp = results['date']
+        if 'AMA' in results['tag']:
+            embed.insert_field_at(1, name=options['ama.name'], inline=False, value=options['ama.value'])
+        if 'WMW' in results['tag']:
+            embed.insert_field_at(1, name=options['wmw.name'], inline=False, value=options['wmw.value'])
         if results['max_students']:
-            class_node.nodes[0].args['embed'].insert_field_at(1, name="Maximum Students", inline=False,
-                                                              value=class_node.nodes[0].options.get('max_students'))
+            embed.insert_field_at(1, name="Maximum Students", inline=False,
+                                  value=class_node.nodes[0].options.get('max_students'))
         if results['prerequisites']:
-            class_node.nodes[0].args['embed'].insert_field_at(2, name="Prerequisites", inline=False,
-                                                              value=results['prerequisites'])
+            embed.insert_field_at(2, name="Prerequisites", inline=False,
+                                  value=results['prerequisites'])
         if results.get('image'):
-            class_node.nodes[0].args['embed'].set_image(url=results['image'])
+            embed.set_image(url=results['image'])
         class_msgs = await class_node.send(class_channel, mutate=True, max_students=results['max_students'])
         node = lang.get('class.create.completed')
         node.nodes[0].args['embed'].timestamp = results['date']

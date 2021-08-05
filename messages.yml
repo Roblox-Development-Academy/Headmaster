@@ -55,7 +55,7 @@ messages:
           *[**Roblox Development Academy**](https://discord.gg/NxuhkqH)*
         footer:
           text: "Made by JL and líng for Roblox Development Academy."
-          icon_url: "https://cdn.discordapp.com/avatars/260608867292020737/6e171a1f5883419ac89a52695c659ba5.webp?size=256"
+          icon_url: "https://cdn.discordapp.com/attachments/295377965334790144/847308265607135232/Monika_Emoji.png"
         fields:
           - name: "General Commands"
             inline: false
@@ -71,7 +71,7 @@ messages:
             inline: false
             value: |
               **apply** - Apply for teacher role.
-              **class** - Create a new class.
+              **class** - Schedule or cancel classes.
           - name: "Admin Commands"
             inline: false
             value: |
@@ -212,6 +212,64 @@ messages:
 
           Please proceed to your DMs.
 
+  staff_application:
+    info:
+      - embed:
+          title: "Staff Application"
+          color: "%color.info%"
+          description: >
+            Thank you for being a dedicated member of Roblox Development Academy and welcome to our staff application
+            process. We seek to accept the most outstanding members of RDA into our little family behind the progress
+            and continued growth of the Academy. If you would like to join us, you can find past applications and
+            feedback in %applications_channel%. These represent our standards.
+
+
+            When you're ready to start your application, use the `.staff` command.
+          fields:
+            - name: "Responsibilities"
+              inline: false
+              value: |
+                %s%%s%%bullet% Representing the staff team
+                %s%%s%%bullet% Serving as a good example for other members
+                %s%%s%%bullet% Stopping rule-breakers or threats to the community
+                %s%%s%%bullet% Being friendly and helpful to everyone %emoji.happy%
+            - name: "Requirements"
+              inline: false
+              value: |
+                %s%%s%%bullet% Responsible
+                %s%%s%%bullet% Mature
+                %s%%s%%bullet% Kind
+                %s%%s%%bullet% Can tell right from wrong
+
+    apply:
+      - embed:
+          title: "Apply for Staff"
+          color: "%color.info%"
+          description: >
+            When you are ready to apply for staff, [click here](%url%) for the application. You may return to this link
+            to edit your application until your application is processed. If you are denied, you may apply again. Your
+            application and feedback will appear in the %applications_channel% channel. Good luck!
+
+
+            __**NOTICE:**__ To guard against impersonation, please do not share this link with anyone. Only use the link
+            given to you above to get to the staff application webpage.
+
+    public_application:
+      - embed:
+          title: "Staff Application"
+          color: "%color.info%"
+          footer:
+            text: "Staff Applicant %applicant_id%"
+
+    error:
+      no_role:
+        - embed:
+            title: "%emoji.error% Not a Staff Applicant"
+            color: "%color.error%"
+            description: >
+              Only those with the %staff_applicant_role% role can use this command.
+          delete_after: 6
+
   class:
     main:
       - embed:
@@ -255,7 +313,7 @@ messages:
         allowed_mentions:
           roles: true
         embed:
-          title: "Class | %name%"
+          title: "%tag% | %name%"
           color: "%color.info%"
           description: |
             %description%
@@ -274,6 +332,14 @@ messages:
         reactions:
           - "%emoji.enroll%"
         max_students: "%max_students%"
+        wmw:
+          name: "Watch Me Work (WMW)"
+          value: |
+            Watch and learn from the teacher; see how a pro does it.
+        ama:
+          name: "Ask Me Anything (AMA)"
+          value: |
+            Feel free to stop by and ask the teacher questions.
 
     class_starting:
       - embed:
@@ -307,6 +373,29 @@ messages:
               value: "%num_students% students enrolled on the [class information post](%class_info%)."
 
     create:
+      "0,5":
+        - embed:
+            title: "%title%"
+            color: "%color.wizard%"
+            description: >
+              %header%**What label do you want to give your class?**
+
+
+              %s%%s%:one: **Class:** For teaching a specific skill or concept.
+
+              %s%%s%:two: **Watch Me Work (WMW):** Let students watch and learn from you.
+
+              %s%%s%:three: **Ask Me Anything (AMA):** Allow students to come to you with questions.
+
+              %s%%s%:four: **WMW/AMA:** Give both the **WMW** and **AMA** labels.%prompt.react%
+            footer:
+              text: "%prompt.respond_5m%"
+          reactions:
+            - "1%emoji.keycap%"
+            - "2%emoji.keycap%"
+            - "3%emoji.keycap%"
+            - "4%emoji.keycap%"
+          next_header: "__**This class will be labeled `%tag%`.**__\n\n"
       1:
         - embed:
             title: "%title%"
@@ -328,6 +417,15 @@ messages:
             footer:
               text: "%prompt.respond_5m%"
           invalid_name: "**The class name is invalid. Please follow the instructions below.**\n\n"
+          next_header:
+            name_taken: >
+              **You already have a class by this name. If you continue, your new class will override the original.
+              Respond with `back` to go change your name.**
+
+
+
+            name_is: "__**The name of the class is `%name%`.**__\n\n"
+
       2:
         - embed:
             title: "%title%"
@@ -341,10 +439,7 @@ messages:
               %prompt.back_or_cancel%
             footer:
               text: "%prompt.respond%"
-          name_taken: >
-            **You already have a class by this name. If you continue, your new class will override the original.
-            Respond with `cancel` to cancel the prompt.**\n\n
-          name_is: "__**The name of the class is `%name%`.**__\n\n"
+
       3:
         - embed:
             title: "%title%"
@@ -365,11 +460,12 @@ messages:
             description: |
               %header%**What image would you like to show in the class info?**
 
-              You can paste an image URL or attach an image file to your response.%prompt.options%
+              You can paste an image URL or upload an image file.%prompt.options%
             footer:
               text: "%prompt.respond_5m%"
           prerequisites_is: "__**The prerequisites have been linked to [this message](%prerequisites%).**__\n\n"
           no_prerequisites: "__**There are no prerequisites for the class.**__\n\n"
+          invalid_image_url: "__**The chosen image url is invalid.**__\n\n"
       5:
         - embed:
             title: "Create Class"
@@ -382,6 +478,8 @@ messages:
               %prompt.options%
             footer:
               text: "%prompt.respond_5m%"
+            thumbnail:
+              url: "%image%"
           image_is: "__**[This image](%image%) will be used for the url.**__\n\n"
           no_image: "__**No image will be displayed in class info.**__\n\n"
           invalid_int: "**That is not a valid integer. Please respond with a valid integer.**\n\n"

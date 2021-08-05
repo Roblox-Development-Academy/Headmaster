@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Any, List, Optional
+from typing import Callable, Dict, Any, List, Tuple, Optional
 
 import errors
 from cogs import errorhandler
@@ -11,24 +11,22 @@ class Stage:
         self.handler: Callable = handler
         self.ctx: commands.Context = context
         self.branch: str = ''
-        self.num: int = stage_num
-        self.history: List[int] = [stage_num]
-        self.results: Dict[str, Any] = {}
+        self.num: float = stage_num
+        self.history: List[Tuple[str, float]] = [(self.branch, self.num)]
+        self.results: Dict[Any, Any] = {}
 
     @property
-    def path(self):
-        return self.branch + str(self.num)
+    def path(self) -> Tuple[str, float]:
+        return self.branch, self.num
 
     @path.setter
-    def path(self, value: str):
-        i = value.rfind('.')
-        self.branch = value[0:i]
-        self.num = int(value[(i + 1):-1])
+    def path(self, value: Tuple[str, float]):
+        self.branch, self.num = value
 
-    async def zap(self, stage_num: int, *args, progress_history: bool = True, **kwargs):
+    async def zap(self, stage_num: float, *args, progress_history: bool = True, **kwargs):
         self.num = stage_num
         if progress_history:
-            self.history.append(self.num)
+            self.history.append((self.branch, self.num))
         try:
             return (await self.callback(self, *args, **kwargs)) or self.num
         except errors.PromptKilled:
@@ -36,15 +34,22 @@ class Stage:
         except errors.PromptError as e:
             await self.handler(self.ctx, e)
 
-    async def to(self, branch: str, stage_num: int = 0, *args, **kwargs):
+    async def to(self, branch: str, stage_num: float = 0, *args, **kwargs):
         self.branch = branch
         return await self.zap(stage_num, *args, **kwargs)
 
-    async def back(self, *args, **kwargs):
-        self.history.pop(-1)
-        await self.zap(self.history[-1], *args, progress_history=False, **kwargs)
+    async def back(self, *args, return_to_stage: bool = False, **kwargs):
+        try:
+            current_stage = self.history.pop(-1)
+        except IndexError:
+            channel = self.ctx.channel
+            await self.handler(channel, errors.PreviousPrompt("Cannot go back to previous prompt", channel))
+        else:
+            await self.to(*self.history[-1], *args, progress_history=False, **kwargs)
+            if return_to_stage:
+                await self.to(*current_stage)
 
-    async def next(self, increment: Optional[int] = 1, *args, **kwargs):
+    async def next(self, increment: Optional[float] = 1, *args, **kwargs):
         await self.zap(self.num + increment, *args, **kwargs)
 
 
