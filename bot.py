@@ -55,7 +55,7 @@ def get_mention_or_prefix(_, message):
     return commands.when_mentioned_or(get_prefix(message.guild.id))(client, message)
 
 
-__intents = discord.Intents.default()
+__intents = discord.Intents.all()
 __intents.members = True
 client = commands.Bot(command_prefix=(get_mention_or_prefix if __os.environ["DEBUG"] == "0" else "-"),
                       case_insensitive=True, help_command=None, intents=__intents)
