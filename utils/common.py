@@ -98,7 +98,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User,
     :param back: A coroutine to be called if 'back' is an allowed response
     :param can_skip: Whether this prompt is skippable (must be handled)
     :param check: Your own check for messages
-    :return: The user's response
+    :return: The user's response message
     """
     if not isinstance(prompt_msg, discord.Message):
         prompt_msg = await prompt_msg.send(channel, **kwargs)
