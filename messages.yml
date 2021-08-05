@@ -319,7 +319,7 @@ messages:
               to students.
 
 
-              Do not make the name longer than 32 characters.%prompt.cancel%
+              Do not make the name too long (longer than 100 characters) or too short.%prompt.cancel%
             fields:
               - name: "Allowed Characters"
                 value: |
