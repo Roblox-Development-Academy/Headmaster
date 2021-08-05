@@ -16,6 +16,9 @@ async function disableInput(elem) {
 btn.addEventListener("click", function() {
     fetch("/date-select/?user-id=" + userId, {
         method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
             date: selectedDate.getTime() / 1000
         })
