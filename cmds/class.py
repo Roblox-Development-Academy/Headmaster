@@ -198,7 +198,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         elif emoji == '4\u20e3':
             results['tag'] = "WMW/AMA"
         else:
-            results[('', 0)] = {
+            results[('', 1)] = {
                 'next_header': ''
             }
             await stage.zap(1, progress_history=False)
