@@ -12,11 +12,11 @@ import conditions
 from utils.language import LangManager
 
 profession_names = {
-    "Scripting": "scripter",
-    "Animation:": "animator",
-    "Modeling:": "modeler",
-    "Building": "builder",
-    "GFX": "GFX artist",
+    "Scripting": "Scripter",
+    "Animation:": "Animator",
+    "Modeling:": "Modeler",
+    "Building": "Builder",
+    "GFX": "GFX Artist",
     "Audio Engineering": "Audio Engineer"
 }
 
