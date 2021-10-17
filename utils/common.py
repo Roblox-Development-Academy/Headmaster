@@ -2,6 +2,7 @@ from typing import Union, Callable, Tuple, Awaitable, Any
 import asyncio
 import re
 from datetime import datetime, timedelta
+from time import mktime
 
 import nextcord
 
@@ -36,6 +37,13 @@ def parse_interval(time: str, minimum: timedelta = timedelta(seconds=0), maximum
     except TypeError:
         return None
     raise OverflowError
+
+
+def to_unix(time: datetime, timestamp_format: str = "F", raw: bool = False):
+    unix = int(mktime(time.utctimetuple()))
+    if raw:
+        return unix
+    return f"<t:{unix}{':' + timestamp_format if timestamp_format else ''}>"
 
 
 def td_format(td_object: timedelta) -> str:
