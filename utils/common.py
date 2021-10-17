@@ -2,7 +2,7 @@ from typing import Union, Callable, Tuple, Awaitable, Any
 import asyncio
 import re
 from datetime import datetime, timedelta
-from time import mktime
+from calendar import timegm
 
 import nextcord
 
@@ -40,7 +40,7 @@ def parse_interval(time: str, minimum: timedelta = timedelta(seconds=0), maximum
 
 
 def to_unix(time: datetime, timestamp_format: str = "F", raw: bool = False):
-    unix = int(mktime(time.utctimetuple()))
+    unix = int(timegm(time.timetuple()))
     if raw:
         return unix
     return f"<t:{unix}{':' + timestamp_format if timestamp_format else ''}>"
