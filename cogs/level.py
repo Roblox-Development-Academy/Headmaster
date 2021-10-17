@@ -12,11 +12,11 @@ import conditions
 from utils.language import LangManager
 
 profession_names = {
-    "Scripting": "scripter",
-    "Animation:": "animator",
-    "Modeling:": "modeler",
-    "Building": "builder",
-    "GFX": "GFX artist",
+    "Scripting": "Scripter",
+    "Animation:": "Animator",
+    "Modeling:": "Modeler",
+    "Building": "Builder",
+    "GFX": "GFX Artist",
     "Audio Engineering": "Audio Engineer"
 }
 
@@ -284,7 +284,7 @@ class Level(commands.Cog):
             category = category.capitalize() if category.upper() not in ('GFX', 'SFX') else category.upper()
         try:
             amount = float(amount)
-        except ValueError:
+        except (ValueError, TypeError):
             amount = None
 
         if (not users) or (category not in level_categories) or (amount is None):
