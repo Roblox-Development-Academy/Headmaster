@@ -1,9 +1,9 @@
 from datetime import timezone, datetime
-from discord.ext import commands
+from nextcord.ext import commands
 from bot import lang, client, report_channel
 from utils.language import MessageNode
-from discord import Embed
-from discord.errors import HTTPException
+from nextcord import Embed
+from nextcord.errors import HTTPException
 
 
 class Report(commands.Cog):

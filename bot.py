@@ -4,8 +4,8 @@ import asyncio as __asyncio
 import warnings as __warnings
 from typing import Dict as __Dict
 
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
 
 from utils import database
 from utils.language import LangManager as __LangManager
@@ -55,20 +55,20 @@ def get_mention_or_prefix(_, message):
     return commands.when_mentioned_or(get_prefix(message.guild.id))(client, message)
 
 
-__intents = discord.Intents.all()
+__intents = nextcord.Intents.all()
 __intents.members = True
 client = commands.Bot(command_prefix=(get_mention_or_prefix if __os.environ["DEBUG"] == "0" else "-"),
                       case_insensitive=True, help_command=None, intents=__intents)
 
-# TODO - Make functions to get discord objects instead, refactor, and get rid of on_ready delay everywhere
-rda: discord.Guild
-channels: __Dict[str, discord.TextChannel]
-class_channel: discord.TextChannel
-report_channel: discord.TextChannel
-teacher_application_channel: discord.TextChannel
-class_category: discord.CategoryChannel
-roles: __Dict[str, discord.Role]
-teacher_role: discord.Role
+# TODO - Make functions to get discord/nextcord objects instead, refactor, and get rid of on_ready delay everywhere
+rda: nextcord.Guild
+channels: __Dict[str, nextcord.TextChannel]
+class_channel: nextcord.TextChannel
+report_channel: nextcord.TextChannel
+teacher_application_channel: nextcord.TextChannel
+class_category: nextcord.CategoryChannel
+roles: __Dict[str, nextcord.Role]
+teacher_role: nextcord.Role
 level_categories: dict
 
 
@@ -100,7 +100,7 @@ async def __on_ready():
 
         logger.info("Created globals using {} set".format(status))
     logger.info(f"Logged in as {client.user}. I am in {len(client.guilds)} guilds.")
-    await client.change_presence(activity=discord.Game(".help"))
+    await client.change_presence(activity=nextcord.Game(".help"))
 
 __loop = __asyncio.get_event_loop()
 __loop.create_task(client.start(TOKEN))

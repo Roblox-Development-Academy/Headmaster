@@ -1,4 +1,5 @@
-from discord import User
+import nextcord
+from nextcord import User
 from datetime import datetime, timezone
 from math import floor, ceil, fabs
 from copy import deepcopy
@@ -96,7 +97,7 @@ def get_exp_rows():
 get_exp_rows()
 
 
-async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False, giver: discord.User = None):
+async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immune=False, giver: nextcord.User = None):
     category_id = None
     category_name = category_name.capitalize() if category_name.upper() not in ('GFX', 'SFX') else category_name.upper()
 
@@ -126,7 +127,7 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
         return
 
     # Level-up notifications:
-    member: discord.Member = rda.get_member(user_id)
+    member: nextcord.Member = rda.get_member(user_id)
     current_exp = (database.query(
         """
         SELECT exp
@@ -415,7 +416,7 @@ class Level(commands.Cog):
                           giver=user)
 
     @commands.command()
-    async def profile(self, ctx, *, member: Optional[discord.Member] = None):
+    async def profile(self, ctx, *, member: Optional[nextcord.Member] = None):
         if member is None:
             member = rda.get_member(ctx.author.id)
 

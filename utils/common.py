@@ -3,6 +3,8 @@ import asyncio
 import re
 from datetime import datetime, timedelta
 
+import nextcord
+
 import errors
 import events
 from bot import *
@@ -54,10 +56,10 @@ def td_format(td_object: timedelta) -> str:
     return ", ".join(strings)
 
 
-async def prompt_reaction(msg: Union[discord.Message, MessageNode, MessageListNode], user: discord.User = None, *args,
+async def prompt_reaction(msg: Union[nextcord.Message, MessageNode, MessageListNode], user: nextcord.User = None, *args,
                           timeout=300, allowed_emojis=None, remove_other_reactions=True,
-                          **kwargs) -> Tuple[discord.Reaction, discord.User]:
-    if not isinstance(msg, discord.Message):
+                          **kwargs) -> Tuple[nextcord.Reaction, nextcord.User]:
+    if not isinstance(msg, nextcord.Message):
         msg = await msg.send(*args, **kwargs)
         if isinstance(msg, list):
             msg = msg[-1]
@@ -76,7 +78,7 @@ async def prompt_reaction(msg: Union[discord.Message, MessageNode, MessageListNo
             if remove_other_reactions:
                 try:
                     await response.remove(responder)
-                except discord.errors.Forbidden:
+                except nextcord.errors.Forbidden:
                     await lang.get('error.invalid_reaction').send(msg.channel)
     except asyncio.TimeoutError:
         raise errors.PromptTimeout("The prompt has timed out", msg)
@@ -85,9 +87,9 @@ async def prompt_reaction(msg: Union[discord.Message, MessageNode, MessageListNo
     return response, responder
 
 
-async def prompt(channel: discord.TextChannel, user: discord.User,
-                 prompt_msg: Union[discord.Message, MessageNode, MessageListNode], timeout=300, back=None,
-                 can_skip=False, check: Callable = None, **kwargs) -> discord.Message:
+async def prompt(channel: nextcord.TextChannel, user: nextcord.User,
+                 prompt_msg: Union[nextcord.Message, MessageNode, MessageListNode], timeout=300, back=None,
+                 can_skip=False, check: Callable = None, **kwargs) -> nextcord.Message:
     """
     Prompts the specified user for a text response
 
@@ -100,7 +102,7 @@ async def prompt(channel: discord.TextChannel, user: discord.User,
     :param check: Your own check for messages
     :return: The user's response message
     """
-    if not isinstance(prompt_msg, discord.Message):
+    if not isinstance(prompt_msg, nextcord.Message):
         prompt_msg = await prompt_msg.send(channel, **kwargs)
 
     if not check:
@@ -136,8 +138,8 @@ async def prompt(channel: discord.TextChannel, user: discord.User,
     return msg
 
 
-async def prompt_date(channel: discord.TextChannel, user: discord.User,
-                      prompt_msg: Union[discord.Message, MessageNode, MessageListNode], timeout=300,
+async def prompt_date(channel: nextcord.TextChannel, user: nextcord.User,
+                      prompt_msg: Union[nextcord.Message, MessageNode, MessageListNode], timeout=300,
                       **kwargs) -> datetime:
     def msg_check(m):
         return m.author == user and m.channel == channel and m.content and \
@@ -161,8 +163,8 @@ async def prompt_date(channel: discord.TextChannel, user: discord.User,
             in_prompt.pop(user.id, None)
 
 
-async def prompt_wait(channel: discord.TextChannel, user: discord.User,
-                      prompt_msg: Union[discord.Message, MessageNode, MessageListNode], coro: Awaitable, timeout=300,
+async def prompt_wait(channel: nextcord.TextChannel, user: nextcord.User,
+                      prompt_msg: Union[nextcord.Message, MessageNode, MessageListNode], coro: Awaitable, timeout=300,
                       on_msg: Awaitable = __do_nothing(), **kwargs) -> Any:
     def msg_check(m):
         return m.author == user and m.channel == channel and m.content and \

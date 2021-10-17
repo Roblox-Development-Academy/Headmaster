@@ -1,3 +1,5 @@
+import nextcord
+
 from bot import *
 import errors
 
@@ -10,7 +12,7 @@ async def process(ctx, error):
     elif isinstance(error, errors.PromptSkipped):
         try:
             await error.args[1].delete()
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             pass
         await lang.get('error.prompt_skip').send(ctx)
     elif isinstance(error, errors.PromptCancelled):

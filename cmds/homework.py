@@ -3,7 +3,8 @@ import datetime
 import asyncio
 import re
 
-from discord.ext.commands import MemberConverter
+import nextcord
+from nextcord.ext.commands import MemberConverter
 
 from bot import *
 import errors
@@ -71,11 +72,11 @@ def get_assignment_names(user_id: int) -> Tuple[str]:
     ).fetchall()
 
 
-async def schedule_submission(submitter: discord.User, assigner: discord.User, name: str,
+async def schedule_submission(submitter: nextcord.User, assigner: nextcord.User, name: str,
                               interval: datetime.timedelta = None, start: datetime.datetime = None, wait: bool = True):
     async def scheduling_process():
         if wait:
-            await discord.utils.sleep_until(start + interval)
+            await nextcord.utils.sleep_until(start + interval)
         solution_id = database.query(
             """
             SELECT solution
@@ -89,7 +90,7 @@ async def schedule_submission(submitter: discord.User, assigner: discord.User, n
             return
         try:
             solution = await assigner.fetch_message(solution_id)
-        except discord.NotFound:
+        except nextcord.NotFound:
             pass
         else:
             await lang.get('assignment.submit.solution').send(submitter, assigner=assigner.mention, name=name)
@@ -117,7 +118,7 @@ async def schedule_assignment(assigner_id: int, name: str, solution: int, date: 
     async def scheduling_task():
         if not solution:
             return
-        await discord.utils.sleep_until(date)
+        await nextcord.utils.sleep_until(date)
         submissions = database.query(
             """
             SELECT submitter
@@ -128,7 +129,7 @@ async def schedule_assignment(assigner_id: int, name: str, solution: int, date: 
         ).fetchall()
         try:
             solution_msg = await client.get_user(assigner_id).fetch_message(solution)
-        except discord.errors.NotFound:
+        except nextcord.errors.NotFound:
             return
         node = await MessageNode.from_message(solution_msg)
         for submitter_tuple in submissions:
@@ -336,7 +337,7 @@ async def __create(stage: Stage, name: str = ''):
 
 
 @prompt()
-async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: discord.User = None):
+async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: nextcord.User = None):
     ctx = stage.ctx
     channel = (ctx.author.dm_channel or await ctx.author.create_dm()) \
         if (sub or stage.results['sub']) == "submit" else ctx.channel
@@ -378,7 +379,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
             response = (await common.prompt(channel, ctx.author, lang.get('assignment.submit.1'),
                                             header=header, sub=stage.results['sub'].capitalize())).content
             try:
-                stage.results['assigner']: discord.User = await MemberConverter().convert(ctx, response)
+                stage.results['assigner']: nextcord.User = await MemberConverter().convert(ctx, response)
             except commands.errors.BadArgument:
                 header = '**User not found! Please try again.**\n\n'
             else:
@@ -392,7 +393,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
     elif stage.num == 3:
         try:
             description = await stage.results['assigner'].fetch_message(stage.results['info'][0])
-        except discord.NotFound:
+        except nextcord.NotFound:
             description = None
         list_node = lang.get('assignment.submit.3')
         if stage.results['sub'] == 'submit':
@@ -404,7 +405,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
             color = "%color.info%"
             is_submitting = False
             instructions = ''
-        list_node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
+        list_node.nodes[0].args['embed'].color = nextcord.Color(int(LangManager.replace(color), 16))
         msgs = await list_node.send(channel, sub=stage.results['sub'].capitalize(), name=stage.results['name'],
                                     assigner=stage.results['assigner'].mention, instructions=instructions)
         if description:
@@ -435,7 +436,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: di
 
 
 @commands.command(aliases=['hw', 'assignment', 'assignments'])
-async def homework(ctx, sub=None, assigner: Optional[discord.User] = None, *, name: Optional[str]):
+async def homework(ctx, sub=None, assigner: Optional[nextcord.User] = None, *, name: Optional[str]):
     header = ''
     title = 'Assignments'
     color = '%color.info%'
@@ -479,7 +480,7 @@ async def homework(ctx, sub=None, assigner: Optional[discord.User] = None, *, na
     your_assignments = "\n".join(name[0] for name in get_assignment_names(ctx.author.id)) or \
                        list_node.nodes[0].options.get('no_assignments')
     list_node = list_node.replace(title=title, header=header, assignments=your_assignments)
-    list_node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
+    list_node.nodes[0].args['embed'].color = nextcord.Color(int(LangManager.replace(color), 16))
     await list_node.send(ctx)
 
 

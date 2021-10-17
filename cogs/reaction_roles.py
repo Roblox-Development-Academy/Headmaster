@@ -2,6 +2,7 @@ import asyncio
 from typing import Dict, Tuple, List, Union, Optional
 import itertools
 
+import nextcord
 import yaml
 
 import conditions
@@ -12,7 +13,7 @@ from utils.language import LangManager
 
 class ReactionRoles(commands.Cog):
     messages: Dict[int, Tuple[str, int]] = {}
-    profiles: Dict[str, List[Dict[str, discord.Role]]] = {}
+    profiles: Dict[str, List[Dict[str, nextcord.Role]]] = {}
     messages_config: dict
 
     def __init__(self):
@@ -38,7 +39,7 @@ class ReactionRoles(commands.Cog):
                     continue
                 try:
                     await channel.fetch_message(message_id)
-                except discord.NotFound:
+                except nextcord.NotFound:
                     messages_to_remove.append(str(message_id))
                     continue
                 ReactionRoles.messages[message_id] = (profile_name, profile_num)
@@ -52,20 +53,20 @@ class ReactionRoles(commands.Cog):
         asyncio.create_task(populate_messages())
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+    async def on_raw_reaction_add(self, payload: nextcord.RawReactionActionEvent):
         await ReactionRoles.update_role(payload, add_role=True)
 
     @commands.Cog.listener()
-    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+    async def on_raw_reaction_remove(self, payload: nextcord.RawReactionActionEvent):
         await ReactionRoles.update_role(payload, add_role=False)
         
     @staticmethod
-    async def update_role(payload: discord.RawReactionActionEvent, add_role: bool):
+    async def update_role(payload: nextcord.RawReactionActionEvent, add_role: bool):
         try:
             profile, profile_num = ReactionRoles.messages[payload.message_id]
         except KeyError:
             return
-        member: discord.Member = payload.member or not add_role and rda.get_member(payload.user_id)
+        member: nextcord.Member = payload.member or not add_role and rda.get_member(payload.user_id)
         if not member:
             return
         profile_msgs = ReactionRoles.profiles[profile]
@@ -95,7 +96,7 @@ class ReactionRoles(commands.Cog):
             pass
 
     @staticmethod
-    async def add_msg(template: str, msg: discord.Message, num_template: int = 0):
+    async def add_msg(template: str, msg: nextcord.Message, num_template: int = 0):
         database.update(
             """
             INSERT INTO reaction_roles_messages (message_id, channel_id, profile, profile_num)
@@ -112,7 +113,7 @@ class ReactionRoles(commands.Cog):
 
     @commands.command(aliases=['rr', 'reactionroles'])
     @conditions.manager_only()
-    async def reaction_roles(self, _, sub: Optional[str], template: str, *, msg: discord.Message = None,
+    async def reaction_roles(self, _, sub: Optional[str], template: str, *, msg: nextcord.Message = None,
                              num_template: int = 0):
         if sub == "add":
             await ReactionRoles.add_msg(template, msg, num_template)

@@ -4,7 +4,7 @@ import re
 from typing import Union, List, Dict, Any
 from datetime import datetime
 
-import discord
+import nextcord
 
 
 class MessageNode:
@@ -28,7 +28,7 @@ class MessageNode:
                     self.options[key] = value
 
     @classmethod
-    async def from_message(cls, message: discord.Message):
+    async def from_message(cls, message: nextcord.Message):
         serialized = {'content': message.content, 'tts': message.tts, 'nonce': message.nonce,
                       'embed': message.embeds[0] if message.embeds else None}
         if message.embeds and isinstance(message.embeds[0].timestamp, datetime):
@@ -52,15 +52,15 @@ class MessageNode:
     def from_dict(cls, serialized: dict):
         embed = serialized.get('embed')
         if embed:
-            e = discord.Embed.Empty
+            e = nextcord.Embed.Empty
             footer = embed.get('footer')
             image = embed.get('image')
             thumbnail = embed.get('thumbnail')
             author = embed.get('author')
             fields = embed.get('fields')
             colour = embed.get('colour') or embed.get('color') or e
-            colour = discord.Colour(colour if not isinstance(colour, str) else int(colour, 16)) if colour != e else e
-            serialized['embed'] = discord.Embed(title=embed.get('title', e), type=embed.get('type'), colour=colour,
+            colour = nextcord.Colour(colour if not isinstance(colour, str) else int(colour, 16)) if colour != e else e
+            serialized['embed'] = nextcord.Embed(title=embed.get('title', e), type=embed.get('type'), colour=colour,
                                                 description=embed.get('description', e), url=embed.get('url', e))
             embed = serialized['embed']
             if footer:
@@ -81,11 +81,11 @@ class MessageNode:
         file = serialized.get('file')
         files = serialized.get('files')
 
-        def deserialize_file(serialized_file: Union[str, dict]) -> discord.File:
+        def deserialize_file(serialized_file: Union[str, dict]) -> nextcord.File:
             if isinstance(serialized_file, str):
-                return discord.File(serialized_file)
+                return nextcord.File(serialized_file)
             else:
-                return discord.File(**serialized_file)
+                return nextcord.File(**serialized_file)
 
         if file:
             serialized['file'] = deserialize_file(file)
@@ -94,7 +94,7 @@ class MessageNode:
 
         allowed_mentions = serialized.get('allowed_mentions')
         if allowed_mentions:
-            serialized['allowed_mentions'] = discord.AllowedMentions(**allowed_mentions)
+            serialized['allowed_mentions'] = nextcord.AllowedMentions(**allowed_mentions)
         return cls(**serialized)
 
     def replace(self, **kwargs):
@@ -107,7 +107,7 @@ class MessageNode:
         content = clone.args.get('content')
         if content:
             clone.args['content'] = LangManager.replace(content, **kwargs)
-        embed: discord.Embed = clone.args.get('embed')
+        embed: nextcord.Embed = clone.args.get('embed')
         if embed:
             if embed.title:
                 embed.title = LangManager.replace(embed.title, **kwargs)
@@ -134,10 +134,10 @@ class MessageNode:
     async def send(self, to, message_list=None, **placeholders):
         if len(self.args) == 0:
             return message_list
-        if isinstance(to, discord.abc.Messageable):
+        if isinstance(to, nextcord.abc.Messageable):
             try:
                 msg = await to.send(**self.replace(**placeholders).args)
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 return
 
             reactions = self.options.get('reactions')
@@ -155,7 +155,7 @@ class MessageNode:
             for element in to:
                 try:
                     await self.send(element, message_list=message_list, **placeholders)
-                except discord.Forbidden:
+                except nextcord.Forbidden:
                     pass
             return message_list
 

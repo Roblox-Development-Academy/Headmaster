@@ -3,7 +3,8 @@ from typing import Tuple, Optional, Dict
 import re
 from datetime import datetime, timezone, timedelta
 
-from discord.ext import tasks
+import nextcord
+from nextcord.ext import tasks
 
 import conditions
 from bot import *
@@ -11,9 +12,9 @@ from utils.prompt import prompt, Stage
 from utils.language import LangManager, MessageNode
 from utils import common
 import errors
-from discord.utils import escape_markdown
+from nextcord.utils import escape_markdown
 
-scheduled_classes: Dict[Tuple[int, str], Tuple[asyncio.Task, discord.Message]] = {}
+scheduled_classes: Dict[Tuple[int, str], Tuple[asyncio.Task, nextcord.Message]] = {}
 class_index: int = 0
 
 
@@ -49,7 +50,7 @@ async def run():
             if (not last_messages and now - channel.created_at > timedelta(minutes=30)) or \
                     (last_messages and now - last_messages[0].created_at > timedelta(minutes=30)):
                 await channel.delete()
-                voice_channel: discord.VoiceChannel = discord.utils.get(class_category.voice_channels,
+                voice_channel: nextcord.VoiceChannel = nextcord.utils.get(class_category.voice_channels,
                                                                         name=channel.name)
                 if voice_channel:
                     await voice_channel.delete()
@@ -60,18 +61,18 @@ async def run():
 asyncio.get_event_loop().create_task(run())
 
 
-async def schedule_class(teacher: discord.User, name: str, message_id: int, date: datetime,
+async def schedule_class(teacher: nextcord.User, name: str, message_id: int, date: datetime,
                          use_voice_channel: Optional[bool] = False, guild_id: Optional[str] = 0):
-    await discord.utils.sleep_until(date)
+    await nextcord.utils.sleep_until(date)
     await asyncio.sleep(1)
     message = await class_channel.fetch_message(message_id)
     node = lang.get('class.class_starting').replace(teacher=teacher.mention, name=name, class_info=message.jump_url)
-    reaction = discord.utils.find(lambda r: str(r.emoji) == lang.global_placeholders.get('emoji.enroll'),
+    reaction = nextcord.utils.find(lambda r: str(r.emoji) == lang.global_placeholders.get('emoji.enroll'),
                                   message.reactions)
     students = [u for u in (await reaction.users().flatten()) if u != client.user and u != teacher]
     teacher_invite = ''
     if guild_id:
-        guild: discord.Guild = client.get_guild(guild_id)
+        guild: nextcord.Guild = client.get_guild(guild_id)
         invite = None
         for channel in guild.text_channels:
             if channel.name == "class":
@@ -94,19 +95,19 @@ async def schedule_class(teacher: discord.User, name: str, message_id: int, date
     else:
         global class_index
         class_index += 1
-        student_text_perms = discord.PermissionOverwrite(read_messages=True)
+        student_text_perms = nextcord.PermissionOverwrite(read_messages=True)
         overwrites_text = {
-            rda.default_role: discord.PermissionOverwrite(read_messages=False),
-            teacher: discord.PermissionOverwrite(read_messages=True, mention_everyone=True, manage_channels=True,
+            rda.default_role: nextcord.PermissionOverwrite(read_messages=False),
+            teacher: nextcord.PermissionOverwrite(read_messages=True, mention_everyone=True, manage_channels=True,
                                                  manage_messages=True, manage_permissions=True),
             **{student: student_text_perms for student in students}
         }
         channel = await class_category.create_text_channel(f"classroom-{str(class_index)}", overwrites=overwrites_text)
         if use_voice_channel:
-            student_voice_perms = discord.PermissionOverwrite(view_channel=True)
+            student_voice_perms = nextcord.PermissionOverwrite(view_channel=True)
             overwrites_voice = {
-                rda.default_role: discord.PermissionOverwrite(view_channel=False),
-                teacher: discord.PermissionOverwrite(connect=True, mute_members=True, deafen_members=True,
+                rda.default_role: nextcord.PermissionOverwrite(view_channel=False),
+                teacher: nextcord.PermissionOverwrite(connect=True, mute_members=True, deafen_members=True,
                                                      move_members=True, manage_channels=True, view_channel=True,
                                                      manage_permissions=True, priority_speaker=True),
                 **{student: student_voice_perms for student in students}
@@ -296,7 +297,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         node = lang.get('class.create.5').replace(image=img)
         header = node.nodes[0].options.get('image_is' if img else 'no_image')
         if not img:
-            node.nodes[0].args['embed'].set_thumbnail(url=discord.Embed.Empty)
+            node.nodes[0].args['embed'].set_thumbnail(url=nextcord.Embed.Empty)
         while True:
             try:
                 response = await common.prompt(dm, ctx.author, node, back=stage.back(), can_skip=True, header=header,
@@ -308,7 +309,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                 break
             except (ValueError, AssertionError):
                 header = node.nodes[0].options.get('invalid_int')
-            except discord.HTTPException:  # invalid image url
+            except nextcord.HTTPException:  # invalid image url
                 results['invalid_image'] = True
                 stage.history.pop(-1)  # Remove this stage 5
                 stage.history.pop(-1)  # Remove the previous stage 4 with the failed image
@@ -359,13 +360,13 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         node = lang.get('class.create.8').replace(classroom=results.get('classroom', '*N/A; Interest Check*'),
                                                   description=results['description'].content,
                                                   prerequisites=results['prerequisites'] or '*No prerequisites*')
-        node.nodes[0].args['embed'].timestamp = results.get('date', discord.Embed.Empty)
+        node.nodes[0].args['embed'].timestamp = results.get('date', nextcord.Embed.Empty)
         if results.get('image'):
             node.nodes[0].args['embed'].set_image(url=results['image'])
         try:
             response, _ = await common.prompt_reaction(node, ctx.author, dm,
                                                        allowed_emojis=[confirm_emoji, return_emoji])
-        except discord.HTTPException:  # If it's an interest check, it goes directly to stage 8 with the image
+        except nextcord.HTTPException:  # If it's an interest check, it goes directly to stage 8 with the image
             results['invalid_image'] = True
             stage.history.pop(-1)  # Remove this stage 8
             stage.history.pop(-1)  # Remove the previous stage 4
@@ -392,11 +393,11 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         else:
             await stage.back()
     elif stage.num == 9:  # Create guild
-        def check(g: discord.Guild):
+        def check(g: nextcord.Guild):
             return g.owner_id == ctx.author.id
 
-        invite = discord.utils.oauth_url(client.user.id, discord.Permissions(administrator=True))
-        guild: discord.Guild = await common.prompt_wait(dm, ctx.author, lang.get('class.create.9'),
+        invite = nextcord.utils.oauth_url(client.user.id, nextcord.Permissions(administrator=True))
+        guild: nextcord.Guild = await common.prompt_wait(dm, ctx.author, lang.get('class.create.9'),
                                                         client.wait_for('guild_join', check=check), back=stage.back(),
                                                         invite=invite)
         results['guild'] = guild.id
@@ -496,7 +497,7 @@ async def class_(ctx, sub: str = None, *, name: str = ''):
             color = "%color.error%"
     your_classes = '\n'.join(name[0] for name in get_class_names(ctx.author.id)) or \
                    node.nodes[0].options.get('no_classes')
-    node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
+    node.nodes[0].args['embed'].color = nextcord.Color(int(LangManager.replace(color), 16))
     await node.send(ctx, name=name, classes=your_classes, header=header,
                     teacher_role=teacher_role.mention)
 

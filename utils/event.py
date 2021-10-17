@@ -1,7 +1,7 @@
 import asyncio
 from typing import List, Callable, Dict
 
-from discord.utils import maybe_coroutine
+from nextcord.utils import maybe_coroutine
 
 
 class Event:

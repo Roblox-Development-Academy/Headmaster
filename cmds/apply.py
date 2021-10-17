@@ -1,3 +1,5 @@
+import nextcord.errors
+
 from bot import *
 from utils.common import prompt_reaction, prompt
 from utils.language import MessageNode
@@ -37,7 +39,7 @@ async def apply(ctx):
     for message_id in messages:
         try:
             message = await user_dm.fetch_message(message_id)
-        except discord.errors.NotFound:
+        except nextcord.errors.NotFound:
             continue
         copy = await MessageNode.from_message(message)
         await copy.send(channel)

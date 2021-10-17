@@ -1,3 +1,4 @@
+import nextcord
 import psycopg2
 
 from bot import *
@@ -66,7 +67,7 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
-    async def ignore(self, ctx, sub: str = None, channels: commands.Greedy[discord.TextChannel] = None):
+    async def ignore(self, ctx, sub: str = None, channels: commands.Greedy[nextcord.TextChannel] = None):
         give_example = True
         color = "%color.info%"
         msg = ""
@@ -119,5 +120,5 @@ class Admin(commands.Cog):
             ignored_channels_list = "*There are no ignored channels.*"
         ignore_node = ignore_node.replace(message=msg, prefix=get_prefix(ctx.guild.id), channels=ignored_channels_list,
                                           example=example)
-        ignore_node.nodes[0].args['embed'].color = discord.Color(int(LangManager.replace(color), 16))
+        ignore_node.nodes[0].args['embed'].color = nextcord.Color(int(LangManager.replace(color), 16))
         await ignore_node.send(ctx)

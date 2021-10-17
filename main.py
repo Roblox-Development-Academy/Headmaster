@@ -161,7 +161,7 @@ async def run():
         if prompt:
             try:
                 await ctx.message.delete()
-            except discord.errors.Forbidden:
+            except nextcord.errors.Forbidden:
                 pass
             await lang.get('error.in_prompt').send(ctx, prompt=prompt)
             return False
@@ -173,7 +173,7 @@ async def run():
         await lang.get('help').send(ctx)
 
     @client.command(name="reverse")
-    async def reverse_poem(ctx, msg: discord.Message):
+    async def reverse_poem(ctx, msg: nextcord.Message):
         lines = msg.content.split("\n")
         await ctx.send("\n".join(reversed(lines)))
 
@@ -186,7 +186,7 @@ async def run():
     async def remind(ctx):
         try:
             await ctx.message.delete()
-        except discord.Forbidden:
+        except nextcord.Forbidden:
             pass
         await lang.get('remind').send(ctx)
 
@@ -195,7 +195,7 @@ async def run():
         if isinstance(error, commands.CommandOnCooldown):
             try:
                 await ctx.message.delete()
-            except discord.Forbidden:
+            except nextcord.Forbidden:
                 pass
             await lang.get('error.cooldown').send(ctx.author,
                                                   seconds_left=round(remind.get_cooldown_retry_after(ctx), 2))
@@ -222,7 +222,7 @@ async def run():
 
     @client.command()
     @conditions.manager_only()
-    async def setup(ctx: commands.Context, info_channel: discord.TextChannel):
+    async def setup(ctx: commands.Context, info_channel: nextcord.TextChannel):
         messages = [(await node.send(info_channel, classes_channel=bot.channels['class'].mention,
                                      commands_channel=bot.channels['bot'].mention, mutate=True))
                     for node in lang.get('info_channel').nodes[:-1]]
