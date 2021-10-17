@@ -379,7 +379,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                 node = lang.get('class.interest_check').replace(name=results['name'],
                                                                 description=results['description'].content,
                                                                 teacher=rda.get_member(ctx.author.id).nick or teacher,
-                                                                avatar=ctx.author.avatar_url,
+                                                                avatar=ctx.author.avatar.url,
                                                                 teacher_mention=ctx.author.mention)
                 if results['prerequisites']:
                     node.nodes[0].args['embed'].insert_field_at(0, name="Prerequisites", inline=False,
@@ -408,7 +408,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                                                           tag=results['tag'],
                                                           description=results['description'].content,
                                                           teacher=rda.get_member(ctx.author.id).nick or ctx.author.name,
-                                                          avatar=ctx.author.avatar_url,
+                                                          avatar=ctx.author.avatar.url,
                                                           teacher_mention=ctx.author.mention,
                                                           url_display_time=f"{WEB_URL}/display-time/?time={int_date}",
                                                           new_class_ping=roles['newclass_alert'].mention)

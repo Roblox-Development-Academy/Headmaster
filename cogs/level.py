@@ -451,7 +451,7 @@ class Level(commands.Cog):
             for multiplier in multipliers]
 
         await lang.get("profile").send(ctx, user_name=str(member), user_id=str(member.id),
-                                       avatar_url=str(member.avatar_url),
+                                       avatar_url=str(member.avatar.url),
                                        nickname='' if member.name == member.display_name
                                        else f"**Nickname:** {member.display_name}",
                                        levels='\n'.join(rank_strings) if rank_strings
