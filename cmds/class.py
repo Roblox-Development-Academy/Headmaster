@@ -374,10 +374,9 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         emoji = response.emoji
         if emoji == confirm_emoji:
             if results['interest_check']:
-                teacher = ctx.author
                 node = lang.get('class.interest_check').replace(name=results['name'],
                                                                 description=results['description'].content,
-                                                                teacher=rda.get_member(ctx.author.id).nick or teacher,
+                                                                teacher=f"{rda.get_member(ctx.author.id).nick}#{ctx.author.discriminator}" or ctx.author,
                                                                 avatar=ctx.author.avatar_url,
                                                                 teacher_mention=ctx.author.mention)
                 if results['prerequisites']:
@@ -406,7 +405,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         class_node = lang.get('class.class_info').replace(name=results['name'],
                                                           tag=results['tag'],
                                                           description=results['description'].content,
-                                                          teacher=rda.get_member(ctx.author.id).nick or ctx.author.name,
+                                                          teacher=f"{rda.get_member(ctx.author.id).nick}#{ctx.author.discriminator}" or ctx.author,
                                                           avatar=ctx.author.avatar_url,
                                                           teacher_mention=ctx.author.mention,
                                                           url_display_time=f"{WEB_URL}/display-time/?time={int_date}",
