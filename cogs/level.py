@@ -461,8 +461,8 @@ class Level(commands.Cog):
                                            multiplier_strings),
                                        join_server=member.joined_at.strftime(self.date_format),
                                        join_discord=member.created_at.strftime(self.date_format),
-                                       server_duration=td_format(datetime.utcnow() - member.joined_at),
-                                       discord_duration=td_format(datetime.utcnow() - member.created_at))
+                                       server_duration=td_format(datetime.now(timezone.utc) - member.joined_at),
+                                       discord_duration=td_format(datetime.now(timezone.utc) - member.created_at))
 
     @commands.command(aliases=("lb", "rank", "ranks", "ranking", "rankings", "levels", "leaderboards", "exp", "xp"))
     async def leaderboard(self, ctx, category=None):
