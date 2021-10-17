@@ -284,7 +284,7 @@ class Level(commands.Cog):
             category = category.capitalize() if category.upper() not in ('GFX', 'SFX') else category.upper()
         try:
             amount = float(amount)
-        except ValueError:
+        except (ValueError, TypeError):
             amount = None
 
         if (not users) or (category not in level_categories) or (amount is None):
