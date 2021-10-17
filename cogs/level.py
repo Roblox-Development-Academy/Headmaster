@@ -527,7 +527,12 @@ class Level(commands.Cog):
 
     @commands.command()
     @conditions.manager_only()
-    async def multiplier(self, ctx, user: commands.Greedy[User] = None, multiplier: float = None, duration=None):
+    async def multiplier(self, ctx, user: commands.Greedy[User] = None, multiplier=None, duration=None):
+        try:
+            multiplier = float(multiplier)
+        except ValueError:
+            multiplier = None
+
         if duration:
             try:
                 duration = parse_interval(duration, maximum=datetime.max - datetime.now())
