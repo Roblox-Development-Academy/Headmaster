@@ -95,7 +95,7 @@ async def prompt_reaction(msg: Union[nextcord.Message, MessageNode, MessageListN
     return response, responder
 
 
-async def prompt(channel: nextcord.TextChannel, user: nextcord.User,
+async def prompt(channel: Union[nextcord.TextChannel, nextcord.DMChannel], user: nextcord.User,
                  prompt_msg: Union[nextcord.Message, MessageNode, MessageListNode], timeout=300, back=None,
                  can_skip=False, check: Callable = None, **kwargs) -> nextcord.Message:
     """
@@ -146,7 +146,7 @@ async def prompt(channel: nextcord.TextChannel, user: nextcord.User,
     return msg
 
 
-async def prompt_date(channel: nextcord.TextChannel, user: nextcord.User,
+async def prompt_date(channel: Union[nextcord.TextChannel, nextcord.DMChannel], user: nextcord.User,
                       prompt_msg: Union[nextcord.Message, MessageNode, MessageListNode], timeout=300,
                       **kwargs) -> datetime:
     def msg_check(m):
@@ -171,7 +171,7 @@ async def prompt_date(channel: nextcord.TextChannel, user: nextcord.User,
             in_prompt.pop(user.id, None)
 
 
-async def prompt_wait(channel: nextcord.TextChannel, user: nextcord.User,
+async def prompt_wait(channel: Union[nextcord.TextChannel, nextcord.DMChannel], user: nextcord.User,
                       prompt_msg: Union[nextcord.Message, MessageNode, MessageListNode], coro: Awaitable, timeout=300,
                       on_msg: Awaitable = __do_nothing(), **kwargs) -> Any:
     def msg_check(m):
