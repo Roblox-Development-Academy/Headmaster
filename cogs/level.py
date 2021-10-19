@@ -8,7 +8,7 @@ from random import seed, uniform
 from typing import Optional
 
 from bot import *
-from utils.common import parse_interval, td_format
+from utils.common import parse_interval, td_format, to_unix
 import conditions
 from utils.language import LangManager
 
@@ -154,7 +154,7 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
             title = f"+ {amount} * {total_multiplier} {category_name} EXP"
     exp_bar = get_exp_bar(level_exp, total_level_exp)
     str_multipliers = "\n".join([f"%bullet% x {multiplier}: {td_format(end_time - datetime.now(timezone.utc))}"
-                                 for multiplier, end_time in multipliers]) or "*No active multipliers*"
+                                 for multiplier, end_time in multipliers]) or "*No active multipliers.*"
     str_multipliers = LangManager.replace(str_multipliers)
     await lang.get('levels.experience_up').send(user, title=title, level=level, experience=amount * total_multiplier,
                                                 exp_bar=exp_bar, current_exp=level_exp, total_level_exp=total_level_exp,
@@ -447,7 +447,7 @@ class Level(commands.Cog):
             in map(lambda info: (*info, *calculate_level(info[1], True)), ranks)]
         multiplier_strings = "None." if not multipliers else [
             f"**Multiplier: {multiplier[0]}x**\n" +
-            f"{td_format(multiplier[1] - datetime.now(timezone.utc)) if multiplier[1] else 'Permanent.'} "
+            f"{td_format(multiplier[1] - datetime.now(timezone.utc)) + ' left' if multiplier[1] else 'Permanent'}. "
             for multiplier in multipliers]
 
         await lang.get("profile").send(ctx, user_name=str(member), user_id=str(member.id),
@@ -459,8 +459,8 @@ class Level(commands.Cog):
                                        multipliers=multiplier_strings if not multipliers
                                        else f"__Total Multiplier: {round(total_multiplier, 4)}x__\n\n" + '\n'.join(
                                            multiplier_strings),
-                                       join_server=member.joined_at.strftime(self.date_format),
-                                       join_discord=member.created_at.strftime(self.date_format),
+                                       join_server=to_unix(member.joined_at),
+                                       join_discord=to_unix(member.created_at),
                                        server_duration=td_format(datetime.now(timezone.utc) - member.joined_at),
                                        discord_duration=td_format(datetime.now(timezone.utc) - member.created_at))
 
@@ -538,7 +538,7 @@ class Level(commands.Cog):
                 duration = parse_interval(duration, maximum=datetime.max - datetime.now())
             except OverflowError:
                 await lang.get("error.multiplier.duration").send(ctx, duration=td_format(datetime.max - datetime.now()),
-                                                                 date=datetime.max.strftime(self.date_format))
+                                                                 date=to_unix(datetime.max))
                 return
             if duration is None:
                 await lang.get("error.interval.parse").send(ctx)
@@ -555,9 +555,8 @@ class Level(commands.Cog):
         if user:
             add_multiplier(user[0].id, multiplier, duration)
             await lang.get("multiplier.success").send(ctx, multiplier=str(multiplier), user=user[0].mention,
-                                                      expire=(datetime.utcnow() + duration).strftime(
-                                                          self.date_format) if duration else "Never",
-                                                      duration=td_format(duration) if duration else "Forever")
+                                                      expire=to_unix(datetime.utcnow() + duration) if duration else "Never.",
+                                                      duration=td_format(duration) if duration else "Forever.")
         else:
             if ctx.guild:
                 await lang.get("multiplier.usage").send(ctx, prefix=get_prefix(ctx.guild.id))

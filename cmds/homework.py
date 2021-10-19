@@ -206,8 +206,7 @@ async def __create(stage: Stage, name: str = ''):
             stage.history.append(stage.num)
             use_date = results.get('use_date')
             if use_date:
-                time = "The solution will be sent to all submitters at the date and time below, which is in your " \
-                       "local timezone."
+                time = f"The solution will be sent to all submitters on {common.to_unix(results['date'])}."
                 results['interval'] = None
             elif use_date is False:
                 time = f"The solution will be sent {common.td_format(results['interval'])} after submitters submit " \
@@ -220,9 +219,7 @@ async def __create(stage: Stage, name: str = ''):
             node = lang.get('assignment.create.confirm').replace(name=results['name'],
                                                                  description_url=results['description_url'],
                                                                  solution_url=results.get("solution_url"), time=time)
-            if use_date:
-                node.nodes[0].args['embed'].timestamp = results['date']
-            elif use_date is None:
+            if use_date is None:
                 node.nodes[0].args['embed'].remove_field(2)
                 node.nodes[0].args['embed'].remove_field(2)
             confirm_emoji = lang.global_placeholders.get('emoji.confirm')
