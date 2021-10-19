@@ -396,7 +396,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         def check(g: nextcord.Guild):
             return g.owner_id == ctx.author.id
 
-        invite = nextcord.utils.oauth_url(client.user.id, nextcord.Permissions(administrator=True))
+        invite = nextcord.utils.oauth_url(client.user.id, permissions=nextcord.Permissions(administrator=True))
         guild: nextcord.Guild = await common.prompt_wait(dm, ctx.author, lang.get('class.create.9'),
                                                         client.wait_for('guild_join', check=check), back=stage.back(),
                                                         invite=invite)
