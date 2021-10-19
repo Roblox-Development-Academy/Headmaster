@@ -197,13 +197,13 @@ async def __create(stage: Stage, name: str = ''):
         if not name or not validate_name(name):
             await stage.zap(1)
         else:
-            stage.history.append(1)
+            stage.history.append(("", 1))
             results['name'] = name
             await stage.zap(2)
 
         # After the wizard is completed
         while True:
-            stage.history.append(stage.num)
+            stage.history.append(("", stage.num))
             use_date = results.get('use_date')
             if use_date:
                 time = f"The solution will be sent to all submitters on {common.to_unix(results['date'])}."
