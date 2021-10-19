@@ -1067,8 +1067,8 @@ messages:
                 %reporter%
                 ID: %reporter_id%
 
-                **Time Message was Sent:** %message_sent_at%
-                **Time of Report:** %report_time%
+                **Time Message was Sent:** %message_sent_at%.
+                **Time of Report:** %report_time%.
     end:
       - embed:
           title: "End of Report"
