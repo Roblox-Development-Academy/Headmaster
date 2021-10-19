@@ -49,7 +49,7 @@ def get_prefix(guild_id):
 
 
 def get_mention_or_prefix(_, message):
-    if not message.guild:  # Sent in DMs
+    if not message.guild:  # Sent in DMs.
         return commands.when_mentioned_or(lang.global_placeholders.get('default_prefix'))(client, message)
 
     return commands.when_mentioned_or(get_prefix(message.guild.id))(client, message)
@@ -59,7 +59,7 @@ __intents = nextcord.Intents.all()
 client = commands.Bot(command_prefix=(get_mention_or_prefix if __os.environ["DEBUG"] == "0" else "-"),
                       case_insensitive=True, help_command=None, intents=__intents)
 
-# TODO - Make functions to get discord/nextcord objects instead, refactor, and get rid of on_ready delay everywhere
+# TODO - Make functions to get discord/nextcord objects instead, refactor, and get rid of on_ready delay everywhere.
 rda: nextcord.Guild
 channels: __Dict[str, nextcord.TextChannel]
 class_channel: nextcord.TextChannel
@@ -104,6 +104,6 @@ async def __on_ready():
 __loop = __asyncio.get_event_loop()
 __loop.create_task(client.start(TOKEN))
 
-in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands
+in_prompt = {}  # Dict of user IDs to their prompt message URLs; users in the middle of a prompt can't run commands.
 
 lang = __LangManager('messages.yml')

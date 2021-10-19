@@ -75,7 +75,7 @@ class Admin(commands.Cog):
         if sub:
             if sub.lower() == "add" and channels:
                 rows = [(str(channel.id), str(ctx.guild.id)) for channel in channels]
-                # args_str = database.cursor.mogrify("(%s,%s)", (str(ctx.channel.id), str(ctx.guild.id)))  # testing
+                # args_str = database.cursor.mogrify("(%s,%s)", (str(ctx.channel.id), str(ctx.guild.id)))  # Testing.
                 # args_str = ",".join(database.cursor.mogrify("(%s,%s)", (str(channel.id), str(ctx.guild.id))) for
                 # channel in channels)
                 # logger.debug("Psycopg2's mogrified arg_str: " + str(args_str))

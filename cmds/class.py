@@ -51,7 +51,7 @@ async def run():
                     (last_messages and now - last_messages[0].created_at > timedelta(minutes=30)):
                 await channel.delete()
                 voice_channel: nextcord.VoiceChannel = nextcord.utils.get(class_category.voice_channels,
-                                                                        name=channel.name)
+                                                                          name=channel.name)
                 if voice_channel:
                     await voice_channel.delete()
 
@@ -68,7 +68,7 @@ async def schedule_class(teacher: nextcord.User, name: str, message_id: int, dat
     message = await class_channel.fetch_message(message_id)
     node = lang.get('class.class_starting').replace(teacher=teacher.mention, name=name, class_info=message.jump_url)
     reaction = nextcord.utils.find(lambda r: str(r.emoji) == lang.global_placeholders.get('emoji.enroll'),
-                                  message.reactions)
+                                   message.reactions)
     students = [u for u in (await reaction.users().flatten()) if u != client.user and u != teacher]
     teacher_invite = ''
     if guild_id:
@@ -99,7 +99,7 @@ async def schedule_class(teacher: nextcord.User, name: str, message_id: int, dat
         overwrites_text = {
             rda.default_role: nextcord.PermissionOverwrite(read_messages=False),
             teacher: nextcord.PermissionOverwrite(read_messages=True, mention_everyone=True, manage_channels=True,
-                                                 manage_messages=True, manage_permissions=True),
+                                                  manage_messages=True, manage_permissions=True),
             **{student: student_text_perms for student in students}
         }
         channel = await class_category.create_text_channel(f"classroom-{str(class_index)}", overwrites=overwrites_text)
@@ -108,8 +108,8 @@ async def schedule_class(teacher: nextcord.User, name: str, message_id: int, dat
             overwrites_voice = {
                 rda.default_role: nextcord.PermissionOverwrite(view_channel=False),
                 teacher: nextcord.PermissionOverwrite(connect=True, mute_members=True, deafen_members=True,
-                                                     move_members=True, manage_channels=True, view_channel=True,
-                                                     manage_permissions=True, priority_speaker=True),
+                                                      move_members=True, manage_channels=True, view_channel=True,
+                                                      manage_permissions=True, priority_speaker=True),
                 **{student: student_voice_perms for student in students}
             }
             await class_category.create_voice_channel(f"classroom-{str(class_index)}", overwrites=overwrites_voice)
@@ -172,10 +172,10 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         elif not validate_name(results['name']):
             await stage.zap(1)
             await stage.zap(0.5)
-        else:  # A proper name was provided on command execution
+        else:  # A proper name was provided on command execution.
             await stage.zap(0.5)
         await stage.zap(2)
-    elif stage.num == 0.5:  # Class tag
+    elif stage.num == 0.5:  # Class tag.
         if results['interest_check']:
             stage.history.pop(-1)
             results['tag'] = ''
@@ -208,7 +208,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         results[stage.path] = {
             'next_header': lang.get('class.create.0,5').nodes[0].options.get('next_header')
         }
-    elif stage.num == 1:  # Name
+    elif stage.num == 1:  # Name.
         node = lang.get('class.create.1')
         if results.get('name') and not validate_name(results['name']):
             header = node.nodes[0].options.get('invalid_name', '')
@@ -227,9 +227,9 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             'next_header': node.nodes[0].options.get(
                 'next_header.' + ('name_is' if results['name'] not in results['classes'] else 'name_taken'), '')
         }
-    elif stage.num == 2:  # Description
+    elif stage.num == 2:  # Description.
         node = lang.get('class.create.2')
-        if results['interest_check']:  # In case the name was provided in command execution
+        if results['interest_check']:  # In case the name was provided in command execution.
             header = lang.get('class.create.1').nodes[0].options.get(
                 'next_header.' + ('name_is' if results['name'] not in results['classes'] else 'name_taken'), '')
         else:
@@ -238,13 +238,14 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         async def interest_check_back():
             await stage.zap(1, progress_history=False)
             await stage.zap(2, progress_history=False)
+
         description = await common.prompt(dm, ctx.author, node, timeout=900, back=stage.back(return_to_stage=True)
                                           if not results['interest_check'] else interest_check_back(),
                                           time_display="15 minutes", header=header, name=results['name'],
                                           tag=results['tag'], title=results['title'])
         results['description'] = description
         await stage.next()
-    elif stage.num == 3:  # Prerequisites
+    elif stage.num == 3:  # Prerequisites.
         header = ''
         while True:
             try:
@@ -263,7 +264,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         results['prerequisites'] = prerequisites.content
         results['prerequisites_url'] = prerequisites.jump_url
         await stage.next()
-    elif stage.num == 4:  # Optional image for class info
+    elif stage.num == 4:  # Optional image for class info.
         node = lang.get('class.create.4')
         if results.get("invalid_image"):
             header = node.nodes[0].options.get('invalid_image_url')
@@ -285,13 +286,13 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             else:
                 results['image'] = escape_markdown(img_msg.content.rstrip())
         except errors.PromptSkipped:
-            results['image'] = None  # In case they go back to remove the image
+            results['image'] = None  # In case they go back to remove the image.
             pass
         if results['interest_check']:
             await stage.zap(8)
             return
         await stage.next()
-    elif stage.num == 5:  # Maximum students
+    elif stage.num == 5:  # Maximum students.
         results['invalid_image'] = None
         img = results.get('image')
         node = lang.get('class.create.5').replace(image=img)
@@ -309,16 +310,16 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                 break
             except (ValueError, AssertionError):
                 header = node.nodes[0].options.get('invalid_int')
-            except nextcord.HTTPException:  # invalid image url
+            except nextcord.HTTPException:  # Invalid image url.
                 results['invalid_image'] = True
-                stage.history.pop(-1)  # Remove this stage 5
-                stage.history.pop(-1)  # Remove the previous stage 4 with the failed image
+                stage.history.pop(-1)  # Remove this stage 5.
+                stage.history.pop(-1)  # Remove the previous stage 4 with the failed image.
                 await stage.zap(stage.num - 1)
                 return
             else:
                 break
         await stage.next()
-    elif stage.num == 6:  # Date
+    elif stage.num == 6:  # Date.
         node = lang.get('class.create.6')
         header = node.nodes[0].options.get('max_students_is') if results['max_students'] else \
             node.nodes[0].options.get('no_max_students')
@@ -337,16 +338,16 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             break
         results['date'] = response
         await stage.next()
-    elif stage.num == 7:  # Classroom type
+    elif stage.num == 7:  # Classroom type.
         response, _ = await common.prompt_reaction(lang.get('class.create.7'), ctx.author, dm,
                                                    allowed_emojis=('1\u20e3', '2\u20e3', '3\u20e3', "↩"))
         emoji = response.emoji
-        if emoji == '1\u20e3':  # Server classroom
+        if emoji == '1\u20e3':  # Server classroom.
             results['classroom'] = lang.get('class.create.8').nodes[0].options.get('server', '')
-        elif emoji == '2\u20e3':  # Text channel
+        elif emoji == '2\u20e3':  # Text channel.
             results['classroom'] = lang.get('class.create.8').nodes[0].options.get('text', '')
             results['channel'] = True
-        elif emoji == '3\u20e3':  # Text channel + voice channel
+        elif emoji == '3\u20e3':  # Text channel + voice channel.
             results['classroom'] = lang.get('class.create.8').nodes[0].options.get('text_and_voice', '')
             results['channel'] = True
             results['voice_channel'] = True
@@ -354,7 +355,7 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             await stage.back()
             return
         await stage.next()
-    elif stage.num == 8:  # Confirm details/Create Interest Check
+    elif stage.num == 8:  # Confirm details/Create Interest Check.
         confirm_emoji = lang.global_placeholders.get('emoji.confirm')
         return_emoji = lang.global_placeholders.get('emoji.return')
         node = lang.get('class.create.8').replace(classroom=results.get('classroom', '*N/A; Interest Check*'),
@@ -366,11 +367,11 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         try:
             response, _ = await common.prompt_reaction(node, ctx.author, dm,
                                                        allowed_emojis=[confirm_emoji, return_emoji])
-        except nextcord.HTTPException:  # If it's an interest check, it goes directly to stage 8 with the image
+        except nextcord.HTTPException:  # If it's an interest check, it goes directly to stage 8 with the image.
             results['invalid_image'] = True
-            stage.history.pop(-1)  # Remove this stage 8
-            stage.history.pop(-1)  # Remove the previous stage 4
-            await stage.zap(4)  # Go back to the image setting stage
+            stage.history.pop(-1)  # Remove this stage 8.
+            stage.history.pop(-1)  # Remove the previous stage 4.
+            await stage.zap(4)  # Go back to the image setting stage.
             return
         emoji = response.emoji
         if emoji == confirm_emoji:
@@ -392,14 +393,14 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
             await stage.zap(100) if results.get('channel') else await stage.next()
         else:
             await stage.back()
-    elif stage.num == 9:  # Create guild
+    elif stage.num == 9:  # Create guild.
         def check(g: nextcord.Guild):
             return g.owner_id == ctx.author.id
 
         invite = nextcord.utils.oauth_url(client.user.id, permissions=nextcord.Permissions(administrator=True))
         guild: nextcord.Guild = await common.prompt_wait(dm, ctx.author, lang.get('class.create.9'),
-                                                        client.wait_for('guild_join', check=check), back=stage.back(),
-                                                        invite=invite)
+                                                         client.wait_for('guild_join', check=check), back=stage.back(),
+                                                         invite=invite)
         results['guild'] = guild.id
         await stage.zap(100)
     elif stage.num == 100:
@@ -410,7 +411,8 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
                                                           teacher=rda.get_member(ctx.author.id).nick or ctx.author.name,
                                                           avatar=ctx.author.avatar.url,
                                                           teacher_mention=ctx.author.mention,
-                                                          starting_time=common.to_unix(results['date']),  # url_display_time=f"{WEB_URL}/display-time/?time={int_date}",
+                                                          starting_time=common.to_unix(results['date']),
+                                                          # url_display_time=f"{WEB_URL}/display-time/?time={int_date}",
                                                           new_class_ping=roles['newclass_alert'].mention)
         options = class_node.nodes[0].options
         embed = class_node.nodes[0].args['embed']

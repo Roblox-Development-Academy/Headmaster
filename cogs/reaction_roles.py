@@ -117,4 +117,4 @@ class ReactionRoles(commands.Cog):
                              num_template: int = 0):
         if sub == "add":
             await ReactionRoles.add_msg(template, msg, num_template)
-        #  print("Sub:", sub, "Template:", template, "Msg:", str(msg))
+        # print("Sub:", sub, "Template:", template, "Msg:", str(msg))

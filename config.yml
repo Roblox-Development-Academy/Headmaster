@@ -1,7 +1,7 @@
 servers:
   rda: 673600024919408680
 
-test_servers: # Testing.
+test_servers:  # Testing.
   rda: 676175299121250327
 
 channels:
@@ -11,7 +11,7 @@ channels:
   bot: 673603092641480714
   level_ups: 673611984549314580
 
-test_channels: # Testing.
+test_channels:  # Testing.
   teacher_application: 728753615031763005
   report: 735541300644020225
   class: 739213440803012608
@@ -21,7 +21,7 @@ test_channels: # Testing.
 categories:
   class: 673604345316638730
 
-test_categories: # Testing.
+test_categories:  # Testing.
   class: 677766311530594305
 
 roles:
@@ -40,7 +40,7 @@ roles:
   mee6_noalert: 821311069501915136
   newclass_alert: 821305713015259187
 
-test_roles: # Testing.
+test_roles:  # Testing.
   teacher: 677766292714815508
   profession_header: 821299663705473074
   scripter: 677766296993005571
@@ -71,7 +71,7 @@ level_categories:
   Audio Engineering:
     - 711803414794731630
 
-test_level_categories: # Testing.
+test_level_categories:  # Testing.
   Scripting:
     - 677766419785711616
   Animation:
@@ -85,7 +85,7 @@ test_level_categories: # Testing.
   Audio Engineering:
     - 736312213907701800
 
-reaction_roles: # Can use global placeholders from messages.yml in emojis
+reaction_roles:  # Can use global placeholders from messages.yml in emojis.
   profiles:
     profession:
       - "1%emoji.keycap%": "scripter"

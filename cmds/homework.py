@@ -170,7 +170,7 @@ async def add_assignment(*columns):
         """,
         columns
     )
-    if columns[-2]:  # If schedule by date
+    if columns[-2]:  # If schedule by date.
         await schedule_assignment(columns[0], columns[1], columns[3], columns[-2], columns[-3])
 
 
@@ -201,7 +201,7 @@ async def __create(stage: Stage, name: str = ''):
             results['name'] = name
             await stage.zap(2)
 
-        # After the wizard is completed
+        # After the wizard is completed.
         while True:
             stage.history.append(("", stage.num))
             use_date = results.get('use_date')
@@ -284,9 +284,9 @@ async def __create(stage: Stage, name: str = ''):
             await stage.zap(7)
         else:
             await back
-    elif stage.num == 5:  # Send solution immediately after submission
+    elif stage.num == 5:  # Send solution immediately after submission.
         results['interval'] = datetime.timedelta(seconds=0)
-    elif stage.num == 6:  # Send solution after an interval
+    elif stage.num == 6:  # Send solution after an interval.
         interval = None
         while True:
             response = (await common.prompt(dm, ctx.author, lang.get('assignment.create.6'), back=back)).content
@@ -301,7 +301,7 @@ async def __create(stage: Stage, name: str = ''):
             else:
                 await lang.get('error.interval.parse').send(dm)
         results['interval'] = interval
-    elif stage.num == 7:  # Send solution at a certain date
+    elif stage.num == 7:  # Send solution at a certain date.
         header = ""
         while True:
             response = (await common.prompt_date(dm, ctx.author, lang.get('assignment.create.7'), back=back,
@@ -415,7 +415,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: ne
             await (await MessageNode.from_message(submission)).send(stage.results['assigner'])
             if stage.results['info'][1] is not None and \
                     stage.results['info'][1] < datetime.datetime.now(datetime.timezone.utc):
-                # If it's past time, don't save
+                # If it's past time, don't save.
                 await schedule_submission(ctx.author, stage.results['assigner'], stage.results['name'], wait=False)
             else:
                 database.update(
@@ -427,7 +427,7 @@ async def __submit(stage: Stage, sub: str = None, name: str = None, assigner: ne
                     (ctx.author.id, stage.results['assigner'].id, stage.results['name'],
                      datetime.datetime.now(datetime.timezone.utc))
                 )
-                if stage.results['info'][2] is not None:  # If interval
+                if stage.results['info'][2] is not None:  # If interval.
                     await schedule_submission(ctx.author, stage.results['assigner'], stage.results['name'],
                                               stage.results['info'][2], datetime.datetime.now(datetime.timezone.utc))
 

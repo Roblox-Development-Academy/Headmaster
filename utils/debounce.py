@@ -23,13 +23,13 @@ class DebounceException(Exception):
 class Debounce:
     def __init__(self, debounce: timedelta = timedelta(minutes=3), failed_value=...,
                  params: Iterable[Union[str, Tuple[str], Callable]] = tuple()):
-        # TODO - Add an on_debounce callback to be called and returned on debounce
+        # TODO - Add an on_debounce callback to be called and returned on debounce.
         self.debounce: timedelta = debounce
         self.failed_value: Any = failed_value
         self.last_called: datetime = datetime.fromtimestamp(0)
         self.params: Dict[Union[str, Tuple[str], Callable], Dict[Any, datetime]] = {}
-        self.param_check_parameters: Dict[Callable, Iterable[str]] = {}  # lambda param_check parameter names
-        # Btw, if you store the end times instead of the last called times, you can have param-specific debounces
+        self.param_check_parameters: Dict[Callable, Iterable[str]] = {}  # lambda param_check parameter names.
+        # Btw, if you store the end times instead of the last called times, you can have param-specific debounces.
         for param_check in params:
             self.params[param_check] = {}
             if isinstance(param_check, Callable):
@@ -55,7 +55,7 @@ class Debounce:
                 if current_values:
                     last_called = prior_values.get(current_values)
                     if last_called is not None:
-                        # Debounce failed
+                        # Debounce failed.
                         if self.failed_value is ...:
                             raise DebounceException(self.debounce - (datetime.utcnow() - last_called))
                         else:

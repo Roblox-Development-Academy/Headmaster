@@ -61,7 +61,7 @@ class MessageNode:
             colour = embed.get('colour') or embed.get('color') or e
             colour = nextcord.Colour(colour if not isinstance(colour, str) else int(colour, 16)) if colour != e else e
             serialized['embed'] = nextcord.Embed(title=embed.get('title', e), type=embed.get('type'), colour=colour,
-                                                description=embed.get('description', e), url=embed.get('url', e))
+                                                 description=embed.get('description', e), url=embed.get('url', e))
             embed = serialized['embed']
             if footer:
                 embed.set_footer(**footer)

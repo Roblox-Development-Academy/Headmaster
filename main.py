@@ -152,7 +152,7 @@ async def run():
 
     @client.check
     async def globally_ignore_banned(ctx):
-        # TODO
+        # TODO.
         return True
 
     @client.check
@@ -167,7 +167,7 @@ async def run():
             return False
         return True
 
-    # help is a default command - could be overridden if it looks ugly
+    # help is a default command - could be overridden if it looks ugly.
     @client.command(aliases=["help", "cmds", "commands"])
     async def _help(ctx):
         await lang.get('help').send(ctx)

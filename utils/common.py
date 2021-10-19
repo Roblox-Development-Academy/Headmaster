@@ -25,7 +25,7 @@ interval_matcher = re.compile(r'^((?P<days>[.\d]+?)d)? *'
 
 def parse_interval(time: str, minimum: timedelta = timedelta(seconds=0), maximum: timedelta = timedelta(days=30)):
     parts = interval_matcher.match(time)
-    # assert parts is not None, """Could not parse any time information from '{}'.
+    # Assert parts is not None, """Could not parse any time information from '{}'.
     # Examples of valid strings: '8h', '2d 8h 5m 2s', '2m4.3s'""".format(time)
     if parts is None:
         return None
@@ -164,7 +164,7 @@ async def prompt_date(channel: Union[nextcord.TextChannel, nextcord.DMChannel], 
         try:
             result = await fut
             return None if result is None else result[1]
-        except errors.PromptError:  # Means the message was first
+        except errors.PromptError:  # Means the message was first.
             events.date_selected.signals.pop(date_fut)
             raise
         finally:
@@ -185,7 +185,7 @@ async def prompt_wait(channel: Union[nextcord.TextChannel, nextcord.DMChannel], 
         try:
             result = await fut
             return result
-        except errors.PromptError:  # Means the message was first
+        except errors.PromptError:  # Means the message was first.
             await on_msg
             raise
         finally:

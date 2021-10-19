@@ -141,7 +141,7 @@ async def add_exp(user_id, category_name, amount, seed_id=None, multiplier_immun
     user = member or client.get_user(user_id)
     if user is None:
         user = await client.fetch_user(user_id)
-    if calculate_level(current_exp - amount) < level:  # Leveled up
+    if calculate_level(current_exp - amount) < level:  # Leveled up.
         if member and roles['level_noalert'] in member.roles:
             return
         title = f"LEVELED UP TO LEVEL {level}"

@@ -4,7 +4,7 @@ import errors
 
 def teacher_only():
     def predicate(ctx):
-        # See if a member has a role on a certain, specific Discord server
+        # See if a member has a role on a certain, specific Discord server.
         # member = guild.get_member(user_id)
         # member.roles
         return True
