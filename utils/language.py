@@ -160,7 +160,11 @@ class MessageNode:
             return message_list
 
     async def edit(self, message, **placeholders):
-        msg = await message.edit(**self.replace(**placeholders).args)
+        args = self.replace(**placeholders).args
+        if isinstance(message, nextcord.Message):
+            args.pop('tts')
+            args.pop('nonce')
+        msg = await message.edit(**args)
 
         reactions = self.args.get('reactions')
         if reactions:
