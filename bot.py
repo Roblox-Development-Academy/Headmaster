@@ -56,7 +56,6 @@ def get_mention_or_prefix(_, message):
 
 
 __intents = nextcord.Intents.all()
-__intents.members = True
 client = commands.Bot(command_prefix=(get_mention_or_prefix if __os.environ["DEBUG"] == "0" else "-"),
                       case_insensitive=True, help_command=None, intents=__intents)
 
