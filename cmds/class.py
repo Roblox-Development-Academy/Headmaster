@@ -403,14 +403,14 @@ async def __create(stage: Stage, name: str = None, interest_check: bool = False)
         results['guild'] = guild.id
         await stage.zap(100)
     elif stage.num == 100:
-        int_date = int(results['date'].timestamp())
+        # int_date = int(results['date'].timestamp())
         class_node = lang.get('class.class_info').replace(name=results['name'],
                                                           tag=results['tag'],
                                                           description=results['description'].content,
                                                           teacher=rda.get_member(ctx.author.id).nick or ctx.author.name,
                                                           avatar=ctx.author.avatar.url,
                                                           teacher_mention=ctx.author.mention,
-                                                          url_display_time=f"{WEB_URL}/display-time/?time={int_date}",
+                                                          starting_time=common.to_unix(results['date']),  # url_display_time=f"{WEB_URL}/display-time/?time={int_date}",
                                                           new_class_ping=roles['newclass_alert'].mention)
         options = class_node.nodes[0].options
         embed = class_node.nodes[0].args['embed']

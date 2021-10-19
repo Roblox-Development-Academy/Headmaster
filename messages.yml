@@ -326,7 +326,7 @@ messages:
               value: "%teacher_mention%"
             - name: "Starting Time"
               inline: false
-              value: "Click [here](%url_display_time%) to see the starting time."
+              value: "%starting_time%."  # "Click [here](%url_display_time%) to see the starting time."
           footer:
             text: "Click below to enroll"
         reactions:
