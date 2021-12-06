@@ -530,7 +530,7 @@ class Level(commands.Cog):
     async def multiplier(self, ctx, user: commands.Greedy[User] = None, multiplier=None, duration=None):
         try:
             multiplier = float(multiplier)
-        except ValueError:
+        except (ValueError, TypeError):
             multiplier = None
 
         if duration:
