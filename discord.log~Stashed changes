@@ -1,0 +1,7 @@
+2021-07-01 16:05:34,371:WARNING:discord.client: PyNaCl is not installed, voice will NOT be supported
+2021-07-01 16:05:34,641:INFO:discord.client: logging in using static token
+2021-07-01 16:05:34,847:INFO:discord.gateway: Shard ID None has sent the IDENTIFY payload.
+2021-07-01 16:05:34,934:INFO:discord.gateway: Shard ID None has connected to Gateway: ["gateway-prd-main-vntk",{"micros":57473,"calls":["discord-sessions-green-prd-2-57",{"micros":56316,"calls":["start_session",{"micros":44838,"calls":["api-prd-main-8bv1",{"micros":39025,"calls":["get_user",{"micros":2632},"add_authorized_ip",{"micros":2026},"get_guilds",{"micros":7582},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":5,"calls":[]},"presence_connect",{"micros":6050,"calls":[]}]}]}] (Session ID: 2fbe194613dd0b03c23f35cd3823b34e).
+2021-07-01 16:05:36,949:INFO:discord: Created globals using DEBUG set
+2021-07-01 16:05:36,949:INFO:discord: Logged in as HELLO WAKE UP IT'S CLASS TIME#5303. I am in 3 guilds.
+2021-07-01 16:05:39,404:INFO:discord: Scheduling assignments and submissions.

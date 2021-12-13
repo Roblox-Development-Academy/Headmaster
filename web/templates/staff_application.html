@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/ScrollTrigger.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div>
+    <canvas id="3d-viewport"></canvas>
+    <form id="application" action="/staff-application/?digest={{ digest }}&user-id={{ user_id }}" method='post' style="background: transparent; box-shadow: none;">
+        <section>
+            <span>What pronouns do you prefer?</span>
+            <br>
+            <input name="pronouns" id="pronouns_1" type="radio" value="She/Her" required>
+            <label for="pronouns_1">She/Her</label>
+            <br>
+            <input name="pronouns" id="pronouns_2" type="radio" value="He/Him">
+            <label for="pronouns_2">He/Him</label>
+            <br>
+            <input name="pronouns" id="pronouns_3" type="radio" value="They/Them">
+            <label for="pronouns_3">They/Them</label>
+            <br>
+            <input name="pronouns" type="radio" value=""> <input name="other_pronoun" type="text" placeholder="Other">
+        </section>
+        <section>
+            <label for="want">Why do you want to be moderator?</label>
+            <br>
+            <textarea id="want" name="want" rows="5" required></textarea>
+        </section>
+        <section>
+            <label for="merits">Why should we choose you to be moderator? How can you contribute?</label>
+            <br>
+            <textarea id="merits" name="merits" rows="5" required></textarea>
+        </section>
+        <section>
+            <label for="goals">What do you consider the ultimate goal of the server and its staff team?</label>
+            <br>
+            <textarea id="goals" name="goals" rows="5" required></textarea>
+        </section>
+        <section>
+            <label for="professionalism">Will you be mature and act professionally when necessary?</label>
+            <br>
+            <textarea id="professionalism" name="professionalism" rows="2" required></textarea>
+        </section>
+        <section>
+            <label for="dignity">Will you agree to avoid any behavior that might compromise the dignity of the staff team and the server?</label>
+            <br>
+            <textarea id="dignity" name="dignity" rows="2" required></textarea>
+        </section>
+        <section>
+            <label for="argument">How will you judge and deal with two members arguing and becoming increasingly toxic?</label>
+            <br>
+            <textarea id="argument" name="argument" rows="4" required></textarea>
+        </section>
+        <section>
+            <label for="obnoxious">How will you judge and deal with a member whose behavior is getting overly obnoxious?</label>
+            <br>
+            <textarea id="obnoxious" name="obnoxious" rows="4" required></textarea>
+        </section>
+        <section>
+            <label for="punishable">What do you think is the line between which actions are punishable and which actions are not?</label>
+            <br>
+            <textarea id="punishable" name="punishable" rows="4" required></textarea>
+        </section>
+        <section>
+            <label for="activity">How active can you be on the server?</label>
+            <br>
+            <textarea id="activity" name="activity" rows="4" required></textarea>
+        </section>
+        <section>
+            <label for="extra">Any additional information you would like to share about yourself?</label>
+            <br>
+            <textarea id="extra" name="extra" rows="5" placeholder="Optional"></textarea>
+            <!-- Displayed only on input to the text field: -->
+            <div id="extra_options" style="overflow: hidden; transition: transform 0.6s ease 0s, opacity 0.3s ease 0.1s; transform: translateY(-20px); opacity: 0;">
+                <input type="radio" name="extra_privacy" id="extra_public" value="public" checked>
+                <label for="extra_public">I am fine with this additional information being displayed on my public application (anonymously).</label>
+                <br>
+                <input type="radio" name="extra_privacy" id="extra_private" value="private">
+                <label for="extra_private">I would like this additional information to be private.</label>
+            </div>
+        </section>
+        <button id="submit-btn" type="submit" class="btn btn-primary" form="application" value="Submit" style="transition: transform 0.6s ease 0s;">Submit</button>
+    </form>
+</div>
+
+<script type="text/javascript">
+    let displayMode = "{{ display_mode }}" == "True";
+</script>
+<script src="/static/staff_application.js" type="module"></script>
+{% endblock %}

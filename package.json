@@ -2,17 +2,18 @@
   "name": "headmaster",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "private": true,
   "dependencies": {
     "@babel/core": "^7.13.10",
     "air-datepicker": "^2.2.3",
     "babel-loader": "^8.2.2",
-    "webpack": "^5.28.0",
+    "three": "^0.127.0",
     "webpack-cli": "^4.5.0"
   },
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "watch": "webpack -- watch"
   },
   "repository": {
     "type": "git",
@@ -23,5 +24,21 @@
   "bugs": {
     "url": "https://github.com/Roblox-Development-Academy/Headmaster/issues"
   },
-  "homepage": "https://github.com/Roblox-Development-Academy/Headmaster#readme"
+  "homepage": "https://github.com/Roblox-Development-Academy/Headmaster#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.2.5",
+    "css-loader": "^5.2.2",
+    "dotenv": "^8.2.0",
+    "fibers": "^5.0.0",
+    "mini-css-extract-plugin": "^1.5.0",
+    "postcss-loader": "^5.2.0",
+    "sass": "^1.32.8",
+    "sass-loader": "^11.0.1",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.33.2"
+  },
+  "sideEffects": [
+    "*.css",
+    ".scss"
+  ]
 }
