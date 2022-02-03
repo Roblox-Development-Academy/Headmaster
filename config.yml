@@ -39,6 +39,7 @@ roles:
   level_noalert: 821305537786413067
   mee6_noalert: 821311069501915136
   newclass_alert: 821305713015259187
+  gdf_alert: 938644170459971655
 
 test_roles: # Testing.
   teacher: 677766292714815508
@@ -100,3 +101,5 @@ reaction_roles: # Can use global placeholders from messages.yml in emojis
       - "%emoji.alerts_off%": "level_noalert"
       - "%emoji.alerts_off%": "mee6_noalert"
       - "%emoji.alerts_on%": "newclass_alert"
+    gdf:
+      - "%emoji.alerts_on%": "gdf_alert"
