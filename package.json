@@ -7,7 +7,7 @@
     "@babel/core": "^7.13.10",
     "air-datepicker": "^2.2.3",
     "babel-loader": "^8.2.2",
-    "webpack": "^5.28.0",
+    "webpack": "^5.76.0",
     "webpack-cli": "^4.5.0"
   },
   "devDependencies": {},
